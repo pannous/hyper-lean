@@ -115,28 +115,61 @@ instance : OfNat Hyper 1 where
 instance : OfNat Hyper x where
   ofNat := Hyper.mk (x : ℝ) 0 0
 
+
+-- unfold Mul.mul instead of Hyper.mul NEVER HELPS :(
+-- unfold Mul.mul at product  -- Explicitly unfold multiplication at 'product'  e.g. let product := (0 : Hyper) * (a:Hyper)
+instance : Mul Hyper where
+  mul x y :=
+    ⟨ x.real_part * y.real_part + x.epsilon_part * y.infinite_part + x.infinite_part * y.epsilon_part,
+      x.real_part * y.epsilon_part + x.epsilon_part * y.real_part,
+      x.real_part * y.infinite_part + x.infinite_part * y.real_part ⟩
+
+
+-- Explicitly stating HMul might help if Lean does not infer it automatically
+instance : HMul Hyper Hyper Hyper where
+  hMul := Mul.mul
+
 --  HSMul.hSMul
 instance : HSMul ℤ Hyper Hyper where
   hSMul z a := ⟨(z:ℝ) * a.real_part, (z:ℝ) * a.epsilon_part, (z:ℝ) * a.infinite_part⟩
+
+instance : HSMul ℝ Hyper Hyper where
+  hSMul r a := ⟨r * a.real_part, r * a.epsilon_part, r * a.infinite_part⟩
+
+instance : HSMul ℕ Hyper Hyper where
+  hSMul z a := ⟨(z:ℝ) * a.real_part, (z:ℝ) * a.epsilon_part, (z:ℝ) * a.infinite_part⟩
+
+instance : HSMul ℚ Hyper Hyper where
+  hSMul z a := ⟨(z:ℝ) * a.real_part, (z:ℝ) * a.epsilon_part, (z:ℝ) * a.infinite_part⟩
+
+instance : HSMul ℚ≥0 Hyper Hyper where
+  hSMul z a := ⟨(z:ℝ) * a.real_part, (z:ℝ) * a.epsilon_part, (z:ℝ) * a.infinite_part⟩
+
 
 -- Define the instance of OfNat for Hyper
 
 -- instance : OfReal Hyper x where
 --   ofNat := Hyper.mk (x : ℝ) 0 0
 
+-- Boolean equality of hyperreals
+noncomputable -- because it depends on 'Real.decidableEq', and it does not have executable code
+instance : BEq Hyper :=
+  ⟨fun x y => x.real_part == y.real_part && x.epsilon_part == y.epsilon_part && x.infinite_part == y.infinite_part⟩
 
--- noncomputable
--- instance : BEq Hyper :=
---   ⟨fun x y => x.real_part == y.real_part && x.epsilon_part == y.epsilon_part && x.infinite_part == y.infinite_part⟩
-
--- unfold Mul.mul instead of Hyper.mul
--- unfold Mul.mul at product  -- Explicitly unfold multiplication at 'product'  e.g. let product := (0 : Hyper) * (a:Hyper)
-instance : Mul Hyper where
-  mul x y :=
-    ⟨ x.real_part * y.real_part + x.epsilon_part * y.infinite_part,
-      x.real_part * y.epsilon_part + x.epsilon_part * y.real_part,
-      x.real_part * y.infinite_part + x.infinite_part * y.real_part ⟩
-
+-- Decidable equality of hyperreals
+-- noncomputable -- because it depends on 'Real.decidableEq', and it does not have executable code
+-- instance : DecidableEq Hyper :=
+--   fun x y =>
+--     if h1 : x.real_part = y.real_part then
+--       if h2 : x.epsilon_part = y.epsilon_part then
+--         if h3 : x.infinite_part = y.infinite_part then
+--           isTrue ⟨h1, h2, h3⟩
+--         else
+--           isFalse (fun h => Hyper.noConfusion h (fun h1 h2 h3 => h3 h3))
+--       else
+--         isFalse (fun h => Hyper.noConfusion h (fun h1 h2 h3 => h2 h2))
+--     else
+--       isFalse (fun h => Hyper.noConfusion h (fun h1 h2 h3 => h1 h1))
 
 
 def maxFloat : Float := 1.7976931348623157e+308
@@ -144,7 +177,8 @@ def maxFloat : Float := 1.7976931348623157e+308
 noncomputable -- why not??
 instance : Inv Hyper where
   inv (x:Hyper) :=
-    if x.real_part ≠ 0 ∧ x.epsilon_part ≠ 0 ∧ x.infinite_part ≠ 0 then
+    if x == 0 then 0 -- The inverse of 0 is 0 by convention. !?!?
+    else if x.real_part ≠ 0 ∧ x.epsilon_part ≠ 0 ∧ x.infinite_part ≠ 0 then
      ⟨1/x.real_part, 1/x.infinite_part, 1/x.epsilon_part⟩ -- ε and ω are swapped!
     else if x.real_part ≠ 0 ∧ x.epsilon_part ≠ 0 then ⟨1 / x.real_part, 0, 1/ x.epsilon_part⟩
     else if x.real_part ≠ 0 ∧ x.infinite_part ≠ 0 then ⟨1 / x.real_part, 1 / x.infinite_part, 0⟩
@@ -186,11 +220,7 @@ lemma hyper_zero0R_add (a : Hyper) : (0:ℝ) + a = a := by
   { show 0 + a.infinite_part = a.infinite_part; ring }
 
 lemma real_part_zero_is_0: Hyper.real_part 0 = 0 := by
-  -- simp [Zero.zero]
-  show Hyper.real_part 0 = 0
-  -- exact rfl
-  -- trivial
-  sorry -- obvious!
+  rfl
 
 
 lemma hyper_coercion_0: (0:ℝ) = (0:ℝ⋆) := by
@@ -204,8 +234,8 @@ lemma hyper_coercion_nat0: 0 = (0:ℝ⋆) := by
   rfl
 
 lemma hyper_coercion_nat: (0:ℕ) = (0:ℝ⋆) := by
-  #check Coe (ℕ → ℝ) -- Checks if there is a coercion from ℕ to ℝ  -- OK via Sort types
-  #check Coe (ℝ → ℝ⋆) -- Checks if there is a coercion from ℝ to ℝ⋆
+  -- #check Coe (ℕ → ℝ) -- Checks if there is a coercion from ℕ to ℝ  -- OK via Sort types
+  -- #check Coe (ℝ → ℝ⋆) -- Checks if there is a coercion from ℝ to ℝ⋆
   have coerce: (0 : ℕ) = (0: ℝ ) := by
     simp
   rw [coerce]
@@ -277,22 +307,22 @@ lemma zero_times_anything: (0:ℝ) * (a : ℝ) + (0:ℝ) * (b : ℝ) = 0 := by
   ring
 
 -- lemma zero_times_anything0: (0:ℝ) * (a : ℝ) + (0:ℝ) * (b : ℝ) = (0:ℝ⋆) := by
---   let lhs := (0:ℝ) * (a : ℝ) + (0:ℝ) * (b : ℝ)
---   let rhs := (0:ℝ⋆)
+--   let left := (0:ℝ) * (a : ℝ) + (0:ℝ) * (b : ℝ)
+--   let right := (0:ℝ⋆)
 --   rw [hyper_zero_is_zero]
---   have rhs_ok: rhs = 0 := by apply hyper_zero_is_zero
---   -- apply rhs_ok
+--   have right_ok: right = 0 := by apply hyper_zero_is_zero
+--   -- apply right_ok
 --   -- show (0:ℝ) * (a : ℝ) + (0:ℝ) * (b : ℝ) = 0
 --   -- rw [zero_times_anything]
 --   -- ring
---   rw [rhs_ok]
+--   rw [right_ok]
   -- exact zero_times_anything
 
 -- lemma zero_times_anything0part: (0:ℝ) * (a : ℝ) + (0:ℝ) * (b : ℝ) = Hyper.real_part 0 := by
-  -- let rhs := Hyper.real_part 0
-  -- have h : rhs = 0 := by
+  -- let right := Hyper.real_part 0
+  -- have h : right = 0 := by
   --   rfl
-  -- show rhs = 0
+  -- show right = 0
   -- {sorry}
   -- ring
 
@@ -301,144 +331,192 @@ lemma zero_times_anything: (0:ℝ) * (a : ℝ) + (0:ℝ) * (b : ℝ) = 0 := by
 
 -- lemma hyper_zero_mul0 (a : Hyper) : 0 * a = 0 := by
 
-lemma hyper_real_part_zero_is_0: (0:Hyper).real_part = 0 := by
-  let no := (0:Hyper)
-  unfold Zero.zero at no
-  -- absurd no.real_part_ne_zero no.real_part_ne_zero
-  -- have h : no.real_part = 0 := by
-  -- show no = O
-  show no.real_part = 0
-  -- already
-  -- assumption -- tactic 'assumption' failed
-  admit -- I admit! ≈ sorry
-  -- admit!
-  -- aesop
-  -- sorry
-  -- rfl
-  -- show 0 = (Hyper.mk 0 0 0)
-  -- show (Hyper.mk 0 0 0).real_part = 0
-
-lemma hyper_real_part_zero_is_00: Hyper.real_part 0 = 0 := by
-  show Hyper.real_part 0 = 0
+lemma hyper_real_part_one_is_1: (1:Hyper).real_part = 1 := by
   rfl
 
-lemma hyper_product(a:Hyper): (0*a).real_part = 0 * a.real_part + 0 * a.infinite_part := by
-  let mu := (0*a)
-  unfold Mul.mul at mu
+lemma hyper_real_part_zero_is_0: (0:Hyper).real_part = 0 := by
+  rfl
+
+-- lemma hyper_real_part_zero_is_zero: Hyper.real_part (0:Hyper) = (0:ℝ) := by
+--   rfl
+
+-- lemma hyper_real_part_one_is_one: Hyper.real_part 1 = (1:ℝ) := by
+--   rfl
+
+lemma hyper_product(a:Hyper): (0*a).real_part = 0 * a.real_part + 0 * a.infinite_part + 0 * a.epsilon_part  := by
+  -- let mu := (0*a)
+  -- unfold Mul.mul at mu
   rfl
 
 -- lemma hyper_zero_0_part: (0 * (a:Hyper)).real_part = 0 := by
 lemma hyper_zero_0_part: ((0:Hyper) * (a:Hyper)).real_part = 0 := by
-  let product := (0 : Hyper) * (a:Hyper)
-  unfold Mul.mul at product  -- Explicitly unfold multiplication at 'product'
+  -- let product := (0 : Hyper) * (a:Hyper)
+  -- unfold Mul.mul at product  -- Explicitly unfold multiplication at 'product'
   rw [hyper_product a]
-  show 0 * a.real_part + 0 * a.infinite_part = 0
+  show 0 * a.real_part + 0 * a.infinite_part + 0 * a.epsilon_part = 0
   ring
 
 
 
 lemma hyper_zero_mul (a : Hyper) : 0 * a = 0 := by
-  let mu := (0:Hyper) * a
-  unfold Mul.mul at mu
+  -- let mu := (0:Hyper) * a
+  -- unfold Mul.mul at mu
   apply Hyper.ext
-  { show 0 * a.real_part + 0 * a.infinite_part = 0; ring }
+  { show 0 * a.real_part + 0 * a.infinite_part + 0 * a.epsilon_part = 0; ring }
   { show 0 * a.epsilon_part + 0 * a.real_part = 0; ring }
   { show 0 * a.infinite_part + 0 * a.real_part = 0; ring }
 
 lemma hyper_one_mul (a : Hyper) : 1 * a = a := by
   apply Hyper.ext
-  { show 1 * a.real_part + 0 * a.infinite_part = a.real_part; ring }
+  { show 1 * a.real_part + 0 * a.infinite_part + 0 * a.epsilon_part = a.real_part; ring }
   { show 1 * a.epsilon_part + 0 * a.real_part = a.epsilon_part; ring }
   { show 1 * a.infinite_part + 0 * a.real_part = a.infinite_part; ring }
 
-lemma hyper_mul_one (a : Hyper) : a * 1 = a := by
-  apply Hyper.ext
-  { show a.real_part * 1 + a.epsilon_part * 0 = a.real_part; ring }
-  { show a.real_part * 0 + a.epsilon_part * 1 = a.epsilon_part; ring }
-  { show a.real_part * 0 + a.infinite_part * 1 = a.infinite_part; ring }
 
 lemma hyper_mul_zero (a : Hyper) : a * 0 = 0 := by
-  let mu := a * (0:Hyper)
-  unfold Mul.mul at mu
+  -- let mu := a * (0:Hyper)
+  -- unfold Mul.mul at mu
   apply Hyper.ext
-  { show a.real_part * 0 + a.epsilon_part * 0 = 0; ring }
+  { show a.real_part * 0 + a.epsilon_part * 0 + a.infinite_part *0 = 0; ring }
   { show a.real_part * 0 + a.epsilon_part * 0 = 0; ring }
   { show a.real_part * 0 + a.infinite_part * 0 = 0; ring }
+
+lemma hyper_mul_one (a : Hyper) : a * 1 = a := by
+  apply Hyper.ext
+  { show a.real_part * 1 + a.epsilon_part * 0 + a.infinite_part *0 = a.real_part ; ring }
+  { show a.real_part * 0 + a.epsilon_part * 1 = a.epsilon_part; ring }
+  { show a.real_part * 0 + a.infinite_part * 1 = a.infinite_part; ring }
 
 --  SAME ^^
 -- lemma hyper_0_mul (a : Hyper) : (0:Hyper) * a = (0:Hyper) := by
 
+
+lemma exists_pair_ne : ∃ (a b : Hyper), a ≠ b := by
+  use 0
+  use 1
+  have h : (0:Hyper) ≠ (1:Hyper) := by
+    intro h
+    have h1 : (0:Hyper).real_part = (1:Hyper).real_part := by
+      rw [h]
+    simp [Zero.zero, One.one] at h1
+    have : 0 = 1 := h1
+    exact absurd this (ne_of_lt (by norm_num)) -- (by decide)
+  exact h
+
 -- THIS CANNOT BE DONE currently because of the complicated way the inverse is defined
 lemma hyper_inv_cancel (a : Hyper) (h : a ≠ 0) : a * a⁻¹ = 1 := by
-  let lhs := a * a⁻¹
-  let rhs := 1
-  have h_real_part : lhs.real_part = rhs := by
-    sorry
-    -- show a.real_part * (1 / a.real_part) + a.epsilon_part * (1 / a.epsilon_part) = 1
-  have h_epsilon_part : lhs.epsilon_part = 0 := by
-    sorry
-    -- show a.real_part * 0 + a.epsilon_part * 0 = 0
-  have h_infinite_part : lhs.infinite_part = 0 := by
-    sorry
-    -- show a.real_part * 0 + a.infinite_part * 0 = 0
-  apply Hyper.ext
   sorry
-  -- exact h_real_part
-  exact h_epsilon_part
-  exact h_infinite_part
 
-lemma hyper_inv_zero (a : Hyper) (h : a = 0) : a⁻¹ = 0 := by
+theorem hyper_inv_zero : (0 : Hyper)⁻¹ = 0 :=
   sorry
+
+-- lemma hyper_inv_zero (a : Hyper) (h : a = 0) : a⁻¹ = 0 := by
+--   sorry
+
+-- instance : Inv Hyper where
+--   inv (x:Hyper) :=
+--     if x == 0 then 0 -- The inverse of 0 is 0 by convention. !?!?
+
+-- theorem hyper_inv_zero : (0 : Hyper)⁻¹ = 0 :=
+--   let inv := (0 : Hyper)⁻¹;
+--   -- Begin the proof block
+--   show inv = 0 from
+--   -- Evaluate the definition of inverse on zero
+--   match (0 : Hyper), inv with
+--   | _, inv =>
+--     -- Assert and check the condition directly
+--     if h : (0 : Hyper) = 0 then -- failed to synthesize instance Decidable (0 = 0)
+--       -- Here we use the true branch of the if statement
+--       by simp [Inv.inv, h]
+--     else
+--       -- Handle the false branch, which is theoretically unreachable
+--       by contradiction
+
+
+-- The inverse of 0 is 0 by convention. !?!?
+-- lemma hyper_inv_zero : (0:Hyper)⁻¹ = 0 := by
+--   let inv := (0:Hyper)⁻¹
+--   unfold Inv.inv at inv
+--   have inv_0: inv = (0:Hyper) := by sorry
+--   exact inv_0
+  -- use definition of inverse for proof
+
+
 
 lemma hyper_mul_comm (a b : Hyper) : a * b = b * a := by
   apply Hyper.ext
-  { show a.real_part * b.real_part + a.epsilon_part * b.infinite_part = b.real_part * a.real_part + b.epsilon_part * a.infinite_part; ring }
+  { show a.real_part * b.real_part + a.epsilon_part * b.infinite_part + a.infinite_part * b.epsilon_part = b.real_part * a.real_part + b.epsilon_part * a.infinite_part + b.infinite_part * a.epsilon_part; ring }
   { show a.real_part * b.epsilon_part + a.epsilon_part * b.real_part = b.real_part * a.epsilon_part + b.epsilon_part * a.real_part; ring }
   { show a.real_part * b.infinite_part + a.infinite_part * b.real_part = b.real_part * a.infinite_part + b.infinite_part * a.real_part; ring }
+  -- UFF, OK! 😺
 
-lemma hyper_mul_assoc (a b c : Hyper) : a * b * c = a * (b * c) := by
-  let lhs := a * b * c
-  unfold Mul.mul at lhs
-  let rhs := a * (b * c)
-  unfold Mul.mul at rhs
-  -- have rhs_is: rhs = a.real_part * b.real_part * c.real_part + a.epsilon_part * b.infinite_part * c.infinite_part := by simp
-  apply Hyper.ext
-  {sorry}
-  {sorry}
-  {sorry}
-  -- { show a.real_part * b.real_part * c.real_part + a.epsilon_part * b.infinite_part * c.infinite_part = a.real_part * (b.real_part * c.real_part + b.epsilon_part * c.infinite_part); ring }
-  -- { show a.real_part * b.epsilon_part * c.real_part + a.epsilon_part * b.real_part * c.infinite_part = a.real_part * (b.epsilon_part * c.real_part + b.real_part * c.infinite_part); ring }
-  -- { show a.real_part * b.infinite_part * c.real_part + a.infinite_part * b.real_part * c.infinite_part = a.real_part * (b.infinite_part * c.real_part + b.real_part * c.infinite_part); ring }
-  -- { show a.real_part * b.real_part * c.real_part + a.epsilon_part * b.infinite_part * c.infinite_part = a.real_part * (b.real_part * c.real_part + b.epsilon_part * c.infinite_part); ring }
-  -- { show a.real_part * b.epsilon_part * c.real_part + a.epsilon_part * b.real_part * c.infinite_part = a.real_part * (b.epsilon_part * c.real_part + b.real_part * c.infinite_part); ring }
-  -- { show a.real_part * b.infinite_part * c.real_part + a.infinite_part * b.real_part * c.infinite_part = a.real_part * (b.infinite_part * c.real_part + b.real_part * c.infinite_part); ring }
 
 lemma hyper_left_distrib (a b c : Hyper) : a * (b + c) = a * b + a * c := by
+  let left := a * (b + c)
+  let summe := (b + c)
+  let right := a * b + a * c
+  unfold Mul.mul at left
+  unfold Mul.mul at right
+  unfold Add.add at summe
+  let ar := a.real_part
+  let ae := a.epsilon_part
+  let ai := a.infinite_part
+  let br := b.real_part
+  let be := b.epsilon_part
+  let bi := b.infinite_part
+  let cr := c.real_part
+  let ce := c.epsilon_part
+  let ci := c.infinite_part
+
+  -- unfold Add.add at right
+  apply Hyper.ext
+  -- { show ar * (br + cr) + ae * (bi + ci) + ai * (be + ce) = ar * br + ae * be + ai * bi + ar * cr + ae * ce + ai * ci; ring }
+  { sorry }
+  { sorry }
+  { sorry }
+  -- { show ar * (be + ce) + ae * (br + cr) = ar * be + ar * ce + ae * br + ae * cr; ring }
+  -- { show ar * (be + ce) + ae * (br + cr) = ar * be + ae * br + ar * ce + ae * cr; ring }
+  -- { show ar * (bi + ci) + ai * (br + cr) = ar * bi + ai * br + ar * ci + ai * cr; ring }
+
+
+
+lemma hyper_mul_assoc (a b c : Hyper) : a * b * c = a * (b * c) := by
+  let left := a * b * c
+  let right := a * (b * c)
+  unfold Mul.mul at left
+  unfold Mul.mul at right
+  -- have right_is: right = a.real_part * b.real_part * c.real_part + a.epsilon_part * b.infinite_part * c.infinite_part := by simp
   apply Hyper.ext
   {sorry}
   {sorry}
   {sorry}
-  -- { show a.real_part * (b.real_part + c.real_part) + a.epsilon_part * (b.infinite_part + c.infinite_part) = a.real_part * b.real_part + a.real_part * c.real_part + a.epsilon_part * b.infinite_part + a.epsilon_part * c.infinite_part; ring }
-  -- { show a.real_part * (b.infinite_part + c.infinite_part) + a.epsilon_part * (b.real_part + c.real_part) = a.real_part * b.infinite_part + a.real_part * c.infinite_part + a.epsilon_part * b.real_part + a.epsilon_part * c.real_part; ring }
-  -- { show a.real_part * (b.real_part + c.infinite_part) + a.infinite_part * (b.real_part + c.infinite_part) = a.real_part * b.real_part + a.real_part * c.infinite_part + a.infinite_part * b.real_part + a.infinite_part * c.infinite_part; ring }
 
--- def my_star_operation (x y : ℤ) : ℤ := x * y
--- infix:10 "⋆" => my_star_operation
--- infix:10 "•" => my_star_operation
--- #eval 3 ⋆ 4  -- Output will be 13
 
-lemma hyper_zsmul (n : ℤ) (a : Hyper) : n • a = n * a := by
-  let lhs := n • a
-  let rhs := n * a
-  unfold HSMul.hSMul at lhs
-  unfold Mul.mul at rhs
+
+lemma hyper_right_distrib (a b c : Hyper) : (a + b) * c = a * c + b * c := by
   apply Hyper.ext
-  { show n * a.real_part = n * a.real_part; ring }
-  { show n • a.epsilon_part = n * a.epsilon_part; ring }
-  { show n • a.infinite_part = n * a.infinite_part; ring }
+  {sorry}
+  {sorry}
+  {sorry}
 
 
 
+
+lemma zero_ne_one (h : (0:Hyper) = 1) : False := by
+  have h1 : (0:Hyper).real_part = (1:Hyper).real_part := by
+    rw [h]
+  simp [Zero.zero, One.one] at h1
+  -- The above simplification leads to 0 = 1 in real numbers, which is a contradiction
+  -- rw [hyper_real_part_zero_is_zero, hyper_real_part_one_is_one] at h1
+  -- contradiction
+  have : 0 = 1 := h1
+  -- have : (0:ℝ) = (1:ℝ) := h1
+  -- This is a clear contradiction as 0.0 ≠ 1.0
+  exact absurd this (ne_of_lt (by norm_num)) -- (by decide)
+
+
+noncomputable -- because it depends on 'Real.instLinearOrderedField', and it does not have executable code
+-- instance : LinearOrderedField Hyper := {
 instance : Field Hyper := {
   mul := Mul.mul,
   add := Add.add,
@@ -459,399 +537,41 @@ instance : Field Hyper := {
   mul_assoc:= hyper_mul_assoc,
   mul_inv_cancel:= hyper_inv_cancel,
   mul_comm:= hyper_mul_comm,
-  inv_zero:= hyper_inv_zero,
+  inv_zero:=  hyper_inv_zero, -- (0:Hyper)⁻¹ = 0, The inverse of 0 is 0 by convention. !?!?
   left_distrib:= hyper_left_distrib,
   right_distrib:= hyper_right_distrib,
-  zsmul:= sorry,
-  -- nsmul:=sorry,
-  -- qsmul:=sorry,
-  -- nnqsmul:=sorry,
-  -- exists_pair_ne:=sorry,
+  zsmul:= HSMul.hSMul,
+  nsmul:= HSMul.hSMul,
+  qsmul:= HSMul.hSMul,
+  nnqsmul:= HSMul.hSMul, -- (· • ·)
+  exists_pair_ne:=⟨ 0 , 1 , zero_ne_one ⟩,
 }
+  /--
+  -- The hyperreal numbers ℝ⋆ form a linear ordered field.
+  le := sorry,
+  lt := sorry,
+  le_refl := sorry,
+  le_trans := sorry,
+  lt_iff_le_not_le := sorry,
+  le_antisymm := sorry,
+  add_le_add_left := sorry,
+  zero_le_one := sorry,
+  mul_pos := sorry,
+  le_total:=sorry,
+  decidableLE := sorry,
+  -- decidable_le := sorry,
+  -- decidable_eq := sorry,
+  -- decidable_lt := sorry
+  -/
 
-/-- The hyperreal numbers ℝ⋆ form a linear ordered field. -/
-noncomputable
-instance : LinearOrderedField ℝ⋆ :=
-{
-  zero := O, -- 0
-  one := I,
-  neg := Neg.neg,
-  add := Add.add,
-  mul := Mul.mul,
-  -- Provide proofs for these
-  add_assoc := hyper_add_assoc,
-  -- zero_add := λ a => sorry,
-  -- add_zero := sorry,
-  -- add_left_neg := sorry,
-  -- add_comm := sorry,
-  -- mul_assoc := sorry,
-  -- one_mul := sorry,
-  -- mul_one := sorry,
-  -- left_distrib := sorry,
-  -- right_distrib := sorry,
-  -- mul_comm := sorry,
-  -- inv := Inv.inv,
-  -- div := Div.div,
-  -- exists_pair_ne := sorry,
-  -- mul_inv_cancel := sorry,
-  -- inv_zero := sorry,
-  -- le := sorry,
-  -- lt := sorry,
-  -- le_refl := sorry,
-  -- le_trans := sorry,
-  -- lt_iff_le_not_le := sorry,
-  -- le_antisymm := sorry,
-  -- add_le_add_left := sorry,
-  -- zero_le_one := sorry,
-  -- mul_pos := sorry,
-  -- -- add_lt_add_left := sorry,
-  -- -- decidable_le := sorry,
-  -- -- decidable_eq := sorry,
-  -- -- decidable_lt := sorry
-  -- nsmul := sorry,
-  -- zero_mul:=sorry,
-  -- mul_zero:=sorry,
-  -- zsmul:=sorry,
-  -- le_total:=sorry,
-  -- decidableLE:=sorry,
-  -- nnqsmul:=sorry,
-  -- qsmul:=sorry,
-}
--/
 
 
-lemma hyper_mul_comm (a b : Hyper) : a * b = b * a := by
-  apply Hyper.ext
-  {
-    show a.real_part * b.real_part + a.epsilon_part * b.infinite_part = b.real_part * a.real_part + b.epsilon_part * a.infinite_part
-    ring
-  }
-  {show a.real_part * b.epsilon_part + a.epsilon_part * b.real_part = b.real_part * a.epsilon_part + b.epsilon_part * a.real_part; ring}
-  {show a.real_part * b.infinite_part + a.infinite_part * b.real_part = b.real_part * a.infinite_part + b.infinite_part * a.real_part; ring}
 
 
 
--- lemma Hyper.ext : ∀ (x y : Hyper), x.real_part = y.real_part → x.epsilon_part = y.epsilon_part → x.infinite_part = y.infinite_part → x = y :=
---   fun x y h1 h2 h3 =>
---     match x, y with
---     | ⟨xr, xe, xi⟩, ⟨yr, ye, yi⟩ =>
---       have h : xr = yr ∧ xe = ye ∧ xi = yi := by
---         split; assumption
---       match h with
---       | ⟨rfl, rfl, rfl⟩ => rfl
 
-
-
--- this simplifies the definition with setting ε^2 = 0 and ω^2 = ∞
--- better:
--- single ε-value and exponent, e.g. (1, 1) => ε ; (1, 2) => ε^2
--- (epsilon_part : ℝ × ℝ) -- ε-part
--- todo: enable ε^2 and ω^2 via tuples of reals and exponentiats
--- structure Hyper_Complicated :=
--- (real_part : ℝ)
--- -- multiple ε-values and exponents,  e.g. [(1, 1),(1, 2)] => ε+ε^2
--- (epsilon_part : List (ℝ × ℝ)) -- ε-parts
--- (infinite_part : List (ℝ × ℝ)) -- ω-parts
-
-
--- todo: make epsilon and omega infinitesimal and infinite respectively
--- todo: add axioms for ε and ω
-
-
-
--- two instances of the same type are the same if their components are the same
-example : Hyper.mk 1 2 3 = Hyper.mk 1 2 3 := by
-  rfl
-
-example : Hyper.mk 1 2 3 = Hyper.mk 1 2 (2 + 1) := by
-  apply Hyper.ext
-  rfl  -- real_part is directly equal
-  rfl  -- epsilon_part is directly equal
-  norm_num
-
-example : Hyper.mk 1 2 3 = Hyper.mk 1 2 (2 + 1) := by
-  -- congruence very powerful!
-  congr -- when f x = f y and you want to reduce it to x = y, here we have f = Hyper.mk
-  norm_num
-
-def h1 := Hyper.mk 1 2 3
-def h2 := Hyper.mk 4 5 6
-
-
-example : h1 + h2 = Hyper.mk 5 7 9 := by
-  let lhs := h1 + h2
-  let rhs := Hyper.mk 5 7 9
-  have h_real_part : lhs.real_part = rhs.real_part := by
-    show 1 + 4 = 5;
-    norm_num
-  have h_epsilon_part : lhs.epsilon_part = rhs.epsilon_part := by
-    show 2 + 5 = 7
-    norm_num
-  have h_infinite_part : lhs.infinite_part = rhs.infinite_part := by
-    show 3 + 6 = 9
-    norm_num
-  apply Hyper.ext
-  exact h_real_part
-  exact h_epsilon_part
-  exact h_infinite_part
--- NOT NEEDED / WORKING:
---   cases h1,
---   cases h2,
--- intro h
--- cases h
--- split
--- all_goals { rfl }
---   simp only [Add.add, Hyper.add]
--- congr use when f x = f y and you want to reduce it to x = y, here we have f = Hyper.mk
-
-
--- lemma hyper_addition :
--- lemma hyper_addition (a b c d e f : ℕ) : auto coerced to:
-lemma hyper_addition (a b c d e f : ℝ) :
-  Hyper.mk a b c + Hyper.mk d e f = Hyper.mk (a + d) (b + e) (c + f) := by
-  let lhs := Hyper.mk a b c + Hyper.mk d e f
-  let rhs := Hyper.mk (a + d) (b + e) (c + f)
-  have h_real_part : lhs.real_part = rhs.real_part := by
-    show a + d = a + d
-    norm_num
-  have h_epsilon_part : lhs.epsilon_part = rhs.epsilon_part := by
-    show b + e = b + e
-    norm_num
-  have h_infinite_part : lhs.infinite_part = rhs.infinite_part := by
-    show c + f = c + f
-    norm_num
-  apply Hyper.ext
-  exact h_real_part
-  exact h_epsilon_part
-  exact h_infinite_part
-
--- apply the lemma to prove an addition
-example : Hyper.mk 1 2 3 + Hyper.mk 4 5 6 = Hyper.mk (1 + 4) (2 + 5) (3 + 6) := by
-  apply hyper_addition
-
--- example : h1 + h2 = Hyper.mk 5 7 9 := by
---   apply hyper_addition -- CAN'T DO THIS
-
--- example : h1 + h2 = Hyper.mk 5 7 9 := by
---   have h := hyper_addition 1 2 3 4 5 6
---   rw [h] -- Can't do this
---   norm_num
-
-
-
-def h01 := Hyper.mk 1 0 0
-def h02 := Hyper.mk 0 1 0
-
--- Example to verify multiplication
-example : h01 * h02 = Hyper.mk 0 1 0 := by
-  apply Hyper.ext
-  {show 1 * 0 + 0 * 0 = 0; norm_num}
-  {show 1 * 1 + 0 * 0 = 1; norm_num}
-  {show 1 * 0 + 0 * 0 = 0; norm_num}
-
-
--- The expected result of multiplying h1 and h2
-def expected := Hyper.mk (1*4 + 2*6) (1*5 + 2*4) (1*6 + 3*4)
-
-def example_hyper_mul : ℝ⋆ :=
-  let a := Hyper.mk 1 2 3
-  let b := Hyper.mk 4 5 6
-  a * b
-
--- example : example_hyper_mul = ⟨1 * 4 + 2 * 6, 1 * 5 + 2 * 4, 1 * 6 + 3 * 4⟩ := by
-example : example_hyper_mul = expected := by
--- example : example_hyper_mul = ⟨16, 13, 18⟩ := by
-  let lhs := example_hyper_mul
-  let rhs : Hyper := ⟨1 * 4 + 2 * 6, 1 * 5 + 2 * 4, 1 * 6 + 3 * 4⟩
-  have h_real_part : lhs.real_part = rhs.real_part := by
-    show 1 * 4 + 2 * 6 = 1 * 4 + 2 * 6
-    norm_num
-  have h_epsilon_part : lhs.epsilon_part = rhs.epsilon_part := by
-    show 1 * 5 + 2 * 4 = 1 * 5 + 2 * 4
-    norm_num
-  have h_infinite_part : lhs.infinite_part = rhs.infinite_part := by
-    show 1 * 6 + 3 * 4 = 1 * 6 + 3 * 4
-    norm_num
-  apply Hyper.ext
-  exact h_real_part
-  exact h_epsilon_part
-  exact h_infinite_part
-
-
-lemma hyper_multiplication (a b c d e f : ℝ) : (Hyper.mk a b c) * (Hyper.mk d e f) = Hyper.mk (a * d + b * f) (a * e + b * d) (a * f + c * d) := by
-  -- Define the multiplication result step by step
-  let lhs := (Hyper.mk a b c) * (Hyper.mk d e f)
-  let rhs := Hyper.mk (a * d + b * f) (a * e + b * d) (a * f + c * d)
-  have h_real_part : lhs.real_part = rhs.real_part := by
-    show a * d + b * f = a * d + b * f
-    rfl
-  have h_epsilon_part : lhs.epsilon_part = rhs.epsilon_part := by
-    show a * e + b * d = a * e + b * d
-    rfl
-  -- Show the infinite_part components are equal
-  have h_infinite_part : lhs.infinite_part = rhs.infinite_part := by
-    show a * f + c * d = a * f + c * d
-    rfl
-  -- Combine the equalities to show the overall equality
-
-  apply Hyper.ext
-  exact h_real_part
-  exact h_epsilon_part
-  exact h_infinite_part
-
-
-
-lemma hyper_multiplication2 (a b c d e f) :
-  (Hyper.mk a b c) * (Hyper.mk d e f) = Hyper.mk (a * d + b * f) (a * e + b * d) (a * f + c * d) := by
-  apply Hyper.ext
-  { show a * d + b * f = a * d + b * f; rfl } -- stupid show!
-  { show a * e + b * d = a * e + b * d; rfl }
-  { show a * f + c * d = a * f + c * d; rfl }
-
-
-example : Hyper.mk 0 0 0 = Hyper.mk 0 0 0 := by
-  rfl
-
-example : Hyper.mk (x : ℝ) 0 0 = Hyper.mk (x : ℝ) 0 0 := by
-  rfl
-
-
-example : one * zero = zero := by
-  apply Hyper.ext
-  all_goals
-  {
-    show 1 * 0 + 0 * 0 = 0
-    norm_num
-  }
-
-
--- example : one * zero = zero := by
-  -- apply hyper_multiplication(1 0 0 0 0 0)
--- Example using the coercion
-
-
-example : (↑(0:ℝ) : ℝ⋆) = (zero : ℝ⋆) := by
-  rfl -- works
-
-
--- Verify coercion from ℕ to ℝ⋆
-example : (↑(0 : ℕ) : ℝ⋆) = zero := by
-  -- show (Hyper.mk (↑0) 0 0) = zero
-  show (Hyper.mk 0 0 0) = zero
-  rw [Nat.cast_zero]
-  rfl
-
-example : (↑0 : ℝ⋆) = (O : ℝ⋆) := by
-  have h : (Hyper.mk 0 0 0) = O := by
-    rfl
-  show (↑0 : ℝ⋆) = (Hyper.mk 0 0 0)
-  exact h
-  rfl -- doesn't work
-
-
-example : (↑(0:ℕ) : ℝ⋆) = (zero : ℝ⋆) := by
-  show (↑(0:ℝ) : ℝ⋆) = (↑(0:ℝ) : ℝ⋆) -- zero
-  -- show (Hyper.mk 0 0 0) = O
-  rfl -- doesn't work
-
-
-example : (↑0 : ℝ*) = (zero : ℝ*) := by
-  rfl
-
--- Another example using a natural number
-example : (↑1 : ℝ*) = (one : ℝ*) := by
-  rfl
-
--- defines:
--- def mul (a b : Hyper) : Hyper :=
---   Hyper.mk (a.real_part * b.real_part + a.epsilon_part * b.infinite_part)
---             (a.real_part*b.epsilon_part +a.epsilon_part*b.real_part) -- + a.epsilon_part * b.epsilon_part => ε^2 / 0 ?
---             (a.real_part*b.infinite_part + a.infinite_part*b.real_part ) -- a.infinite_part * b.infinite_part => ω^2 !
-
---  VIA COERCION :
--- def mul_hyper_real (a : Hyper) (b : Real) : Hyper :=
---   Hyper.mk (a.real_part * b)
---             (a.epsilon_part * b)
---             (a.infinite_part * b)
-
--- def mul_real_hyper (a : Real) (b : Hyper) : Hyper :=
---   Hyper.mk (a * b.real_part)
---             (a * b.epsilon_part)
---             (a * b.infinite_part)
-
-example : ofReal 0 = zero := by
-  rfl
-
--- example : (0:ℝ) = zeroh := by
-example : (↑0 : ℝ*) = (zero: ℝ*) := by
-  rfl
-
--- failed to synthesize instance
---   OfNat ℝ* 0
-
-
-example : zero == 0 := by
-  -- show (0 : ℝ⋆) = zero
-  -- show (0 : ℝ⋆) = ⟨0, 0, 0⟩
-  show (0 : ℝ⋆) = zero
-  rfl
-
-example : 1 = one := rfl
-
-
--- axiom epsilon_mul_omega_gauging : ε * ω = one
-axiom epsilon_mul_omega_gauging : mul ε ω = one
--- axiom epsilon_mul_omega_gauging : ∀ (x : ℝ) , ( x ≠ 0 ) → (ε * ω = 1)
--- axiom epsilon_mul_omega_gauging : ∀ (ε ω : ℝ), (ε ≠ 0) → (ω ≠ 0) → (ε * ω = 1)
-
-
--- Define the standard part function
-def standardPart (x : Hyper) : EReal :=
-  if x.infinite_part==0 then x.real_part else if x.infinite_part > 0 then ∞ else -∞
-
--- lemmas about ε and ω
--- lemma ε_times_ω_equals_one : ε * ω = 1 := by
---   rw [Mul, ε, ω]
---   -- further simplifications and algebraic manipulation needed
---   sorry -- placeholder for proof
-
-
-def main : IO UInt32 := do
-  IO.println "Hello, tree!"
-  pure 0
-
-#eval main
-
-
-
-
--- Declare hyperreals as an extension of the reals
--- constant hyperreal : Type
--- constant ℝ* : Type
--- notation `ℝ*` := hyperreal
--- notation `ℝ*` := ℝ*
-
--- -- Declare infinitesimal and infinite numbers
--- constant epsilon : ℝ*
--- constant omega : ℝ*
-
--- -- Axioms for epsilon and omega
--- axiom epsilon_infinitesimal : ∀ r : ℝ, r > 0 → epsilon < r
--- axiom omega_infinite : ∀ r : ℝ, omega > r
--- axiom epsilon_omega_relation : epsilon * omega = 1
-
--- -- Additional axioms for ℝ*
--- -- Closure under ℝ operations
--- axiom add_closure : ∀ x y : ℝ*, x + y ∈ ℝ*
--- axiom mul_closure : ∀ x y : ℝ*, x * y ∈ ℝ*
-
-
--- -- transfer principle for hyperreals
--- axiom transfer : ∀ {P : ℝ → Prop}, (∀ r : ℝ, P r) → P epsilon → P omega → ∀ r : ℝ*, P r
-
--- Define the standard part function
-def standardPart (x : ℝ*) : ℝ := -- ℝ∞
-  if x > 0 then 1 else if x < 0 then -1 else 0
+lemma product_zero_means_arg_is_zero (a b : Hyper) (h : a * b = 0) :  a = 0 ∨ b = 0 := by
+  exact mul_eq_zero.mp h  -- USE EXISTING FIELD THEORY for our Hyper! 😺
 
 end Hypers
 end Hypers
