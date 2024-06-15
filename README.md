@@ -4,7 +4,9 @@ Hyperreal numbers implementated algebraically in the Lean 4 mathematical proof l
 
 [Hyperreal numbers Wiki](https://en.wikipedia.org/wiki/Hyperreal_number)
   
-Lean comes with import Mathlib.Data.Real.Hyperreal -- defined as hyperfilter germ but we want it axiomatically
+Lean comes with import Mathlib.Data.Real.Hyperreal -- defined as hyperfilter germ
+**but we want Hyperreal numbers axiomatically with the added property ε*ω = 1 **
+Also we want it calculable with a simple structure 
 
 In mathematics, the system of hyperreal numbers is a way of treating infinite and infinitesimal (infinitely small but non-zero) quantities. The hyperreals, or nonstandard reals, *R, are an extension of the real numbers R with algebraic spanning elements ω ≈ ∞ and ε ≈ 1/∞.  
   
