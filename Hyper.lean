@@ -34,11 +34,11 @@ section Hypers
 -- Define the structure of hyperreal numbers
 -- after all proofs are done, we can set fields to Float 𝔽 or Rational ℚ for evaluation
 structure Hyper :=
-  real_part : ℝ -- todo ℝ∞
+  real_part : ℝ
   epsilon_part : ℝ -- ε-part
   infinite_part : ℝ -- ω-part
-  exception : Prop -- NaN or ε² or ±∞ (part)
-  -- exception : Bool -- NaN or ε² or ±∞ (part)
+  -- exception : Prop -- NaN or ε² or ±∞ (part)
+  exception : Bool -- NaN or ε² or ±∞ (part)
   -- higher orders ω² not implemented here => ε² ≈ 0 and ω² ≈ ∞
 -- we can norm r + ε² to r and r + ε + ω + ω² to ∞
 
@@ -155,7 +155,13 @@ instance : Neg Hyper where
 
 
 instance : Add Hyper := ⟨
-  λ x y => ⟨x.real_part + y.real_part, x.epsilon_part + y.epsilon_part, x.infinite_part + y.infinite_part, (x.exception ∨ y.exception)⟩
+  λ x y => ⟨
+    x.real_part + y.real_part,
+    x.epsilon_part + y.epsilon_part,
+    x.infinite_part + y.infinite_part,
+    (x.exception || y.exception) -- for Bool
+    -- (x.exception ∨ y.exception) -- for Prop
+    ⟩
 ⟩
 
 instance : Sub Hyper where
@@ -279,7 +285,9 @@ instance : Mul Hyper where
     ⟨ x.real_part * y.real_part + x.epsilon_part * y.infinite_part + x.infinite_part * y.epsilon_part,
       x.real_part * y.epsilon_part + x.epsilon_part * y.real_part,
       x.real_part * y.infinite_part + x.infinite_part * y.real_part,
-      x.exception ∨ y.exception ⟩
+      -- x.exception ∨ y.exception -- for Prop
+      x.exception || y.exception -- for Bool
+      ⟩
       -- todo fix later:
 --  ∨ y.epsilon_part ≠ (0:ℕ) ∧ x.epsilon_part ≠ (0:ℕ) ∨ x.infinite_part ≠ (0:ℕ) ∧ y.infinite_part ≠ (0:ℕ)
     --  ∧ x.epsilon_part ≠ (0:ℕ) ∨ x.infinite_part ≠ (0:ℕ) ∧ y.infinite_part ≠ (0:ℕ)
@@ -400,13 +408,13 @@ theorem false_or_exception_eq (a : Hyper) : False ∨ a.exception = a.exception 
 
 
 -- lemma hyper_zero_add (a : Hyper) : 0 + a = a := by
-lemma hyper_zero0R_add (a : Hyper) : (0:ℝ) + a = a := by
-  apply Hyper.ext
-  { show 0 + a.real_part = a.real_part; ring }
-  { show 0 + a.epsilon_part = a.epsilon_part; ring }
-  { show 0 + a.infinite_part = a.infinite_part; ring }
-  { show (false ∨ a.exception) = a.exception;  simp [or_false]} -- ok for PROP
-  -- { show (False ∨ a.exception) = a.exception;  simp [or_false]} -- NOT ok for Bool
+-- lemma hyper_zero0R_add (a : Hyper) : (0:ℝ) + a = a := by
+--   apply Hyper.ext
+--   { show 0 + a.real_part = a.real_part; ring }
+--   { show 0 + a.epsilon_part = a.epsilon_part; ring }
+--   { show 0 + a.infinite_part = a.infinite_part; ring }
+--   -- { show (false ∨ a.exception) = a.exception;  simp [or_false]} -- ok for PROP
+--   { show (false || a.exception) = a.exception;  simp [or_false]} -- NOT ok for Bool
   -- in lean a ∨ b = c is parsed as a ∨ (b = c) !!!
   -- Or.inr rfl   only applies to pattern a ∨ (b = b)  OK got it
 
@@ -430,6 +438,17 @@ lemma hyper_coercion_nat: (0:ℕ) = (0:ℝ⋆) := by
   rw [coerce]
   rfl
 
+
+lemma hyper_add_zero (a : Hyper) : a + 0 = a := by
+  apply Hyper.ext
+  { show a.real_part + 0 = a.real_part; ring }
+  { show a.epsilon_part + 0 = a.epsilon_part; ring }
+  { show a.infinite_part + 0 = a.infinite_part; ring }
+  -- { show (a.exception ∨ false ) = a.exception;  simp [or_false]} -- OK for PROP
+  { show (a.exception || false ) = a.exception;  simp [or_false]}
+
+
+
 /--using: instance : Add Hyper := ⟨
   λ x y => ⟨x.real_part + y.real_part, x.epsilon_part + y.epsilon_part, x.infinite_part + y.infinite_part⟩
 ⟩-/
@@ -444,7 +463,8 @@ lemma hyper_zero_add (a : Hyper) : 0 + a = a := by
   }
   { show 0 + a.epsilon_part = a.epsilon_part; ring }
   { show 0 + a.infinite_part = a.infinite_part; ring }
-  { show (false ∨ a.exception) = a.exception;  simp [or_false]}
+  -- { show (false ∨ a.exception) = a.exception;  simp [or_false]}
+  { show (false || a.exception) = a.exception;  simp [or_false]}
   -- calc syntax is VERY FINICKY! it does NOT need := by  this syntax is ok but doen't work:
   --  { show Hyper.real_part 0 + a.real_part = a.real_part from
   --    calc
@@ -458,30 +478,29 @@ lemma hyper_zero_add (a : Hyper) : 0 + a = a := by
 -- lemma hyper_zero0H_add (a : Hyper) : (0: Hyper) + a = a := by
 
 
-lemma hyper_add_zero (a : Hyper) : a + 0 = a := by
-  apply Hyper.ext
-  { show a.real_part + 0 = a.real_part; ring }
-  { show a.epsilon_part + 0 = a.epsilon_part; ring }
-  { show a.infinite_part + 0 = a.infinite_part; ring }
-  { show (a.exception ∨ false ) = a.exception;  simp [or_false]}
-
-
 
 lemma hyper_add_zero0 (a : Hyper) : a + (0:ℝ) = a := by
   apply Hyper.ext
   { show a.real_part + 0 = a.real_part; ring }
   { show a.epsilon_part + 0 = a.epsilon_part; ring }
   { show a.infinite_part + 0 = a.infinite_part; ring }
-  { show (a.exception ∨ false ) = a.exception;  simp [or_false]}
+  -- { show (a.exception ∨ false ) = a.exception;  simp [or_false]}
+  { show (a.exception || false ) = a.exception;  simp [or_false]}
 
 
+lemma aorb (a b : Bool) : a || b = b || a := by
+  simp [or_comm]
+
+lemma aorb1 (a b : Bool) : (a || b) = (b || a) := by
+  simp [or_comm]
 
 lemma hyper_add_comm (a b : Hyper) : a + b = b + a := by
   apply Hyper.ext
   { show a.real_part + b.real_part = b.real_part + a.real_part; ring }
   { show a.epsilon_part + b.epsilon_part = b.epsilon_part + a.epsilon_part; ring }
   { show a.infinite_part + b.infinite_part = b.infinite_part + a.infinite_part; ring }
-  { show (a.exception ∨ b.exception) = (b.exception ∨ a.exception);  simp [or_comm]}
+  { show (a.exception || b.exception) = (b.exception || a.exception);  simp [Bool.or_comm]}
+  -- { show (a.exception ∨ b.exception) = (b.exception ∨ a.exception);  simp [or_comm]} -- for Prop
 
 
 lemma hyper_add_assoc (a b c : Hyper) : a + b + c = a + (b + c) := by
@@ -489,7 +508,9 @@ lemma hyper_add_assoc (a b c : Hyper) : a + b + c = a + (b + c) := by
   { show a.real_part + b.real_part + c.real_part = a.real_part + (b.real_part + c.real_part); ring }
   { show a.epsilon_part + b.epsilon_part + c.epsilon_part = a.epsilon_part + (b.epsilon_part + c.epsilon_part); ring }
   { show a.infinite_part + b.infinite_part + c.infinite_part = a.infinite_part + (b.infinite_part + c.infinite_part); ring }
-  { show ((a.exception ∨ b.exception) ∨ c.exception) = (a.exception ∨ (b.exception ∨ c.exception));  simp [or_assoc]}
+  { show ((a.exception || b.exception) || c.exception) = (a.exception || (b.exception || c.exception));  simp [Bool.or_assoc]}
+  -- { show ((a.exception ∨ b.exception) ∨ c.exception) = (a.exception ∨ (b.exception ∨ c.exception));  simp [or_assoc]}
+
 
 
 lemma hyper_add_left_neg (a : Hyper) : -a + a = 0 := by
@@ -497,7 +518,8 @@ lemma hyper_add_left_neg (a : Hyper) : -a + a = 0 := by
   { show -a.real_part + a.real_part = 0; ring }
   { show -a.epsilon_part + a.epsilon_part = 0; ring }
   { show -a.infinite_part + a.infinite_part = 0; ring }
-  { show ((-a).exception ∨ a.exception) = false; sorry } -- todo COULD BE TRUE NaN + NaN = NaN !
+  { show ((-a).exception || a.exception) = false; sorry } -- todo COULD BE TRUE NaN + NaN = NaN !
+  -- { show ((-a).exception ∨ a.exception) = false; sorry } -- todo COULD BE TRUE NaN + NaN = NaN !
 
 lemma hyper_zero_is_zero :  (0:ℝ⋆) = (0:ℝ) := by
   rfl
@@ -564,14 +586,16 @@ lemma hyper_zero_mul (a : Hyper) : 0 * a = 0 := by
   { show 0 * a.real_part + 0 * a.infinite_part + 0 * a.epsilon_part = 0; ring }
   { show 0 * a.epsilon_part + 0 * a.real_part = 0; ring }
   { show 0 * a.infinite_part + 0 * a.real_part = 0; ring }
-  { show (false ∨ a.exception) = false;  simp [false_or]; sorry } -- todo 0 * NaN = NaN! OK! 😺
+  { show (false || a.exception) = false;  simp [false_or]; sorry } -- todo 0 * NaN = NaN! OK! 😺
+  -- { show (false ∨ a.exception) = false;  simp [false_or]; sorry } -- todo 0 * NaN = NaN! OK! 😺
 
 lemma hyper_one_mul (a : Hyper) : 1 * a = a := by
   apply Hyper.ext
   { show 1 * a.real_part + 0 * a.infinite_part + 0 * a.epsilon_part = a.real_part; ring }
   { show 1 * a.epsilon_part + 0 * a.real_part = a.epsilon_part; ring }
   { show 1 * a.infinite_part + 0 * a.real_part = a.infinite_part; ring }
-  { show (false ∨ a.exception) = a.exception;  simp [false_or] }
+  { show (false || a.exception) = a.exception;  simp [false_or] }
+  -- { show (false ∨ a.exception) = a.exception;  simp [false_or] }
 
 
 lemma hyper_mul_zero (a : Hyper) : a * 0 = 0 := by
@@ -581,14 +605,15 @@ lemma hyper_mul_zero (a : Hyper) : a * 0 = 0 := by
   { show a.real_part * 0 + a.epsilon_part * 0 + a.infinite_part *0 = 0; ring }
   { show a.real_part * 0 + a.epsilon_part * 0 = 0; ring }
   { show a.real_part * 0 + a.infinite_part * 0 = 0; ring }
-  { show (a.exception ∨ false) = false;  simp [or_false]; sorry } -- todo NaN * 0 = NaN! OK! 😺
+  { show (a.exception || false) = false;  simp [or_false]; sorry } -- todo NaN * 0 = NaN! OK! 😺
+  -- { show (a.exception ∨ false) = false;  simp [or_false]; sorry } -- todo NaN * 0 = NaN! OK! 😺
 
 lemma hyper_mul_one (a : Hyper) : a * 1 = a := by
   apply Hyper.ext
   { show a.real_part * 1 + a.epsilon_part * 0 + a.infinite_part *0 = a.real_part ; ring }
   { show a.real_part * 0 + a.epsilon_part * 1 = a.epsilon_part; ring }
   { show a.real_part * 0 + a.infinite_part * 1 = a.infinite_part; ring }
-  { show (a.exception ∨ false) = a.exception;  simp [or_false] }
+  { show (a.exception || false) = a.exception;  simp [or_false] }
 
 --  SAME ^^
 -- lemma hyper_0_mul (a : Hyper) : (0:Hyper) * a = (0:Hyper) := by
@@ -655,7 +680,8 @@ lemma hyper_mul_comm (a b : Hyper) : a * b = b * a := by
   { show a.real_part * b.real_part + a.epsilon_part * b.infinite_part + a.infinite_part * b.epsilon_part = b.real_part * a.real_part + b.epsilon_part * a.infinite_part + b.infinite_part * a.epsilon_part; ring }
   { show a.real_part * b.epsilon_part + a.epsilon_part * b.real_part = b.real_part * a.epsilon_part + b.epsilon_part * a.real_part; ring }
   { show a.real_part * b.infinite_part + a.infinite_part * b.real_part = b.real_part * a.infinite_part + b.infinite_part * a.real_part; ring }
-  { show (a.exception ∨ b.exception) = (b.exception ∨ a.exception);  simp [or_comm]}
+  { show (a.exception || b.exception) = (b.exception || a.exception);  simp [Bool.or_comm]}
+  -- { show (a.exception ∨ b.exception) = (b.exception ∨ a.exception);  simp [or_comm]}
   -- UFF, OK! 😺
 
 
