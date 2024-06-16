@@ -9,34 +9,22 @@ import Lean
 
 notation "∞" => (⊤ : EReal)
 notation "-∞" => (⊥ : EReal)
-notation "ℝ∞" => EReal -- ℝ±∞   ℝinf
+notation "ℚ∞" => EReal -- ℚ±∞   ℚinf
 notation "𝔽" => Float -- calculable implementation versus theoretical one
 
--- def Hyperreal : Type :=  Germ (hyperfilter ℕ : Filter ℕ) ℝ deriving Inhabited
+-- def Hyperreal : Type :=  Germ (hyperfilter ℕ : Filter ℕ) ℚ deriving Inhabited
 
 namespace Hypers
-section Hypers
+section HyperQ
 
--- todo how to avoid "if" in the definition of hyperreals :
--- we can't even decide x.real_part ≠ 0 in finite time since it could be ≠0 at position 10^100000
-
--- structure ApproxReal :=
---   (value : Float) -- Using floating-point for demonstration; not arbitrary precision
-
--- instance : DecidableEq ApproxReal :=
---   λ x y =>
---     if h : x.value = y.value then
---       isTrue (by rfl)
---       -- isTrue (by rw [h])
---     else
---       isFalse (λ hne => hne (by contradiction))
+-- Approximation of Hyper numbers with ℚ (rationals) (versus floats)
 
 -- Define the structure of hyperreal numbers
 -- after all proofs are done, we can set fields to Float 𝔽 or Rational ℚ for evaluation
 structure Hyper :=
-  real_part : ℝ
-  epsilon_part : ℝ -- ε-part
-  infinite_part : ℝ -- ω-part
+  real_part : ℚ
+  epsilon_part : ℚ -- ε-part
+  infinite_part : ℚ -- ω-part
   exceptional : Bool -- NaN or ε² or ±∞
   -- higher orders ω² not implemented here => ε² ≈ 0 and ω² ≈ ∞
 -- we can norm r + ε² to r and r + ε + ω + ω² to ∞
@@ -45,28 +33,24 @@ structure Hyper :=
 
 -- Outer and inner field extensions
 structure HyperGeneral :=
-  components : List (ℝ × ℤ) -- [(3, 0), (1, 1), (2, -2)] => 3 + ω + 2ε^2 -- note ε = ω⁻¹
-  -- components : ℤ → ℝ  functions for easier handling!
+  components : List (ℚ × ℤ) -- [(3, 0), (1, 1), (2, -2)] => 3 + ω + 2ε^2 -- note ε = ω⁻¹
+  -- components : ℤ → ℚ  functions for easier handling!
 
 
-def getComponent (components : List ℝ) (index : ℕ) : Option ℝ :=
+def getComponent (components : List ℚ) (index : ℕ) : Option ℚ :=
   components.get? index
--- infix:50 "!["  => λ (l : List ℝ) (i : ℕ) => getComponent l i
+-- infix:50 "!["  => λ (l : List ℚ) (i : ℕ) => getComponent l i
 -- postfix:50 "]"  => λ (i : ℕ) => i
 -- #eval [1, 2, 3] ![ 1 ] -- 2
 
-structure HyperEasy := -- derivatives have extra ε x+ε ≠ x for ∂f(x)=(f(x+ε)-f(x))/ε   !
-  value : ℝ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
-  order : ℤ
-  extra : ℝ × ℤ
 
 structure HyperSimple := -- Not applicable for derivatives where we need x+ε ≠ x for ∂f(x)=(f(x+ε)-f(x))/ε   !
-  components : ℝ × ℤ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
-  -- components : ℝ × ℝ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
+  components : ℚ × ℤ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
+  -- components : ℚ × ℚ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
 
 -- @[inherit_doc]
-notation "ℝ⋆" => Hyper  -- type \ R \ star <tab> for ℝ⋆
--- notation "ℝ*" => Hyper -- may conflict with Lean 4 notation for hyperreals
+notation "ℚ⋆" => Hyper  -- type \ R \ star <tab> for ℚ⋆
+-- notation "ℚ*" => Hyper -- may conflict with Lean 4 notation for hyperreals
 
 
 instance : OfNat Prop 0 where
@@ -97,7 +81,8 @@ def epsilon : Hyper := ⟨0, 1, 0, 0⟩
 def omega : Hyper := ⟨0, 0, 1, 0⟩
 
 def Infinity :    Hyper := ⟨0, 0, 1, 1⟩ -- ω² ≈ ∞
-def Infinisimal : Hyper := ⟨0, 1, 0, 1⟩ -- ε²
+def Infinisimal : Hyper := ⟨0, 0, 0, 1⟩ -- ε²
+-- def Infinisimal : Hyper := ⟨0, 1, 0, 1⟩ -- ε²
 def NotANumber :  Hyper := ⟨1, 0, 0, 1⟩ -- NaN
 def Minus_Infinity : Hyper := ⟨0, 0, -1, 1⟩ -- -ω² ≈ -∞
 def Negative_Infinity : Hyper := ⟨0, 0, -1, 1⟩ -- -ω² ≈ -∞
@@ -117,48 +102,39 @@ scoped notation "∞" => Infinity
 scoped notation "ε²" => Infinisimal
 scoped notation "NaN" => NotANumber
 
+
 instance : Coe ℤ Bool where
   coe r := r ≠ 0
 
 instance : Coe ℤ Prop where
   coe r := r ≠ 0
 
--- todo: take float as real (should be ok?)
+-- todo: take float as rational (should be doable?)
 -- object
--- instance : Coe 𝔽 ℝ where
---   coe r := (r:ℝ)
+-- instance : Coe 𝔽 ℚ where
+--   coe r := (r:ℚ)
 
 -- -- todo: take real as float (only lossfull!)
--- instance : Coe ℝ 𝔽 where
+-- instance : Coe ℚ 𝔽 where
 --   coe r := (r:𝔽)
 
--- instance : Coe 𝔽 ℝ⋆ where
+-- instance : Coe 𝔽 ℚ⋆ where
 --   coe r := Hyper.mk r 0 0 0
 
 -- coercion from reals to hyperreals
-instance : Coe ℝ ℝ⋆ where
+-- instance : Coe ℝ ℚ⋆ where
+--   coe r := Hyper.mk r 0 0 0
+
+instance : Coe ℤ ℚ⋆ where
   coe r := Hyper.mk r 0 0 0
 
-instance : Coe ℤ ℝ⋆ where
+instance : Coe ℕ ℚ⋆ where
   coe r := Hyper.mk r 0 0 0
 
+instance : Coe ℚ ℚ⋆ where
+  coe r := Hyper.mk r 0 0 0
 
--- instance : Coe ℝ Bool where
---   coe r := r ≠ 0
-
--- This instance already exists in Lean’s standard library, so you don’t need to redefine it.
--- instance : Coe ℕ ℝ⋆ where
-  -- coe n := Nat.cast n --n.toReal
-instance : Coe ℕ ℝ⋆ where
-  -- coe (n:ℕ) : Hyper := ⟨ (OfNat.ofNat Real n) 0 0 ⟩
-  coe (n:ℕ) : Hyper := ⟨ (n:ℝ), 0, 0, 0⟩
-  -- coe (n:ℕ) : Hyper := ⟨ n, 0, 0 ⟩
-  -- coe r := Hyper.mk (Real.ofNat r) 0 0
-  -- coe r := Hyper.mk (r:ℝ) 0 0
-  -- coe r := Hyper.mk (Nat.cast r) 0 0
-  -- coe r := Hyper.mk (Nat.cast (r:ℝ)) 0 0
-
-instance : SMul ℝ ℝ⋆ where
+instance : SMul ℚ ℚ⋆ where
   smul r x := ⟨r * x.real_part, r * x.epsilon_part, r * x.infinite_part , x.exceptional ⟩
 
 instance : Neg Hyper where
@@ -172,53 +148,18 @@ instance : Add Hyper := ⟨
     x.epsilon_part + y.epsilon_part,
     x.infinite_part + y.infinite_part,
     (x.exceptional || y.exceptional) -- for Bool
-    -- (x.exception ∨ y.exception) -- for Prop
     ⟩
 ⟩
 
 instance : Sub Hyper where
   sub x y := x + (-y)
 
-
-instance : ToString Real where
-  toString f := "ℝ:TODO"
-
-
--- limitation that Prop cannot inherently determine the truth value of a proposition without a proof.
--- instance : ToString Prop where
---   toString := λ p =>
---     let dp : Decidable p := inferInstance (p:Decidable)
---     match dp with
---     | Decidable.isTrue _ => "true"
---     | Decidable.isFalse _ => "false"
-
--- instance : ToString Prop where
---   toString p :=
---     match inferInstance (Decidable p) with
---     | Decidable.isTrue _ => "true"
---     | Decidable.isFalse _ => "false"
-
--- instance {p : Prop} [Decidable p] : ToString p where
-
--- instance : ToString Prop  where
---   toString p :=
---    if dec : Decidable p then
---      if p then "true" else "false"
---    else "undecidable"
---    if p then "true" else "false"
-
-instance : ToString Prop where
-  toString p := "?" -- Todo
-  --  if h : Decidable p then
-  --     if h then "true" else "false"
-  --   else "undecidable"
-    -- match p with
-    -- | isTrue p = true => "true"
-    -- | isTrue p => "true" -- Decidable ≠ Prop !
-    -- | false => "false"
-    -- | _ => "unknown"
-  -- toString ja := ja ? "true" : "false"
-    -- if ja then "true" else "false"
+instance : ToString ℚ where
+  toString q :=
+    if q.den = 1 then
+      toString q.num  -- Just show the numerator if the denominator is 1
+    else
+      toString q.num ++ "/" ++ toString q.den
 
 instance : ToString Bool where
   toString ja :=
@@ -226,22 +167,16 @@ instance : ToString Bool where
 
 
 instance : Repr Hyper where
-  -- reprPrec h := λ n => Std.Format.text s!"Hyper({h.real_part}, {h.epsilon_part}, {h.infinite_part}, {h.exception})"
   reprPrec h := λ n => Std.Format.text s!"⟨{h.real_part}, {h.epsilon_part}, {h.infinite_part}, {h.exceptional}⟩"
-  -- reprPrec h := λ n => Std.Format.bracket "⟨" (repr h.real_part ++ ", " ++ repr h.epsilon_part ++ ", " ++ repr h.infinite_part ) "⟩"
-
-#eval Hyper.mk 1 2 3 0
-#eval Hyper.mk 1 2 3 0 + Hyper.mk 1 2 3 0
--- #eval Hyper.mk 1 2 3 0 * Hyper.mk 1 2 3 0
 
 
--- /-- Natural embedding `ℝ → ℝ*`. -/
--- -- def ofReal : (x:ℝ) → ℝ⋆ := Hyper.mk x 0 0
+-- /-- Natural embedding `ℚ → ℚ*`. -/
+-- -- def ofReal : (x:ℚ) → ℚ⋆ := Hyper.mk x 0 0
 -- @[coe] -- coercion from reals to hyperreals
--- def ofReal (x : ℝ) : ℝ⋆ := Hyper.mk x 0 0
+-- def ofReal (x : ℚ) : ℚ⋆ := Hyper.mk x 0 0
 
 -- @[coe]
--- def ofNat (x : Nat) : ℝ⋆ := Hyper.mk x 0 0
+-- def ofNat (x : Nat) : ℚ⋆ := Hyper.mk x 0 0
 -- -- e.g. 0 => 0 + 0ε + 0ω
 
 
@@ -252,20 +187,13 @@ instance : OfNat Hyper 1 where
   ofNat := One.one
 
 instance : OfNat Hyper x where
-  ofNat := Hyper.mk (x : ℝ) 0 0 0
-
-
--- Assuming we are working under specific conditions where equality is decidable,
--- e.g., a specific subset of real numbers or under computational approximations.
-noncomputable
-instance : DecidableEq Real :=
-  λ x y => if x = y then isTrue sorry else isFalse sorry
+  ofNat := Hyper.mk (x : ℚ) 0 0 0
 
 
 -- Boolean equality of hyperreals
-noncomputable -- because it depends on 'Real.decidableEq', and it does not have executable code
-instance : BEq Hyper :=
-  ⟨fun x y => x.real_part == y.real_part && x.epsilon_part == y.epsilon_part && x.infinite_part == y.infinite_part⟩
+-- noncomputable -- because it depends on 'Real.decidableEq', and it does not have executable code
+-- instance : BEq Hyper :=
+--   ⟨fun x y => x.real_part == y.real_part && x.epsilon_part == y.epsilon_part && x.infinite_part == y.infinite_part⟩
 
 -- Decidable equality of hyperreals
 -- noncomputable -- because it depends on 'Real.decidableEq', and it does not have executable code
@@ -297,49 +225,54 @@ instance : Mul Hyper where
     ⟨ x.real_part * y.real_part + x.epsilon_part * y.infinite_part + x.infinite_part * y.epsilon_part,
       x.real_part * y.epsilon_part + x.epsilon_part * y.real_part,
       x.real_part * y.infinite_part + x.infinite_part * y.real_part,
-      -- x.exception ∨ y.exception -- for Prop
-      x.exceptional || y.exceptional -- for Bool
+     ( x.exceptional || y.exceptional
+    || x.epsilon_part ≠ 0 && y.epsilon_part ≠ 0
+    || x.infinite_part ≠ 0 && y.infinite_part ≠ 0
+    ) -- && (x.real_part ≠ 0 &&  y.real_part ≠ 0) hack for 0*x=0
       ⟩
-      -- todo fix later:
---  ∨ y.epsilon_part ≠ (0:ℕ) ∧ x.epsilon_part ≠ (0:ℕ) ∨ x.infinite_part ≠ (0:ℕ) ∧ y.infinite_part ≠ (0:ℕ)
-    --  ∧ x.epsilon_part ≠ (0:ℕ) ∨ x.infinite_part ≠ (0:ℕ) ∧ y.infinite_part ≠ (0:ℕ)
 
-
+axiom hyper_gauged : Hyper -> ε * ω = 1  -- no need for axiom, it's a lemma following the definition of mul
 
 -- Explicitly stating HMul might help if Lean does not infer it automatically
 instance : HMul Hyper Hyper Hyper where
   hMul := Mul.mul
 
---  HSMul.hSMul
 instance : HSMul ℤ Hyper Hyper where
-  hSMul z a := ⟨(z:ℝ) * a.real_part, (z:ℝ) * a.epsilon_part, (z:ℝ) * a.infinite_part, a.exceptional⟩
+  hSMul z a := ⟨z * a.real_part, z * a.epsilon_part, z * a.infinite_part, a.exceptional && z ≠ 0⟩
 
-instance : HSMul ℝ Hyper Hyper where
-  hSMul r a := ⟨r * a.real_part, r * a.epsilon_part, r * a.infinite_part, a.exceptional⟩
-
-instance : HSMul ℕ Hyper Hyper where
-  hSMul z a := ⟨(z:ℝ) * a.real_part, (z:ℝ) * a.epsilon_part, (z:ℝ) * a.infinite_part, a.exceptional⟩
+--  HSMul.hSMul high speed multiplication z × Hyper → Hyper
+instance : HSMul ℤ Hyper Hyper where
+  hSMul z a := ⟨z * a.real_part, z * a.epsilon_part, z * a.infinite_part, a.exceptional && z ≠ 0⟩
+--   hSMul z a := z * a OUR Hyper ACTS LIKE SCALAR! use normal mul ℚ⋆ × Hyper → Hyper
 
 instance : HSMul ℚ Hyper Hyper where
-  hSMul z a := ⟨(z:ℝ) * a.real_part, (z:ℝ) * a.epsilon_part, (z:ℝ) * a.infinite_part, a.exceptional⟩
+  hSMul q a := ⟨q * a.real_part, q * a.epsilon_part, q * a.infinite_part, a.exceptional && q ≠ 0⟩
+  -- hSMul z a := z * a
+
+instance : HSMul ℕ Hyper Hyper where
+  hSMul n a := ⟨n * a.real_part, n * a.epsilon_part, n * a.infinite_part, a.exceptional && n ≠ 0⟩
+  -- hSMul z a := z * a
 
 instance : HSMul ℚ≥0 Hyper Hyper where
-  hSMul z a := ⟨(z:ℝ) * a.real_part, (z:ℝ) * a.epsilon_part, (z:ℝ) * a.infinite_part, a.exceptional⟩
+  hSMul q a := ⟨q * a.real_part, q * a.epsilon_part, q * a.infinite_part, a.exceptional && q ≠ 0⟩
+  -- hSMul z a := (z:ℚ⋆) * a
 
 
 -- Define the instance of OfNat for Hyper
 
 -- instance : OfReal Hyper x where
---   ofNat := Hyper.mk (x : ℝ) 0 0
+--   ofNat := Hyper.mk (x : ℚ) 0 0
 
 def maxFloat : Float := 1.7976931348623157e+308
 
 -- all noncomputable mess up the whole pipeline
 -- noncomputable -- why not? because we can't even decide x.real_part ≠ 0 in finite time could be ≠0 at position 10^100000
 -- noncomputable -- why not? "because it depends on 'Real.instLinearOrderedField'"
-noncomputable -- why not? it does not have executable code
+-- noncomputable -- why not? it does not have executable code
 instance : Inv Hyper where  -- Inv.inv
   inv (x:Hyper) := ⟨1/x.real_part, 1/x.infinite_part, 1/x.epsilon_part, x.exceptional⟩
+
+
     -- if x == 0 then 0 -- The inverse of 0 is 0 by convention. !?!?
     -- -- else if x.exception then x -- NaN or ε² or ±∞
     -- else if x.real_part ≠ 0 ∧ x.epsilon_part ≠ 0 ∧ x.infinite_part ≠ 0 then
@@ -353,7 +286,7 @@ instance : Inv Hyper where  -- Inv.inv
     -- else ⟨0, 0, 100000000, x.exception⟩ -- Need proper handling of 0 division
     -- -- else ⟨∞, 0, 0⟩ -- Need proper handling of 0 division
 
-noncomputable
+-- noncomputable
 instance : Div Hyper where
   div x y := x * y⁻¹ -- via inverse
 
@@ -364,7 +297,7 @@ instance : Div Hyper where
 
 -- instance : Field Hyper := by apply_instance -- unknown tactic
 
-
+@[ext] -- make extension theorem for Hyper available via ext keyword instead of "apply Hyper.ext"
 lemma Hyper.ext : ∀ (x y : Hyper), x.real_part = y.real_part → x.epsilon_part = y.epsilon_part → x.infinite_part = y.infinite_part → x.exceptional = y.exceptional → x = y
   :=
   fun x y =>
@@ -399,7 +332,7 @@ theorem false_or_exception_eq (a : Hyper) : False ∨ a.exceptional = a.exceptio
 
 
 
--- theorem zero_keeps_exception : ∀ ( a : ℝ⋆) : (0 + a).exception = a.exception :=
+-- theorem zero_keeps_exception : ∀ ( a : ℚ⋆) : (0 + a).exception = a.exception :=
 --   λ a => show (zeroHyper + a).exception = a.exception, from
 --     rfl  -- Since adding false (zeroHyper.exception) does not change a.exception
   -- let sum:=(0 + a)
@@ -420,7 +353,7 @@ theorem false_or_exception_eq (a : Hyper) : False ∨ a.exceptional = a.exceptio
 
 
 -- lemma hyper_zero_add (a : Hyper) : 0 + a = a := by
--- lemma hyper_zero0R_add (a : Hyper) : (0:ℝ) + a = a := by
+-- lemma hyper_zero0R_add (a : Hyper) : (0:ℚ) + a = a := by
 --   apply Hyper.ext
 --   { show 0 + a.real_part = a.real_part; ring }
 --   { show 0 + a.epsilon_part = a.epsilon_part; ring }
@@ -433,26 +366,27 @@ theorem false_or_exception_eq (a : Hyper) : False ∨ a.exceptional = a.exceptio
 lemma real_part_zero_is_0: Hyper.real_part 0 = 0 := by
   rfl
 
-lemma hyper_coercion_0: (0:ℝ) = (0:ℝ⋆) := by
+lemma hyper_coercion_0: (0:ℚ) = (0:ℚ⋆) := by
   rfl
 
-lemma hyper_coercion_1: (1:ℝ) = (1:ℝ⋆) := by
+lemma hyper_coercion_1: (1:ℚ) = (1:ℚ⋆) := by
   rfl
 
-lemma hyper_coercion_nat0: 0 = (0:ℝ⋆) := by
+lemma hyper_coercion_nat0: 0 = (0:ℚ⋆) := by
   rfl
 
-lemma hyper_coercion_nat: (0:ℕ) = (0:ℝ⋆) := by
-  -- #check Coe (ℕ → ℝ) -- Checks if there is a coercion from ℕ to ℝ  -- OK via Sort types
-  -- #check Coe (ℝ → ℝ⋆) -- Checks if there is a coercion from ℝ to ℝ⋆
-  have coerce: (0 : ℕ) = (0: ℝ ) := by
-    simp
-  rw [coerce]
-  rfl
+-- lemma hyper_coercion_nat: 0 = (0:ℚ⋆) := by
+--   -- #check Coe (ℕ → ℚ) -- Checks if there is a coercion from ℕ to ℚ  -- OK via Sort types
+--   -- #check Coe (ℚ → ℚ⋆) -- Checks if there is a coercion from ℚ to ℚ⋆
+--   have coerce: (0 : ℕ) = (0: ℚ ) := by
+--     simp
+--   rw [coerce]
+--   rfl
 
 
 lemma hyper_add_zero (a : Hyper) : a + 0 = a := by
-  apply Hyper.ext
+  -- apply Hyper.ext
+  ext
   { show a.real_part + 0 = a.real_part; ring }
   { show a.epsilon_part + 0 = a.epsilon_part; ring }
   { show a.infinite_part + 0 = a.infinite_part; ring }
@@ -491,13 +425,13 @@ lemma hyper_zero_add (a : Hyper) : 0 + a = a := by
 
 
 
-lemma hyper_add_zero0 (a : Hyper) : a + (0:ℝ) = a := by
-  apply Hyper.ext
-  { show a.real_part + 0 = a.real_part; ring }
-  { show a.epsilon_part + 0 = a.epsilon_part; ring }
-  { show a.infinite_part + 0 = a.infinite_part; ring }
-  -- { show (a.exception ∨ false ) = a.exception;  simp [or_false]}
-  { show (a.exceptional || false ) = a.exceptional;  simp [or_false]}
+-- lemma hyper_add_zero0 (a : Hyper) : a + (0:ℚ) = a := by
+--   apply Hyper.ext
+--   { show a.real_part + 0 = a.real_part; ring }
+--   { show a.epsilon_part + 0 = a.epsilon_part; ring }
+--   { show a.infinite_part + 0 = a.infinite_part; ring }
+--   -- { show (a.exception ∨ false ) = a.exception;  simp [or_false]}
+--   { show (a.exceptional || false ) = a.exceptional;  simp [or_false]}
 
 
 lemma aorb (a b : Bool) : a || b = b || a := by
@@ -533,25 +467,25 @@ lemma hyper_add_left_neg (a : Hyper) : -a + a = 0 := by
   { show ((-a).exceptional || a.exceptional) = false; sorry } -- todo COULD BE TRUE NaN + NaN = NaN !
   -- { show ((-a).exception ∨ a.exception) = false; sorry } -- todo COULD BE TRUE NaN + NaN = NaN !
 
-lemma hyper_zero_is_zero :  (0:ℝ⋆) = (0:ℝ) := by
-  rfl
+-- lemma hyper_zero_is_zero :  (0:ℚ⋆) = (0:ℚ) := by
+--   rfl
 
-lemma zero_times_anything: (0:ℝ) * (a : ℝ) + (0:ℝ) * (b : ℝ) = 0 := by
+lemma zero_times_anything: (0:ℚ) * (a : ℚ) + (0:ℚ) * (b : ℚ) = 0 := by
   ring
 
--- lemma zero_times_anything0: (0:ℝ) * (a : ℝ) + (0:ℝ) * (b : ℝ) = (0:ℝ⋆) := by
---   let left := (0:ℝ) * (a : ℝ) + (0:ℝ) * (b : ℝ)
---   let right := (0:ℝ⋆)
+-- lemma zero_times_anything0: (0:ℚ) * (a : ℚ) + (0:ℚ) * (b : ℚ) = (0:ℚ⋆) := by
+--   let left := (0:ℚ) * (a : ℚ) + (0:ℚ) * (b : ℚ)
+--   let right := (0:ℚ⋆)
 --   rw [hyper_zero_is_zero]
 --   have right_ok: right = 0 := by apply hyper_zero_is_zero
 --   -- apply right_ok
---   -- show (0:ℝ) * (a : ℝ) + (0:ℝ) * (b : ℝ) = 0
+--   -- show (0:ℚ) * (a : ℚ) + (0:ℚ) * (b : ℚ) = 0
 --   -- rw [zero_times_anything]
 --   -- ring
 --   rw [right_ok]
   -- exact zero_times_anything
 
--- lemma zero_times_anything0part: (0:ℝ) * (a : ℝ) + (0:ℝ) * (b : ℝ) = Hyper.real_part 0 := by
+-- lemma zero_times_anything0part: (0:ℚ) * (a : ℚ) + (0:ℚ) * (b : ℚ) = Hyper.real_part 0 := by
   -- let right := Hyper.real_part 0
   -- have h : right = 0 := by
   --   rfl
@@ -559,7 +493,7 @@ lemma zero_times_anything: (0:ℝ) * (a : ℝ) + (0:ℝ) * (b : ℝ) = 0 := by
   -- {sorry}
   -- ring
 
--- lemma zero_times_anything0epart: (0:ℝ) * (a : ℝ) + (0:ℝ) * (b : ℝ) = Hyper.epsilon_part 0 := by
+-- lemma zero_times_anything0epart: (0:ℚ) * (a : ℚ) + (0:ℚ) * (b : ℚ) = Hyper.epsilon_part 0 := by
 --   sorry
 
 -- lemma hyper_zero_mul0 (a : Hyper) : 0 * a = 0 := by
@@ -570,10 +504,10 @@ lemma hyper_real_part_one_is_1: (1:Hyper).real_part = 1 := by
 lemma hyper_real_part_zero_is_0: (0:Hyper).real_part = 0 := by
   rfl
 
--- lemma hyper_real_part_zero_is_zero: Hyper.real_part (0:Hyper) = (0:ℝ) := by
+-- lemma hyper_real_part_zero_is_zero: Hyper.real_part (0:Hyper) = (0:ℚ) := by
 --   rfl
 
--- lemma hyper_real_part_one_is_one: Hyper.real_part 1 = (1:ℝ) := by
+-- lemma hyper_real_part_one_is_one: Hyper.real_part 1 = (1:ℚ) := by
 --   rfl
 
 lemma hyper_product(a:Hyper): (0*a).real_part = 0 * a.real_part + 0 * a.infinite_part + 0 * a.epsilon_part  := by
@@ -598,39 +532,44 @@ lemma hyper_zero_mul (a : Hyper) : 0 * a = 0 := by
   { show 0 * a.real_part + 0 * a.infinite_part + 0 * a.epsilon_part = 0; ring }
   { show 0 * a.epsilon_part + 0 * a.real_part = 0; ring }
   { show 0 * a.infinite_part + 0 * a.real_part = 0; ring }
-  { show (false || a.exceptional) = false;  simp [false_or]; sorry } -- todo 0 * NaN = NaN! OK! 😺
-  -- { show (false ∨ a.exception) = false;  simp [false_or]; sorry } -- todo 0 * NaN = NaN! OK! 😺
+  { sorry } -- todo 0 * NaN = NaN! OK! 😺
+
+/--
+      x.exceptional || y.exceptional -- for Bool
+    || x.epsilon_part ≠ 0 && y.epsilon_part ≠ 0
+    || x.infinite_part ≠ 0 && y.infinite_part ≠ 0
+-/
 
 lemma hyper_one_mul (a : Hyper) : 1 * a = a := by
   apply Hyper.ext
   { show 1 * a.real_part + 0 * a.infinite_part + 0 * a.epsilon_part = a.real_part; ring }
   { show 1 * a.epsilon_part + 0 * a.real_part = a.epsilon_part; ring }
   { show 1 * a.infinite_part + 0 * a.real_part = a.infinite_part; ring }
-  { show (false || a.exceptional) = a.exceptional;  simp [false_or] }
-  -- { show (false ∨ a.exception) = a.exception;  simp [false_or] }
+  { show (false || a.exceptional
+    || 0 ≠ 0 && a.epsilon_part ≠ 0
+    || 0 ≠ 0 && a.infinite_part ≠ 0)
+    = a.exceptional;  simp [false_or] }
 
 
 lemma hyper_mul_zero (a : Hyper) : a * 0 = 0 := by
-  -- let mu := a * (0:Hyper)
-  -- unfold Mul.mul at mu
   apply Hyper.ext
-  { show a.real_part * 0 + a.epsilon_part * 0 + a.infinite_part *0 = 0; ring }
+  { show a.real_part * 0 + a.epsilon_part * 0 + a.infinite_part * 0 = 0; ring }
   { show a.real_part * 0 + a.epsilon_part * 0 = 0; ring }
   { show a.real_part * 0 + a.infinite_part * 0 = 0; ring }
-  { show (a.exceptional || false) = false;  simp [or_false]; sorry } -- todo NaN * 0 = NaN! OK! 😺
-  -- { show (a.exception ∨ false) = false;  simp [or_false]; sorry } -- todo NaN * 0 = NaN! OK! 😺
+  { show (a.exceptional || false
+    || a.epsilon_part ≠ 0 && 0 ≠ 0
+    || a.infinite_part ≠ 0 && 0 ≠ 0 )
+    = false;  simp [or_false]; sorry } -- todo NaN * 0 = NaN! OK! 😺
 
 lemma hyper_mul_one (a : Hyper) : a * 1 = a := by
   apply Hyper.ext
   { show a.real_part * 1 + a.epsilon_part * 0 + a.infinite_part *0 = a.real_part ; ring }
   { show a.real_part * 0 + a.epsilon_part * 1 = a.epsilon_part; ring }
   { show a.real_part * 0 + a.infinite_part * 1 = a.infinite_part; ring }
-  { show (a.exceptional || false) = a.exceptional;  simp [or_false] }
-
---  SAME ^^
--- lemma hyper_0_mul (a : Hyper) : (0:Hyper) * a = (0:Hyper) := by
-
-
+  { show (a.exceptional || false
+    || a.epsilon_part ≠ 0 && 0 ≠ 0
+    || a.infinite_part ≠ 0 && 0 ≠ 0 )
+    = a.exceptional;  simp [or_false] }
 
 lemma exists_pair_ne : ∃ (a b : Hyper), a ≠ b := by
   use 0
@@ -649,41 +588,14 @@ lemma exists_pair_ne : ∃ (a b : Hyper), a ≠ b := by
 lemma hyper_inv_cancel (a : Hyper) (h : a ≠ 0) : a * a⁻¹ = 1 := by
   sorry
 
-
-
-theorem hyper_inv_zero : (0 : Hyper)⁻¹ = 0 :=
-  sorry
-
--- lemma hyper_inv_zero (a : Hyper) (h : a = 0) : a⁻¹ = 0 := by
---   sorry
-
--- instance : Inv Hyper where
 --   inv (x:Hyper) :=
 --     if x == 0 then 0 -- The inverse of 0 is 0 by convention. !?!?
-
--- theorem hyper_inv_zero : (0 : Hyper)⁻¹ = 0 :=
---   let inv := (0 : Hyper)⁻¹;
---   -- Begin the proof block
---   show inv = 0 from
---   -- Evaluate the definition of inverse on zero
---   match (0 : Hyper), inv with
---   | _, inv =>
---     -- Assert and check the condition directly
---     if h : (0 : Hyper) = 0 then -- failed to synthesize instance Decidable (0 = 0)
---       -- Here we use the true branch of the if statement
---       by simp [Inv.inv, h]
---     else
---       -- Handle the false branch, which is theoretically unreachable
---       by contradiction
-
-
--- The inverse of 0 is 0 by convention. !?!?
--- lemma hyper_inv_zero : (0:Hyper)⁻¹ = 0 := by
---   let inv := (0:Hyper)⁻¹
---   unfold Inv.inv at inv
---   have inv_0: inv = (0:Hyper) := by sorry
---   exact inv_0
-  -- use definition of inverse for proof
+theorem hyper_inv_zero : (0 : Hyper)⁻¹ = 0 := by
+  apply Hyper.ext
+  { show 1 / 0 = 0 ; rfl }
+  { show 1 / 0 = 0 ; rfl }
+  { show 1 / 0 = 0 ; rfl }
+  { show false = false ; rfl  }
 
 
 
@@ -692,9 +604,20 @@ lemma hyper_mul_comm (a b : Hyper) : a * b = b * a := by
   { show a.real_part * b.real_part + a.epsilon_part * b.infinite_part + a.infinite_part * b.epsilon_part = b.real_part * a.real_part + b.epsilon_part * a.infinite_part + b.infinite_part * a.epsilon_part; ring }
   { show a.real_part * b.epsilon_part + a.epsilon_part * b.real_part = b.real_part * a.epsilon_part + b.epsilon_part * a.real_part; ring }
   { show a.real_part * b.infinite_part + a.infinite_part * b.real_part = b.real_part * a.infinite_part + b.infinite_part * a.real_part; ring }
-  { show (a.exceptional || b.exceptional) = (b.exceptional || a.exceptional);  simp [Bool.or_comm]}
-  -- { show (a.exception ∨ b.exception) = (b.exception ∨ a.exception);  simp [or_comm]}
+  -- { show (a.exceptional || b.exceptional) = (b.exceptional || a.exceptional);  simp [Bool.or_comm]}
+  { show ( (a.exceptional || b.exceptional)
+    || (a.epsilon_part ≠ 0 && b.epsilon_part ≠ 0)
+    || (a.infinite_part ≠ 0 && b.infinite_part ≠ 0)
+    ) = (
+    (b.exceptional || a.exceptional)
+    || (b.epsilon_part ≠ 0 && a.epsilon_part ≠ 0)
+    || (b.infinite_part ≠ 0 && a.infinite_part ≠ 0)
+    );
+    simp [Bool.or_comm, Bool.and_comm]
+    }
   -- UFF, OK! 😺
+
+
 
 
 lemma hyper_left_distrib (a b c : Hyper) : a * (b + c) = a * b + a * c := by
@@ -714,16 +637,28 @@ lemma hyper_left_distrib (a b c : Hyper) : a * (b + c) = a * b + a * c := by
   let ce := c.epsilon_part
   let ci := c.infinite_part
 
+-- instance : Mul Hyper where
+--   mul x y :=
+--     ⟨ x.r * y.r + x.e * y.i + x.i * y.e,
+--       x.r * y.e + x.e * y.r,
+--       x.r * y.i + x.i * y.r,
+--       x.exceptional || y.exceptional
+--     || x.e ≠ 0 && y.e ≠ 0
+--     || x.i ≠ 0 && y.i ≠ 0
+--       ⟩
+
   -- unfold Add.add at right
   apply Hyper.ext
-  -- { show ar * (br + cr) + ae * (bi + ci) + ai * (be + ce) = ar * br + ae * be + ai * bi + ar * cr + ae * ce + ai * ci; ring }
-  { sorry }
-  { sorry }
-  { sorry }
+  -- a * (b + c) = a * b + a * c
+  -- { show ar * (br + cr) + ae * (bi + ci) + ai * (be + ce) =
+  --        ar * br + ae * bi + ai * be +
+  --        ar * cr + ae * ci + ai * ce; ring }
   { sorry }
   -- { show ar * (be + ce) + ae * (br + cr) = ar * be + ar * ce + ae * br + ae * cr; ring }
-  -- { show ar * (be + ce) + ae * (br + cr) = ar * be + ae * br + ar * ce + ae * cr; ring }
+  { sorry }
   -- { show ar * (bi + ci) + ai * (br + cr) = ar * bi + ai * br + ar * ci + ai * cr; ring }
+  { sorry }
+  { sorry }
 
 
 
@@ -758,17 +693,21 @@ lemma zero_ne_one (h : (0:Hyper) = 1) : False := by
   -- rw [hyper_real_part_zero_is_zero, hyper_real_part_one_is_one] at h1
   -- contradiction
   have : 0 = 1 := h1
-  -- have : (0:ℝ) = (1:ℝ) := h1
+  -- have : (0:ℚ) = (1:ℚ) := h1
   -- This is a clear contradiction as 0.0 ≠ 1.0
   exact absurd this (ne_of_lt (by norm_num)) -- (by decide)
 
--- axiom AxiomName : Type -> Prop
--- axiom hyperfield : Field Hyper
-axiom hyper_gauged : Hyper -> ε * ω = 1  -- no need for axiom, it's a lemma following the definition of mul
+-- lemma hyper_nsmul_like_mul (x : ℚ⋆) : 0 • x = 0 :=
+--   rfl
 
--- ⚠️ NOT A REAL FIELD, only "Near-Field" since Ring has divisors 0 and ε! (ε² = 0)
--- LEADS TO CONTRADICTION WITH mul_inv_cancel : ∀ a : α, a ≠ 0 → a * a⁻¹ = 1
--- ϵ=ϵ⋅1=ϵ⋅(ϵ⋅ϵ⁻¹)=(ϵ⋅ϵ)⋅ϵ⁻¹=0⋅ϵ⁻¹=0 but ϵ≠0
+-- lemma hyper_nsmul_like_mul (a : ℕ) (x : ℚ⋆) : a • x = a * x :=
+--   rfl
+
+lemma hyper_hsmul_like_mul (a : ℚ⋆) (x : ℚ⋆) : a • x = a * x :=
+  rfl
+
+
+
 noncomputable -- because it depends on 'Real.instLinearOrderedField', and it does not have executable code
 -- instance : LinearOrderedField Hyper := {
 instance : Field Hyper := {
@@ -794,14 +733,15 @@ instance : Field Hyper := {
   inv_zero:=  hyper_inv_zero, -- (0:Hyper)⁻¹ = 0, The inverse of 0 is 0 by convention. !?!?
   left_distrib:= hyper_left_distrib,
   right_distrib:= hyper_right_distrib,
-  zsmul:= HSMul.hSMul,
   nsmul:= HSMul.hSMul,
+  -- nsmul:= (HSMul.hSMul, hyper_nsmul_like_mul),
+  zsmul:= HSMul.hSMul,
   qsmul:= HSMul.hSMul,
   nnqsmul:= HSMul.hSMul, -- (· • ·)
   exists_pair_ne:=⟨ 0 , 1 , zero_ne_one ⟩,
 }
   /--
-  -- The hyperreal numbers ℝ⋆ form a linear ordered field.
+  -- The hyperreal numbers ℚ⋆ form a linear ordered field.
   le := sorry,
   lt := sorry,
   le_refl := sorry,
@@ -820,39 +760,55 @@ instance : Field Hyper := {
 
 
 
--- mul x y :=
---     ⟨ x.real_part * y.real_part + x.epsilon_part * y.infinite_part + x.infinite_part * y.epsilon_part,
---       x.real_part * y.epsilon_part + x.epsilon_part * y.real_part,
---       x.real_part * y.infinite_part + x.infinite_part * y.real_part ⟩
 lemma epsilon_times_omega_is_one : ε * ω = 1 := by
   apply Hyper.ext
   { show 0 * 0 + 1 * 1 + 0 * 0 = 1; ring }
   { show 0 * 0 + 1 * 0 = 0; ring }
   { show 0 * 1 + 0 * 0 = 0; ring }
+  { show false = false; rfl }
 
 lemma omega_times_epsilon_is_one : ω * ε  = 1 := by
   apply Hyper.ext
   { show 0 * 0 + 0 * 0 + 1 * 1  = 1; ring }
   { show 0 * 1 + 0 * 0 = 0; ring }
   { show 0 * 0 + 1 * 0 = 0; ring }
-
--- this makes the 'field' NOT a ring under multiplication
-lemma epsilon_times_epsilon_is_ZERO : ε * ε = 0 := by
-  apply Hyper.ext
-  { show 0 * 0 + 1 * 0 + 0 * 1  = 0; ring }
-  { show 0 * 1 + 1 * 0 = 0; ring }
-  { show 0 * 0 + 0 * 0 = 0; ring }
+  { show false = false; rfl }
 
 
-lemma omega_times_omega_is_ZERO : ω * ω  = 0 := by
+lemma omega_times_omega_is_ZERO : ω * ω  = ω² := by
   apply Hyper.ext
   { show 0 * 0 + 0 * 1 + 1 * 0  = 0; ring }
   { show 0 * 0 + 0 * 0 = 0; ring }
+  { show 0 * 1 + 1 * 0 = 1; sorry } -- todo currently ω * ω = ε² ≈ NaN
+  { show (false = false
+  || 0 ≠ 0 && 0 ≠ 0
+  || 1 ≠ 0 && 1 ≠ 0) = true; rfl }
+
+
+lemma epsilon_times_epsilon_is_ZERO : ε * ε = ε² := by
+  apply Hyper.ext
+  { show 0 * 0 + 1 * 0 + 0 * 1  = 0; ring }
   { show 0 * 1 + 1 * 0 = 0; ring }
+  -- { show 0 * 1 + 1 * 0 = 1; sorry } -- todo currently ε * ε ≈ NaN
+  { show 0 * 0 + 0 * 0 = 0; ring }
+  { show (false = false
+  || 1 ≠ 0 && 1 ≠ 0
+  || 0 ≠ 0 && 0 ≠ 0) = true; rfl }
+
 
 lemma product_zero_means_arg_is_zero (a b : Hyper) (h : a * b = 0) :  a = 0 ∨ b = 0 := by
   exact mul_eq_zero.mp h  -- USE EXISTING FIELD THEORY for our Hyper! 😺
   -- HAHA, this cannot be true since ε * ε = 0 but ε ≠ 0 !!
 
-end Hypers
+
+#eval Hyper.mk 1 2 3 0
+#eval Hyper.mk 1 2 3 0 + Hyper.mk 1 2 3 0
+#eval Hyper.mk 1 2 3 0 * Hyper.mk 1 2 3 0 -- 1 + 6 + 6 = 13 as real part!
+#eval Hyper.mk 0 0 1 0 * Hyper.mk 0 0 1 0
+#eval Hyper.mk 1 0 1 0 * Hyper.mk 1 0 1 0
+#eval Hyper.mk 1 2 3 0 / Hyper.mk 1 2 3 0
+-- #eval Hyper.mk 1 2 3 0 * Hyper.mk 1 2 3 0
+
+
+end HyperQ
 end Hypers

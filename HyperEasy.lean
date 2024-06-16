@@ -17,19 +17,12 @@ notation "𝔽" => Float -- calculable implementation versus theoretical one
 namespace Hypers
 section Hypers
 
--- todo how to avoid "if" in the definition of hyperreals :
--- we can't even decide x.real_part ≠ 0 in finite time since it could be ≠0 at position 10^100000
 
--- structure ApproxReal :=
---   (value : Float) -- Using floating-point for demonstration; not arbitrary precision
-
--- instance : DecidableEq ApproxReal :=
---   λ x y =>
---     if h : x.value = y.value then
---       isTrue (by rfl)
---       -- isTrue (by rw [h])
---     else
---       isFalse (λ hne => hne (by contradiction))
+structure HyperEasy := -- derivatives have extra ε x+ε ≠ x for ∂f(x)=(f(x+ε)-f(x))/ε   !
+  value : ℝ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
+  order : ℤ
+  trace : ℝ -- value of one lower order
+  -- extra : HyperEasy --ℝ × ℤ
 
 -- Define the structure of hyperreal numbers
 -- after all proofs are done, we can set fields to Float 𝔽 or Rational ℚ for evaluation
@@ -48,17 +41,11 @@ structure HyperGeneral :=
   components : List (ℝ × ℤ) -- [(3, 0), (1, 1), (2, -2)] => 3 + ω + 2ε^2 -- note ε = ω⁻¹
   -- components : ℤ → ℝ  functions for easier handling!
 
-
 def getComponent (components : List ℝ) (index : ℕ) : Option ℝ :=
   components.get? index
 -- infix:50 "!["  => λ (l : List ℝ) (i : ℕ) => getComponent l i
 -- postfix:50 "]"  => λ (i : ℕ) => i
 -- #eval [1, 2, 3] ![ 1 ] -- 2
-
-structure HyperEasy := -- derivatives have extra ε x+ε ≠ x for ∂f(x)=(f(x+ε)-f(x))/ε   !
-  value : ℝ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
-  order : ℤ
-  extra : ℝ × ℤ
 
 structure HyperSimple := -- Not applicable for derivatives where we need x+ε ≠ x for ∂f(x)=(f(x+ε)-f(x))/ε   !
   components : ℝ × ℤ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
@@ -175,6 +162,25 @@ instance : Add Hyper := ⟨
     -- (x.exception ∨ y.exception) -- for Prop
     ⟩
 ⟩
+
+instance : Add HyperEasy where
+  add x y :=
+    if x.order = y.order then
+      ⟨x.value + y.value, x.order, x.trace + y.trace⟩
+    else if x.order = y.order + 1 then
+      ⟨x.value, x.order, x.trace + y.value ⟩
+    else if x.order > y.order then -- y negligeable even as trace
+      x
+    else if y.order = x.order + 1 then
+      ⟨y.value, y.order, y.trace + x.value ⟩
+    else -- if y.order > x.order then
+      y
+
+
+instance : Mul HyperEasy where
+  mul x y := -- todo : trace!
+      ⟨x.value * y.value, x.order + y.order, x.value * y.trace + y.value * x.trace ⟩
+
 
 instance : Sub Hyper where
   sub x y := x + (-y)
