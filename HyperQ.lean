@@ -154,6 +154,7 @@ instance : Add Hyper := ⟨
 instance : Sub Hyper where
   sub x y := x + (-y)
 
+
 instance : ToString ℚ where
   toString q :=
     if q.den = 1 then
@@ -165,7 +166,7 @@ instance : ToString Bool where
   toString ja :=
     if ja then "true" else "false"
 
-
+-- for Lean.MetaEval
 instance : Repr Hyper where
   reprPrec h := λ n => Std.Format.text s!"⟨{h.real_part}, {h.epsilon_part}, {h.infinite_part}, {h.exceptional}⟩"
 

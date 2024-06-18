@@ -18,14 +18,21 @@ section HyperGenerals
 
 -- Avoid Real Numbers When Possible:
 -- If the use of real numbers introduces complexity due to issues like non-decidability of equality, consider if your application can tolerate using rational numbers or fixed-point arithmetic, which do not have these issues in Lean.
+def 𝔽 := ℚ -- our field
 
-def Comps := List (ℝ × ℝ)
+def Comps := List (𝔽 × 𝔽)
+-- def Comps := List (ℝ × ℝ)
 -- def Comps := List (ℝ × ℚ) -- what about ε^π :) seriously, needed in e^πi = -1
 -- def Comps := List (ℝ × ℤ) -- ℤ for exponents integer powers of ε and ω enough for now
 -- def Comps := List (ℚ × ℚ)  -- but what about π?
 
 structure HyperGeneral :=
-  components : List (ℝ × ℤ) -- [(3, 0), (1, 1), (2, -2)] => 3 + ω + 2ε^2 -- note ε = ω⁻¹
+  -- components : 𝔽 → 𝔽 as Function, see HyperFun HyperGeneralFun?
+  components : List (𝔽 × 𝔽) -- whichever Field we chose
+-- components : List (ℝ × ℝ) -- allow π√ε
+  -- components : List (ℚ × ℚ) -- allow π√ε approximation for now
+-- components : List (Float × Float) -- allow π√ε approximation for now
+  -- components : List (ℝ × ℤ) -- [(3, 0), (1, 1), (2, -2)] => 3 + ω + 2ε^2 -- note ε = ω⁻¹
   -- components : ℤ → ℝ  -- generalized for infinite lists of components
   -- components : Comps -- with indirection we can't use add := λ x y => ⟨x.components ++ … why?
 
@@ -62,9 +69,11 @@ scoped notation "I" => one
 scoped notation "ε" => epsilon
 scoped notation "ω" => omega
 
--- coercion from reals to hyperreals
-instance : Coe ℝ ℝ⋆ where
-  coe r := HyperGeneral.mk [(r,0)]
+-- instance : Coe ℝ ℝ⋆ where
+--   coe r := HyperGeneral.mk [(r,0)]
+
+instance : Coe ℚ ℝ⋆ where
+  coe q := HyperGeneral.mk [(q,0)]
 
 -- This instance already exists in Lean’s standard library, so you don’t need to redefine it.
 -- instance : Coe ℕ ℝ⋆ where
@@ -73,6 +82,14 @@ instance : Coe ℕ ℝ⋆ where
   coe (n:ℕ) : HyperGeneral := ⟨[( (n:ℝ), 0)]⟩
   instance : Coe ℕ ℝ⋆ where
   coe (n:ℕ) : HyperGeneral := ⟨[( (n:ℝ), 0)]⟩
+
+instance : Add HyperGeneral where
+  add x y := ⟨x.components ++ y.components⟩
+
+-- def simplification : HyperGeneral → HyperSimple
+def simplify (a:HyperGeneral) : HyperGeneral :=
+  ⟨a.components.foldl (λ acc (r, e) => if r = 0 then acc else acc ++ [(r, e)]) []⟩
+
 
 
 -- instance : Field HyperGeneral := {
