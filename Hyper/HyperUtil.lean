@@ -61,14 +61,13 @@ instance : Coe (ℕ × ℕ) (ℤ × ℤ) where
 -- Since both  <  and  =  on  ℕ  are already decidable, the compound relation  f.1 < g.1 ∨ (f.1 = g.1 ∧ f.2 < g.2)  is automatically decidable by the properties of  <  and  =  on natural numbers.
 -- instance : DecidableRel (LT.lt : ℕ × ℕ → ℕ × ℕ → Prop) :=
 variable {T : Type} [DecidableEq T] [LT T] [DecidableRel (LT.lt : T → T → Prop)]
+variable {S : Type} [DecidableEq S] [LT S] [DecidableRel (LT.lt : S → S → Prop)]
 
 -- Define the less-than relation for pairs (lexicographic order)
-instance : LT (T × T) where
+instance : LT (T × S) where
   lt := λ a b => a.1 < b.1 ∨ (a.1 = b.1 ∧ a.2 < b.2)
 
-instance genericPairsDecidableRel: DecidableRel (LT.lt : T × T → T × T → Prop) :=
--- instance : DecidableRel (LT.lt : ℤ × ℤ → ℤ × ℤ → Prop) :=
--- (a b : α) → Decidable (r a b)
+instance genericPairsDecidableRel: DecidableRel (LT.lt : T × S → T × S → Prop) :=
   fun (a,b) (c,d) =>
     if h₁ : a < c then isTrue (Or.inl h₁)
     else if h₂ : a = c then
@@ -93,16 +92,44 @@ instance genericPairsDecidableRel: DecidableRel (LT.lt : T × T → T × T → P
 -- example : (3, 4) < (3, 5)  := by exact genericPairsDecidableRel -- Should succeed
 
 -- instance : DecidableRel (LT.lt : ℕ × ℕ → ℕ × ℕ → Prop) := genericPairsDecidableRel
+-- ⅟ ½ ⅓ ⅔ ¼ ¾ ⅕ ⅖ ⅗ ⅘ ⅙ ⅚ ⅐ ⅛ ⅜ ⅝ ⅞
+-- notation "⅟" x := (1 / x)
+-- def half: ℚ := 1 / 2
+-- notation "½" => half
+prefix:10 "⅟" => fun x => 1 / x
+#eval ⅟2.
 
+-- ⁻¹ ⁰ ¹ ² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹
 
+notation "½" => (1 / 2 : ℚ)
+notation "⅓" => (1 / 3 : ℚ)
+notation "⅔" => (2 / 3 : ℚ)
+notation "¼" => (1 / 4 : ℚ)
+notation "¾" => (3 / 4 : ℚ)
+notation "⅕" => (1 / 5 : ℚ)
+notation "⅖" => (2 / 5 : ℚ)
+notation "⅗" => (3 / 5 : ℚ)
+notation "⅘" => (4 / 5 : ℚ)
+notation "⅙" => (1 / 6 : ℚ)
+notation "⅚" => (5 / 6 : ℚ)
+notation "⅐" => (1 / 7 : ℚ)
+notation "⅛" => (1 / 8 : ℚ)
+notation "⅜" => (3 / 8 : ℚ)
+notation "⅝" => (5 / 8 : ℚ)
+notation "⅞" => (7 / 8 : ℚ)
+
+#eval ½+⅕
+
+#eval ½+½+½
+#eval 2+½
+#eval 2*½
 #eval (-1, -2) < (2, 1)
-#eval (1, 2) < (2, 1)
+#eval (½, 2) < (2, 1)
 #eval (2, 2) < (2, 2)
 #eval (2, 2) <= (2, 2)
 #eval (2, 1) < (2, 1)
 #eval (2, 1) > (2, 1)
 #eval (2, 1) >= (2, 1)
 #eval (2, 1) = (2, 1)
-#eval (2, (3/2):ℚ) = (2, 3/2)
 
 end Pair
