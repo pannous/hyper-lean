@@ -66,15 +66,29 @@ instance : OfNat HyperFun n where
 --   ofNat := ⟨ fun x => n * (x == 0), 0 ⟩
   -- ofNat := { components := fun x => if x = 0 then n else 0, order := 0}
 
+#eval List.range 10  -- generates [0, 1, 2, ..., 9]
+#eval (List.range 10).maximum.get!
 -- Function to find the highest exponent with a non-zero coefficient within the range [-order, order]
--- def maxNonZeroExponent (f : HyperFun) : ℤ :=
---   (Fin (2 * f.order + 1)).max' (λ x => f.components (x - f.order) ≠ 0)
+
+def maxNonZeroExponent (f : HyperFun) : ℤ :=
+  let size : Nat := 2 * f.order + 1
+  let offsets := List.range size
+  let found := offsets.map (λ x => if f.components (x - f.order) ≠ 0 then x - f.order else -f.order)
+  found.maximum.get!
+
+instance LT : LT HyperFun where
+  lt f g := maxNonZeroExponent f < maxNonZeroExponent g
+  ∨ maxNonZeroExponent f = maxNonZeroExponent g ∧ f.components (maxNonZeroExponent f) < g.components (maxNonZeroExponent g)
+
+--  reuse Util pair ordering:
+-- instance : LT (T × T) where
+--   lt := λ a b => a.1 < b.1 ∨ (a.1 = b.1 ∧ a.2 < b.2)
+
+def hyperFunToTuple (f : HyperFun) : ℤ × ℚ :=
+  (maxNonZeroExponent f, f.components (maxNonZeroExponent f))
 
 -- instance LE : LE HyperFun where
---   le f g := maxNonZeroExponent f ≤ maxNonZeroExponent g
-
-instance LE : LE HyperFun where
-  le f g := ∀ x, f.components x ≤ g.components x
+--   le f g := ∀ x, f.components x ≤ g.components x
 
 -- instance LT : LT HyperFun where
 --   lt f g := ∀ x, f.components x < g.components x
