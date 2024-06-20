@@ -52,7 +52,6 @@ structure HyperSimple := -- Not applicable for derivatives where we need x+ε �
 notation "ℚ⋆" => Hyper  -- type \ R \ star <tab> for ℚ⋆
 -- notation "ℚ*" => Hyper -- may conflict with Lean 4 notation for hyperreals
 
-
 instance : OfNat Prop 0 where
   ofNat := false
 

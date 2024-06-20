@@ -18,7 +18,8 @@ section HyperGenerals
 
 -- Avoid Real Numbers When Possible:
 -- If the use of real numbers introduces complexity due to issues like non-decidability of equality, consider if your application can tolerate using rational numbers or fixed-point arithmetic, which do not have these issues in Lean.
-def 𝔽 := ℚ -- our field
+notation "𝔽" => ℚ -- our field, true alias
+-- def 𝔽 := ℚ -- treats it as own Type!!
 
 def Comps := List (𝔽 × 𝔽)
 -- def Comps := List (ℝ × ℝ)
@@ -27,8 +28,8 @@ def Comps := List (𝔽 × 𝔽)
 -- def Comps := List (ℚ × ℚ)  -- but what about π?
 
 structure HyperGeneral :=
-  -- components : 𝔽 → 𝔽 as Function, see HyperFun HyperGeneralFun?
-  components : List (𝔽 × 𝔽) -- whichever Field we chose
+  components : List (𝔽 × 𝔽)
+  -- components : 𝔽 → 𝔽 -- as Function, see HyperFun
 -- components : List (ℝ × ℝ) -- allow π√ε
   -- components : List (ℚ × ℚ) -- allow π√ε approximation for now
 -- components : List (Float × Float) -- allow π√ε approximation for now
@@ -44,6 +45,7 @@ structure HyperExtension (α : Type*) extends Real :=
   (infinite : α)
 
 -- notation "ℚ*" => HyperGeneral -- but what about π?
+notation "𝔽*" => HyperGeneral
 notation "ℝ⋆" => HyperGeneral -- may conflict with Hyper from Hyper.lean
 notation "ℝ*" => HyperGeneral -- may conflict with Lean 4 notation for hyperreals
 
@@ -59,7 +61,7 @@ instance : Inhabited HyperGeneral where
   }
 
 def zero : HyperGeneral := ⟨[]⟩
-def one : HyperGeneral := ⟨[(1, 0)]⟩
+  def one : HyperGeneral := ⟨[(1, 0)]⟩
 def epsilon : HyperGeneral := ⟨[(1, -1)]⟩
 def omega : HyperGeneral := ⟨[(1, 1)]⟩
 
@@ -79,16 +81,18 @@ instance : Coe ℚ ℝ⋆ where
 -- instance : Coe ℕ ℝ⋆ where
   -- coe n := Nat.cast n --n.toReal
 instance : Coe ℕ ℝ⋆ where
-  coe (n:ℕ) : HyperGeneral := ⟨[( (n:ℝ), 0)]⟩
-  instance : Coe ℕ ℝ⋆ where
-  coe (n:ℕ) : HyperGeneral := ⟨[( (n:ℝ), 0)]⟩
+  coe (n:ℕ) : HyperGeneral := ⟨[((n:𝔽), 0)]⟩
+
+instance : Coe ℚ ℝ⋆ where
+  coe (q:ℚ) : HyperGeneral := ⟨[(q, 0)]⟩
 
 instance : Add HyperGeneral where
   add x y := ⟨x.components ++ y.components⟩
 
--- def simplification : HyperGeneral → HyperSimple
+
+-- 1 + 2ω + 1 + 2ω  ≈ ([1,0],[2,1],[1,0],[2,1]]) => ([2,0],[4,1)) ≈ 2 + 4ω
 def simplify (a:HyperGeneral) : HyperGeneral :=
-  ⟨a.components.foldl (λ acc (r, e) => if r = 0 then acc else acc ++ [(r, e)]) []⟩
+  ⟨a.components.foldl (λ acc x => acc ++ [x]) []⟩
 
 
 
