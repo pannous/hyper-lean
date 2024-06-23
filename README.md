@@ -632,3 +632,9 @@ false. ( Skewes number first exception ≈ 10^316 !)
 • behavior is often influenced by very slowly increasing functions such as log log T, that tend to infinity, but do so
 so slowly that this cannot be detected by computation. Such functions occur in the theory of the zeta function
 controlling the behavior of its zeros;
+
+# Hyperreals as Laurent polynomial
+https://en.wikipedia.org/wiki/Laurent_polynomial αᵢεᶻ / αᵢωᶻ z∈ℤ 
+
+# Hyperreals as group ring ℤ → 𝔽
+"The Laurent polynomial ring can be endowed with a structure of a commutative, cocommutative Hopf algebra." Todo: Since we only have one 'variable' ε (or equivalently ω) this trivial case may not make sense.

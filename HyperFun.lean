@@ -1,3 +1,4 @@
+-- import Mathlib.Data.Int.AbsoluteValue
 import Mathlib.Data.Real.Basic -- Import basic real number theory in LEAN 4
 import Mathlib.Data.Real.Ereal -- ∞
 import Mathlib.Data.Real.Hyperreal -- defined as hyperfilter germ
@@ -70,32 +71,6 @@ instance : OfNat HyperFun n where
 #eval (List.range 10).maximum.get!
 -- Function to find the highest exponent with a non-zero coefficient within the range [-order, order]
 
-def maxNonZeroExponent (f : HyperFun) : ℤ :=
-  let size : Nat := 2 * f.order + 1
-  let offsets := List.range size
-  let found := offsets.map (λ x => if f.components (x - f.order) ≠ 0 then x - f.order else -f.order)
-  found.maximum.get!
-
-instance LT : LT HyperFun where
-  lt f g := maxNonZeroExponent f < maxNonZeroExponent g
-  ∨ maxNonZeroExponent f = maxNonZeroExponent g ∧ f.components (maxNonZeroExponent f) < g.components (maxNonZeroExponent g)
-
---  reuse Util pair ordering:
--- instance : LT (T × T) where
---   lt := λ a b => a.1 < b.1 ∨ (a.1 = b.1 ∧ a.2 < b.2)
-
-def hyperFunToTuple (f : HyperFun) : ℤ × ℚ :=
-  (maxNonZeroExponent f, f.components (maxNonZeroExponent f))
-
--- instance LE : LE HyperFun where
---   le f g := ∀ x, f.components x ≤ g.components x
-
--- instance LT : LT HyperFun where
---   lt f g := ∀ x, f.components x < g.components x
-
-
- #eval zero < one
---  #eval one < zero
 
 -- coercion from reals etc to hyperreals
 instance : Coe ℝ 𝔽* where
@@ -355,7 +330,9 @@ lemma one_hsmul (a : HyperFun) : ((1:ℕ) • a) = a := by
     _ =  a.components := by rw [one_mul] }
   {show a.order = a.order; simp; }
 
---
+-- instance : One HyperFun where
+--   one := { components := fun x => if x = 0 then 1 else 0, order := 0}
+
 -- instance : Add HyperFun where
 --   add f g := {
 --     components := f.components + g.components , -- uses macro_rules `(binop% HAdd.hAdd $x $y)
@@ -363,42 +340,42 @@ lemma one_hsmul (a : HyperFun) : ((1:ℕ) • a) = a := by
 --     order := max f.order g.order
 --     }
 
-lemma hyper_one_plusX  : one + one = (2:𝔽*) := by
+
+-- too many stupid sub-lemma,  how to inline?
+lemma one_of_one: (HyperFun.components one) 0 = 1 := by
+  calc
+    (HyperFun.components one) 0 = 1 := by rfl
+-- Assuming the HyperFun structure and instances are already defined as in previous context
+
+-- Lemma to prove that HyperFun.components one x = 0 for any x ≠ 0
+lemma one_of_any (x : ℤ) (h : x ≠ 0) : (HyperFun.components one) x = 0 := by
+  calc
+    (HyperFun.components one) x = if x = 0 then 1 else 0 := by rfl
+    _ = 0 := by simp [h]
+
+lemma one_of_one0 (x : ℤ) (h : x = 0) : (HyperFun.components one) x = 1 := by
+   simp [h,one_of_one]
+
+-- Lemma to prove that one + one equals a function returning 2 when x = 0
+lemma hyper_one_plusX : one + one = (2:𝔽*) := by
   ext x
-  show (one + one).components x= (2: HyperFun).components x
+  show (one + one).components x = (if x = 0 then 2 else 0)
   calc
-  -- one := { components := fun x => match x with | 0 => 1 | _ => 0, order := 0}
-    (one + one).components x = HyperFun.components 1 x + HyperFun.components 1 x := by rfl
-    _ = match x with
-      | 0 => 1 + 1
-      | _ => 0 + 0 := by
-      match x with
-      | 0 => rfl
-      | _ => sorry
-    -- (1 + 1).components x= (one + one).components x:= by rfl
-    _ = (2:HyperFun).components x := by rfl --sorry
-    -- _ = match x with
-    --   | 0 => (1:𝔽).components 0 + f.components 0
-    --   | _ => 0 + f.components x := by
-    --   match x with
-    --   | 0 => rfl
-    --   | _ => rw [zero_add]
-  {show (one + one).order = (2:𝔽*).order; simp; }
+    (one + one).components x = (HyperFun.components one) x + (HyperFun.components one) x := by rfl
+      _ = if h: x = 0 then 2 else 0 := by
+        split_ifs with h
+        { -- case x = 0
+        calc
+          HyperFun.components 1 x + HyperFun.components 1 x = 1 + 1 := by rw [one_of_one0 x h]
+          _ = 2 := by rfl
+        }
+        { -- case x ≠ 0
+        calc
+          HyperFun.components 1 x + HyperFun.components 1 x = 0 + 0 := by rw [one_of_any x h]
+          _ = 0 := by simp
+        }
+  {show (one + one).order = (2:𝔽*).order; rfl}
 
-
-lemma hyper_one_plus  : one + one = (2:𝔽*) := by
-  apply HyperFun.ext
-  show (one + one).components= (2: HyperFun).components
-  calc
-    (1 + 1).components = (one + one).components:= by rfl
-    _ = (2:𝔽*).components := by sorry
-    -- _ = match x with
-    --   | 0 => (1:𝔽).components 0 + f.components 0
-    --   | _ => 0 + f.components x := by
-    --   match x with
-    --   | 0 => rfl
-    --   | _ => rw [zero_add]
-  {show a.order = a.order; simp; }
 
 
 lemma hyper_one_mulx (f : HyperFun) : 1 * f = f := by
@@ -476,6 +453,85 @@ lemma add_assoc (f g h : HyperFun) : (f + g) + h = f + (g + h) := by
 
 #eval (1:𝔽*) + 1
 -- #eval One.one + One.one
+
+
+
+-- instance : BEq (ℤ → Rat) where
+--   beq f g := List.all (fun x => f x == g x) (List.range 201).map (fun x => x - 100)
+
+def boundedEq (f g : HyperFun) : Prop :=
+  ∀ x : ℤ, |x| ≤ f.order → f.components x = g.components x
+
+
+-- Provide an instance of Decidable for boundedEq
+instance boundedEqDecidable (f g : HyperFun) : Decidable (boundedEq f g) :=
+  sorry
+
+instance : BEq HyperFun where
+  beq f g := f.order = g.order && decide (boundedEq f g)
+  --decide (∀ x : ℤ, |x| ≤ f.order → f.components x == g.components x)
+
+
+def maxNonZeroExponent (f : HyperFun) : ℤ :=
+  -- if f==zero then -1000 else
+  let size : Nat := 2 * f.order + 1
+  let offsets := List.range size
+  -- let found := offsets.map (λ x => if f.components (x - f.order) ≠ 0 then x - f.order else -f.order)
+  let found := offsets.map (λ x => if f.components (x - f.order) ≠ 0 then x - f.order else -1000)
+  found.maximum.get!
+
+-- instance : LT HyperFun where
+--   lt f g := maxNonZeroExponent f < maxNonZeroExponent g
+--   ∨ maxNonZeroExponent f = maxNonZeroExponent g ∧ f.components (maxNonZeroExponent f) < g.components (maxNonZeroExponent g)
+
+--  reuse Util pair ordering:
+-- instance : LT (T × T) where
+--   lt := λ a b => a.1 < b.1 ∨ (a.1 = b.1 ∧ a.2 < b.2)
+
+
+-- instance genericPairOrder: LT (T × S) where
+--   lt := λ a b => a.1 < b.1 ∨ (a.1 = b.1 ∧ a.2 < b.2)
+
+-- instance genericPairsDecidableRel: DecidableRel (LT.lt : T × S → T × S → Prop) := …
+
+
+def hyperFunToTuple (f : HyperFun) : ℤ × ℚ :=
+    (maxNonZeroExponent f, f.components (maxNonZeroExponent f))
+
+#eval hyperFunToTuple (1:HyperFun)
+#eval hyperFunToTuple (0:HyperFun)
+#eval hyperFunToTuple epsilon
+
+instance : LT HyperFun where
+  lt f g := hyperFunToTuple f < hyperFunToTuple g
+
+
+-- Prove that the LT relation for HyperFun is equivalent to LT for ℤ × ℚ
+theorem hyperFun_lt_iff_tuple_lt (f g : HyperFun) :
+  f < g ↔ hyperFunToTuple f < hyperFunToTuple g := by sorry
+
+instance : DecidableRel (LT.lt : HyperFun → HyperFun → Prop) :=
+fun f g =>
+  let fTuple := hyperFunToTuple f
+  let gTuple := hyperFunToTuple g
+  have hDec : Decidable (fTuple < gTuple) := genericPairsDecidableRel fTuple gTuple
+  match hDec with
+  | isTrue hTuple =>
+    isTrue (show f < g from by {
+      unfold LT.lt;
+      exact hTuple;
+    })
+  | isFalse hTuple =>
+    isFalse (show ¬(f < g) from by {
+      intro hfg;
+      unfold LT.lt at hfg;
+      exact hTuple hfg;
+    })
+
+ #eval zero < one
+ #eval zero < epsilon
+ #eval zero < -epsilon
+--  #eval one < zero
 
 end HyperFun
 end Hypers
