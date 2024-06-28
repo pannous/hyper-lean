@@ -1,4 +1,5 @@
 -- import Mathlib.Data.Int.AbsoluteValue
+import Mathlib
 import Mathlib.Data.Real.Basic -- Import basic real number theory in LEAN 4
 import Mathlib.Data.Real.Ereal -- ∞
 import Mathlib.Data.Real.Hyperreal -- defined as hyperfilter germ
@@ -26,12 +27,15 @@ structure HyperFun :=
 notation "𝔽*" => HyperFun
 notation "F*" => HyperFun
 
+-- notation "xxx" => Int
+
 instance : Zero HyperFun where
   zero := { components := fun _ => 0, order := 0}
 def zero := (0:HyperFun)
 
-instance : One HyperFun where
-  one := { components := fun x => if x = 0 then 1 else 0, order := 0}
+instance : One HyperFun where -- One.one
+  one := { components := fun x => if |x| > 0 then 0 else 1, order := 0}
+  -- one := { components := fun x => if x = 0 then 1 else 0, order := 0}
   -- one := { components := 1, order := 0 } -- danger, don't evaluate outside order! fails for one + epsilon
 --  one := { components := λ match with . 0 => 1 }
 --                     | 0 => 1
@@ -39,6 +43,11 @@ instance : One HyperFun where
 --   one := { components := fun x => match x with | 0 => 1 | _ => 0, order := 0}
 -- def one := (1:HyperFun) -- One.one -- stuck!?
 notation "one" => (1:HyperFun)
+
+-- alternative equivalent definition of one
+def one' : HyperFun :=
+  { components := fun x => if x = 0 then 1 else 0, order := 0 }
+
 
 instance : Inhabited HyperFun where
   default := Zero.zero
@@ -73,8 +82,8 @@ instance : OfNat HyperFun n where
 
 
 -- coercion from reals etc to hyperreals
-instance : Coe ℝ 𝔽* where
-  coe r := { components := fun x => if x = 0 then (r:𝔽) else 0, order := 0}
+-- instance : Coe ℝ 𝔽* where
+  -- coe r := { components := fun x => if x = 0 then (r:𝔽) else 0, order := 0}
 
 instance : Coe ℚ 𝔽* where
   coe q := { components := fun x => if x = 0 then q else 0, order := 0}
@@ -168,8 +177,9 @@ instance : Mul HyperFun where
       -- fun(-3) = f(-1)*g(-2) + f(-2)*g(-1)
       -- fun(-4) = f(-2)*g(-2)
       let order := f.order + g.order
-      if x > order + order then 0
-      else ∑ i < 2*order + 1, f.components (i - order) * g.components (x - i + order)
+      if |x| > order + order then 0
+      else ∑ i in Finset.range (2 * order + 1), f.components (i - order) * g.components (x - i + order)
+      -- else ∑ i < 2*order + 1, f.components (i - order) * g.components (x - i + order)
   }
 
 instance : Neg HyperFun where
@@ -343,18 +353,18 @@ lemma one_hsmul (a : HyperFun) : ((1:ℕ) • a) = a := by
 
 -- too many stupid sub-lemma,  how to inline?
 lemma one_of_one: (HyperFun.components one) 0 = 1 := by
-  calc
-    (HyperFun.components one) 0 = 1 := by rfl
--- Assuming the HyperFun structure and instances are already defined as in previous context
+  rfl
+
+lemma one_of_one0 (x : ℤ) (h : x = 0) : (HyperFun.components one) x = 1 := by
+   simp [h,one_of_one]
 
 -- Lemma to prove that HyperFun.components one x = 0 for any x ≠ 0
 lemma one_of_any (x : ℤ) (h : x ≠ 0) : (HyperFun.components one) x = 0 := by
   calc
-    (HyperFun.components one) x = if x = 0 then 1 else 0 := by rfl
+    -- (HyperFun.components one) x = if x = 0 then 1 else 0 := by rfl
+    (HyperFun.components one) x = if |x| > 0 then 0 else 1 := by rfl
     _ = 0 := by simp [h]
 
-lemma one_of_one0 (x : ℤ) (h : x = 0) : (HyperFun.components one) x = 1 := by
-   simp [h,one_of_one]
 
 -- Lemma to prove that one + one equals a function returning 2 when x = 0
 lemma hyper_one_plusX : one + one = (2:𝔽*) := by
@@ -375,6 +385,183 @@ lemma hyper_one_plusX : one + one = (2:𝔽*) := by
           _ = 0 := by simp
         }
   {show (one + one).order = (2:𝔽*).order; rfl}
+
+
+lemma one_equiv_one' : one = one' := by
+  sorry
+/--/
+  ext x
+  -- Show components are equivalent
+  show (1 : HyperFun).components x = one'.components x
+  calc
+    (1 : HyperFun).components x
+        = if |x| > 0 then 0 else 1 := by rfl
+    _ = if x = 0 then 1 else 0 := by
+      split_ifs
+      -- case
+      {
+        have : |x| = 0 := by linarith
+        rw [this]
+        rfl
+      }
+      {
+        have : |x| > 0 := by linarith
+        simp [this]
+      }
+  -- Show orders are equivalent
+  show (1 : HyperFun).order = one'.order
+  rfl
+-/
+
+lemma one_of_0_is_1: (HyperFun.components one) 0 = 1 := by
+  rfl
+
+lemma one_of_x0_is_1 (x : ℤ) (h : x = 0) : (HyperFun.components one) x = 1 := by
+  rw [one_equiv_one']
+  calc
+    one'.components x = if x = 0 then 1 else 0 := by rfl
+    _ = 1 := by simp [h]
+
+    -- (HyperFun.components one) x = if |x| > 0 then 0 else 1 := by rfl
+
+lemma one_of_x_is_zero (x : ℤ) (h : x ≠ 0) : (HyperFun.components one) x = 0 := by
+  rw [one_equiv_one']
+  calc
+    (HyperFun.components one') x = if x = 0 then 1 else 0 := by rfl
+    _ = 0 := by simp [h]
+
+
+lemma x_zero_means_abs_zero (x : ℤ) : x=0  → ¬ |x| > 0  := by
+  intro h
+  rw [h]
+  simp
+
+lemma abs_of_neg_pos (x : ℤ) : x < 0 → |x| > 0 := by
+  intro h
+  simp [abs]
+  #find neg_pos_of_neg
+  -- exact Int.neg_pos_of_neg h
+  sorry
+
+lemma abs_of_neg (x : ℤ) : x < 0 → |x| = -x := by
+  intro h
+  simp [abs]
+  -- exact Int.neg_of_nat_of_lt h
+  sorry
+
+lemma x_not_zero_means_abs_not_zero (x : ℤ) : x ≠ 0 → |x| > 0 := by
+  intro h
+  cases x
+  case ofNat n =>
+    cases n
+    · contradiction  -- This case is impossible because x ≠ 0
+    · simp [abs]
+      -- exact Nat.zero_lt_succ n
+  case negSucc n =>
+    simp [abs]
+    exact negative_smaller_zero h
+
+
+lemma x_not_zero_means_abs_not_zeroB (x : ℤ) : x ≠ 0 → |x| > 0 := by
+  intro h
+  cases Int.lt_or_gt_of_ne h with -- a ≠ b →  a < b ∨ b < a
+  | inl hlt =>
+    exact abs_of_neg_pos x hlt
+  | inr hgt =>
+    have h: x > 0 → |x| > 0 := by sorry
+    exact h hgt
+
+
+
+-- lemma abs_x_gt_zero_means_x_not_zero  (x : ℝ) (h : abs x > 0) : x ≠ 0 := by
+lemma abs_x_gt_zero_means_x_not_zero  (x : ℝ) (h : |x| > 0) : x ≠ 0 := by
+  by_contra h0 -- … → x = 0 ⊢ False
+  -- Insert the contradiction hypothesis
+  subst h0 -- replace all variables of x with 0
+  -- Simplify to find contradiction with the hypothesis `abs 0 > 0`
+  simp only [abs_zero] at h
+  -- Derive contradiction since `0 > 0` is false
+  linarith
+
+
+lemma not_abs_x_gt_zero_means_x_zero (x : ℤ) : ¬(|x| > 0) → x=0  := by
+    intro h
+    absurd h
+    have : |x| > 0 := by
+      cases x
+      { -- case x = 0
+        simp
+        -- exact lt_irrefl 0 h
+        sorry
+      }
+      { -- case x ≠ 0
+        simp
+      }
+    contradiction
+
+lemma not_abs_x_gt_zero_means_x_zero2 (x : ℤ) : ¬(|x| > 0) ↔ x=0  := by
+  split
+  { -- → direction
+    intro h
+    by_contra hx
+    have : |x| > 0 := by
+      cases abs_pos_iff.mpr hx
+      assumption
+    contradiction
+  }
+  { -- ← direction
+    rintro rfl
+    intro h
+    have : |0| = 0 := by simp
+    rw [this] at h
+    exact lt_irrefl 0 h
+  }
+
+  -- use one := { components := fun x => match x with | 0 => 1 | _ => 0, order := 0}
+  -- mul f g := {
+  --     let order := f.order + g.order
+  --     if x > order + order then 0
+  --     else ∑ i < 2*order + 1, f.components (i - order) * g.components (x - i + order)
+lemma hyper_one_mul_one (f : HyperFun) : one * one = one := by
+  ext x
+  {
+    show (Mul.mul one one).components x = HyperFun.components 1 x
+    let order := (one * 1).order
+    have no_order : order = 0 := by rfl
+    -- show (one * 1).components x = if x > 0 then 0 else HyperFun.components 1 x
+    calc
+      (one * 1).components x =
+      if |x| > 0 then 0
+        else ∑ i < 2*order + 1, (HyperFun.components 1 (i - order)) * (HyperFun.components 1 (x - i + order)) := by rfl
+      _ = if |x| > 0 then 0   else ∑ i < 2*order + 1, ((1:F*).components (i - order)) * ((1:F*).components  (x - i + order)) := by rfl
+      _ = if |x| > 0 then 0   else ∑ i < 2*order + 1, ((1:F*).components (i - 0)) * ((1:F*).components  (x - i + 0)) := by rfl
+      _ = if |x| > 0 then 0   else ∑ i in Finset.range (2 * 0 + 1), HyperFun.components 1 (↑i - 0) * HyperFun.components 1 (x - ↑i + 0) := by rfl
+      _ = if |x| > 0 then 0   else ∑ i in Finset.range 1, HyperFun.components 1 (↑i) * HyperFun.components 1 (x - ↑i) := by simp
+      -- _ = if x > 0 then 0   else ∑ i < (2 * 0 + 1), HyperFun.components 1 (↑i - 0) * HyperFun.components 1 (x - ↑i + 0) := by rw [no_order]
+      _ = if |x| > 0 then 0   else ((1:F*).components 0) * (1:F*).components x := by simp
+      -- _ = if |x| > 0 then 0 else (1 : 𝔽*).components 0 * (1 : 𝔽*).components x := by simp [Finset.range, Finset.sum_singleton]
+      _ = if h:|x| > 0 then 0 else (1 : 𝔽*).components 0 * (1 : 𝔽*).components 0 := by
+        split_ifs
+        -- -- case pos
+        { simp }
+        -- -- case nonpos
+        {
+          have : x = 0 := by
+            rw [←not_abs_x_gt_zero_means_x_zero x h✝]
+            -- exact not_lt_of_ge (le_of_eq rfl)
+          rw [this]
+          -- have : x = 0 := by rw [not_abs_x_gt_zero_means_x_zero]
+        --   -- have : x = 0 := by linarith
+        --   rw [this]
+        --   -- simp
+        }
+      _ = if |x| > 0 then 0 else HyperFun.components 1 0 * HyperFun.components 1 0 := by rfl
+      _ = if |x| > 0 then 0 else 1 * 1 := by rw [one_of_0_is_1]
+      _ = if |x| > 0 then 0 else 1 := by simp
+      _ = HyperFun.components 1 x := by rw [One.one]
+   }
+  {show (one * one).order = (1:𝔽*).order; rfl}
+
 
 
 
@@ -533,5 +720,23 @@ fun f g =>
  #eval zero < -epsilon
 --  #eval one < zero
 
+section HyperDerivatives
+
+def hyperDerivative0 (f : 𝔽* → 𝔽* ) : 𝔽*  :=
+  f ε - f 0 / ε
+
+#eval hyperDerivative0 (fun x => x^2)
+
+
+def hyperDerivative (f : 𝔽* → 𝔽* ) : 𝔽* → 𝔽*  :=
+  fun x => f (x + ε) - f (x) / ε
+
+def hyperDerivativeOfConst (f : HyperFun) : HyperFun :=
+{ components := fun x => f.components (x + 1) - f.components x, order := f.order - 1 }
+
+notation "∂" => hyperDerivative
+#eval ∂ sin 0
+
+end HyperDerivatives
 end HyperFun
 end Hypers

@@ -98,3 +98,8 @@ instance : ToString ℚ where
 instance : ToString Bool where
   toString ja :=
     if ja then "true" else "false"
+
+notation "doh" => sorry
+notation "todo" => sorry
+notation "obvious" => sorry
+notation "definition" => sorry
