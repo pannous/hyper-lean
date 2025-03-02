@@ -13,7 +13,9 @@ set_option diagnostics.threshold 1000
 axiom Hyperreal : Type
 -- notation "Hyper" => Hyperreal
 notation "R*" => Hyperreal
-
+notation "R+" => { r : ℝ // r > 0 }
+notation "ℝ+" => { r : ℝ // r > 0 }
+instance : Coe R+ ℝ := ⟨Subtype.val⟩ -- coercion from R+ to ℝ
 
 -- namespace Hyperreal
 -- put at the end of the file:
@@ -64,12 +66,15 @@ axiom D : ∀ {n : ℕ} (f : (Fin n → ℝ) → ℝ),
 axiom E : ∀ (P : R* → Prop), (∀ r : ℝ, P (extension r)) → (∀ x : R*, P x)
 
 -- Definition 1.1: Infinitesimals, finites, and infinite elements
-def infinitesimal (x : R*) : Prop := ∀ r : ℝ, |x| < extension r
 def finite  (x : R*) : Prop := ∃ r : ℝ, |x| < extension r
-def infinite  (x : R*) : Prop := ∀ r : ℝ, |x| > extension r
-
+def infinite  (x : R*) : Prop := ∀ r : ℝ, r > 0 → |x| > extension r
+def infinitesimal (x : R*) : Prop := ∀ r : ℝ, r > 0 → |x| < extension r
+-- def infinitesimal2 (x : R*) : Prop := ∀ r : R+, |x| < extension r
+-- lemma infinitesimal_iff_infinitesimal2 : infinitesimal x ↔ infinitesimal2 x :=
+--   by simp [infinitesimal, infinitesimal2]
 
 def near (x y : R*) : Prop := infinitesimal (x - y)
+-- def near (x y : R*) : Prop := infinitesimal extension (x - y)
 
 -- Definition 1.2: Monad and Galaxy
 def monad (x : R*) : Set R* := {y | near x y}
@@ -87,7 +92,9 @@ def Infinites : Set R* := {y | infinite y} --
 -- •	Set.univ is the universal set in Lean, meaning the set of all elements of  R^ *.
 
 -- Notation for near (≈)
-notation x " ≈ " y => near x y
+-- notation x " ≈ " y => (near x y)
+-- #print notation =  => 50, use that same precedence
+infix:50 " ≈ " => near
 
 -- Notation for R*^n (R*n)
 notation "R*"n => Fin n → R*
