@@ -1,0 +1,385 @@
+-- Outline of a Consistency Proof for Hyperreal Axioms
+-- 	1.	Define a Candidate Model for  R^ *
+-- 	•	Construct  R^*  using an ultraproduct approach (e.g., sequences of real numbers modulo an ultrafilter) or via nonstandard analysis frameworks such as the superstructure approach.
+-- 	•	Ensure  R^*  extends  \mathbb{R} .
+-- 	2.	Verify  R^  is an Ordered Field*
+-- 	•	Define addition, multiplication, and order on  R^* .
+-- 	•	Prove closure under these operations.
+-- 	•	Show that  R^*  satisfies the axioms of a linear ordered field, justifying the LinearOrderedField_Hyperreal axiom.
+-- 	3.	Verify the Embedding of  \mathbb{R}  into  R^ *
+-- 	•	Define the embedding  \text{extension} : \mathbb{R} \to R^* .
+-- 	•	Show that this embedding preserves order:  r < s \iff \text{extension}(r) < \text{extension}(s) .
+-- 	•	Verify that real numbers behave as expected inside  R^* .
+-- 	4.	Construct a Positive Infinitesimal  \epsilon
+-- 	•	Define a specific element of  R^*  that behaves as an infinitesimal (e.g., the equivalence class of the sequence  (1/n) ).
+-- 	•	Prove  0 < \epsilon  and  \forall r \in \mathbb{R}, \epsilon < \text{extension}(r) , fulfilling the infinitesimal_pos axiom.
+-- 	5.	Prove the Transfer Principle
+-- 	•	Show that any first-order property true for all real numbers also holds in  R^* .
+-- 	•	This typically follows from Łoś’s theorem in the ultraproduct construction.
+-- 	6.	Demonstrate the Natural Extension of Functions
+-- 	•	Given a function  f : \mathbb{R}^n \to \mathbb{R} , construct its natural extension  f^* : (R^)^n \to R^ .
+-- 	•	Prove the extension satisfies  f^*(\text{extension} \circ x) = \text{extension}(f(x)) .
+-- 	7.	Show that the Monad, Galaxy, and Nearness Notions are Well-Defined
+-- 	•	Verify that infinitesimals behave as expected.
+-- 	•	Define the monad  \text{monad}(x) = \{y \mid x \approx y\}  and show it is consistent with the axioms.
+
+-- 1G. Building the Hyperreal Numbers
+-- This is an optional section for the reader who wants to see where the hyper-
+-- real numbers come from. It will not be needed in the body of the monograph,
+-- until Chapter 15 at the end (which is also optional).
+-- The existence and uniqueness theorem for complete ordered fields, Theorem
+-- 1.38, has an analogue for the hyperreal number systems. Moreover, as discov-
+-- ered by Kanovei and Shelah [KS 2004], there are definable hyperreal number
+-- systems, just as there are definable complete ordered fields. In practice, this
+-- does not matter for the calculus course, where one just uses the axioms, but
+-- it is important for the foundations of the subject.
+-- In this section we will first build a hyperreal number system the easy way,
+-- using what is called an ultrapower. This does not give a definable object,
+-- because it depends on an arbitrary choice of an ultrafilter. We will then
+-- describe a more elaborate method, the iterated ultrapower, which does give a
+-- definable hyperreal number system.
+-- The uniqueness theorem for hyperreal number systems will be postponed
+-- until the last chapter, Chapter 15. The reason for this is that to have unique-
+-- ness one needs one more axiom in addition to Axioms A–E for the hyperreal
+-- numbers, called the Saturation Axiom. Saturation has an appeal similar to
+-- completeness, and is important in more advanced applications of hyperreal
+-- numbers. But the Saturation Axiom is not needed at the beginning calculus
+-- level, and so it was not included in our present list. For this reason we say “a
+-- hyperreal number system” rather than “the hyperreal system”.
+-- The Ultrapower. We will now build a hyperreal number system as an
+-- ultrapower of the real number system. This will prove that there exists a triple
+-- (∗,R,R∗) which satisfies Axioms A—E. We will then be able to conclude that
+-- any statement about the real numbers which follows from the axioms is true
+-- of the real numbers. The hyperreal numbers can be regarded as a tool which
+-- facilitate the study of the real numbers.
+-- Historically, ultrapowers were first applied to the natural numbers by Skolem
+-- [Skolem 1934]. Hewitt [Hewitt 1948] studied ultrapowers of the real num-
+-- ber field, and the ultrapower was applied to arbitrary structures by Lo´s in
+-- [Lo´s 1955]. Since then ultrapowers have had a variety of applications in sev-
+-- eral areas of mathematics.
+-- We will use a form of the Axiom of Choice called Zorn’s Lemma. A nonempty
+-- set X of sets is called a chain if for any two sets x,y ∈X, either x ⊆y or
+-- y⊆x.
+-- Zorn’s Lemma. Let Y be a nonempty set of sets such that for any chain
+-- X ⊆Y, the union of X belongs to Y. Then Y has a maximal element y, that
+-- is, a set y∈Y such that no member of Y properly contains y.
+-- 24 1. The Hyperreal Numbers
+-- We begin with the definition of an ultrafilter over an infinite set I. We call
+-- I the index set.
+-- Definition 1.41. A filter U over I is a set of subsets of I such that:
+-- (i) U is closed under supersets; if X ∈U and X ⊆Y ⊆I then Y ∈U.
+-- (ii) U is closed under finite intersections; if X ∈U and Y ∈U then X∩Y ∈
+-- U.
+-- (iii) I ∈U but ∅/ ∈U.
+-- An ultrafilter over I is a filter U over I with the additional property that
+-- for each X ⊆I, exactly one of the sets X,I\X belongs to U.
+-- A free ultrafilter is an ultrafilter U such that no finite set belongs to U.
+-- Theorem 1.42. For every infinite set I, there exists a free ultrafilter over
+-- I.
+-- Proof. The set of all cofinite (complements of finite) subsets of I is a filter
+-- over I (called the Fr`echet filter). Let A be the set of all filters F over I such
+-- that F contains all cofinite subsets of I. Then A is nonempty and A is closed
+-- under unions of chains. By Zorn’s Lemma, A has a maximal element U (in
+-- fact, infinitely many maximal elements). U is a filter and contains no finite set,
+-- because U contains all cofinite sets but ∅/ ∈U. To show that U an ultrafilter,
+-- we consider an arbitrary set X ⊆I and prove that there is a filter V ⊇U
+-- which contains either X or I\X, so by maximality, X ∈U or I\X ∈U.
+-- Case 1: For all Y ∈U, X∩Y is infinite. X and each Y ∈U belong to the
+-- set
+-- V= {Z ⊆I: Z ⊇X∩Y for some Y ∈U}.
+-- V is a filter over I, because V is obviously closed under supersets and finite
+-- intersections, and the hypothesis of Case 1 guarantees that each Z ∈V is
+-- infinite.
+-- Case 2: For some Y ∈U, X∩Y is finite. Then for every W ∈U, (I\X)∩W
+-- is infinite, for otherwise Y ∩W ∈U would be finite. Case 1 applies to I\X,
+-- so the set
+-- V= {Z ⊆I: Z ⊇(I\X) ∩Y for some Y ∈U}
+-- is a filter over I such that V ⊆U, I\X ∈V. ⊣
+-- Hereafter we let U be a free ultrafilter over I. Let RI be the set of all
+-- functions a: I →R. The elements a∈RI will be called I-sequences, and we
+-- write ai for the value of a at an element i∈I..
+-- Definition 1.43. Two I-sequences a,bin RI are said to be U-equivalent,
+-- in symbols a=U b, if
+-- {i: ai = bi}∈U.
+-- Lemma 1.44. The relation=U is an equivalence relation on the set RI
+-- .
+-- 1G. Building the Hyperreal Numbers 25
+-- Proof. The Reflexive and Symmetric Laws for =U are obvious. We prove
+-- the Transitive Law. Assume a=U b and b=U c. Let
+-- X= {i: ai = bi}, Y= {i: bi = ci}, Z= {i: ai = ci}.
+-- Then X ∈U and Y ∈U, so X∩Y ∈U. But X∩Y ⊆Z, so Z ∈U, and hence
+-- a=U c. ⊣
+-- Our next step is to define the ultrapower U R, which will be the set R∗of
+-- hyperreal numbers built from U. The idea is to take the set of all U-equivalence
+-- classes of I-sequences and modify it by replacing the U-equivalence class of a
+-- constant I-sequence by the constant itself. This makes U R an extension of
+-- R.
+-- Definition 1.45. Let abe an I-sequence. If ais U-equivalent to a constant
+-- I-sequence ⟨r,r,...⟩where r∈R, we define aU = r. Otherwise, we define aU
+-- to be the U-equivalence class of a,
+-- aU = {b: a=U b}.
+-- The ultrapower of the set R modulo U is the set
+-- U
+-- R= {aU: a∈RI}.
+-- Lemma 1.46. (i) R ⊆ U R.
+-- (ii) a=U b if and only if aU = bU.
+-- Proof. (i) We have ⟨r,r,...⟩U = r∈R∗for each r∈R.
+-- (ii) This follows from the fact that =U is an equivalence relation. ⊣
+-- Definition 1.47. The natural extension of the order relation < is the rela-
+-- tion <∗ on U R such that for all a,b∈RI
+-- ,
+-- aU <∗bU if and only if {i: ai <bi}∈U.
+-- Lemma 1.48. The relation <∗is well-defined, that is, if a=U c and b=U d
+-- then
+-- {i: ai <bi}∈U iﬀ {i: ci <di}∈U.
+-- Proof. Suppose {i: ai <bi}∈U. Then
+-- {i: ci <di}⊇{i: ai <bi}∩{i: ai = ci}∩{i: bi = di}.
+-- The right side belongs to U, so the left side belongs to U, as required. ⊣
+-- Definition 1.49. An element x∈ U R is positive infinite if n<∗x for
+-- every natural number n.
+-- Definition 1.50. A set I is countable if there is a one to one function a
+-- from I onto N.
+-- Lemma 1.51. Suppose the index set I is countable. Then there are positive
+-- infinite elements in U R.
+-- 26 1. The Hyperreal Numbers
+-- Proof. Let a be a one to one function from I onto N. Then aU ∈ U R.
+-- However, for each n ∈N, the set {i: n < ai}is cofinite hence belongs to U.
+-- Therefore n<∗aU, so aU is positive infinite. ⊣
+-- Definition 1.52. We use vector notation for n-tuples in the obvious way.
+-- Let f be a real function of n variables. The natural extension of f is the
+-- function f∗of n variables on U R such that whenever ai,... ,an,c∈RI, we
+-- have
+-- f∗(⃗aU) = cU if and only if {i: f(⃗a)i = ci}∈U.
+-- Lemma 1.53. For each real function f of n variables, the natural extension
+-- ⃗
+-- f∗ is well-defined. That is, whenever ⃗a=U
+-- b and c=U d we have
+-- ⃗
+-- {i: f(⃗a)i = ci}∈U if and only if {i: f(
+-- b)i = di}∈U.
+-- The proof is similar to that of Lemma 1.48.
+-- Definition 1.54. The hyperreal number system built from the ultrafilter U
+-- is the structure (∗,R,R∗) where R∗
+-- = U R, <∗is the natural extension of <,
+-- and f∗ is the natural extension of f for each real function f.
+-- Theorem 1.55. For each free ultrafilter U on a countable index set I, the
+-- hyperreal number system (∗,R,R∗) built from U satisfies Axioms A–E.
+-- Proof. Axiom A, that R is a complete ordered field, is satisfied by defini-
+-- tion.
+-- Axiom D, the Function Axiom, follows from Lemmas 1.48 and 1.53, which
+-- show that <∗and f∗are well-defined.
+-- We now prove the Transfer Axiom E. From the definition of the natural
+-- extensions <∗and f∗, a tuple ⃗x= ⃗aU of hyperreal numbers is a solution of an
+-- equation or inequality S if and only if
+-- {i: ⃗ai is a solution of S}∈U.
+-- Since X ∩Y ∈U if and only if X ∈U and Y ∈U, it follows that this also
+-- holds for each finite system of formulas S. Suppose every real solution of a
+-- system of formulas S is a solution of T, and let ⃗x= ⃗aU be a hyperreal solution
+-- of S. Then
+-- {i: ⃗ai is a solution of S}⊆{i: ⃗ai is a solution of T}∈U,
+-- so ⃗x is a solution of T. This proves the Transfer Axiom.
+-- Axiom B says that R∗ is an ordered field extension of R. By definition,
+-- the set R∗ is an extension of the set R, and it follows from I ∈U that <∗ is
+-- an extension of < and that for each real function f, f∗ is an extension of f.
+-- Each of the ordered field axioms except for the Trichotomy Law is a statement
+-- saying that every real solution of some system of formulas S is a solution of
+-- T, and hence follows from the Transfer Axiom. For the Trichotomy Law, let
+-- 1G. Building the Hyperreal Numbers 27
+-- x= aU and y= bU. It is easy to see from the definition of an ultrafilter that
+-- exactly one of the sets
+-- {i: ai <bi}, {i: ai = bi}, {i: bi <ai}
+-- belongs to U. Therefore exactly one of
+-- x<∗y, x= y, y<∗x
+-- holds, as required.
+-- Finally Axiom C, that R∗has a positive infinitesimal, follows from Lemma
+-- 1.51 and the fact that in a hyperreal ordered field reciprocals of positive infinite
+-- elements are positive infinitesimals. ⊣
+-- Examples of Infinitesimals. When we build a hyperreal number system
+-- as an ultrapower, we can take the index set I to be any countable set. Let us
+-- now take I to be the set of natural numbers N. The elements of R∗\R are now
+-- U-equivalence classes of sequences of reals, and we can give explicit examples
+-- of sequences of reals whose equivalence classes are hyperreal numbers with
+-- various properties.
+-- Positive infinitesimals:
+-- 1
+-- 1
+-- 1
+-- 1
+-- 1,
+-- 2,
+-- 3,
+-- 4,... ,
+-- n+ 1,...
+-- 1
+-- 1
+-- 1
+-- U
+-- 1,
+-- 2,
+-- 4,
+-- 8,... ,2−n
+-- ,...
+-- U
+-- Infinite hyperintegers:
+-- ⟨1,2,3,4,... ,n,...⟩U
+-- ⟨1,2,6,24,... ,n!,...⟩U
+-- Elements of the monad of π:
+-- [10nπ]
+-- 3,3.1,3.14,... ,
+-- 10n...
+-- 1
+-- 1
+-- 1
+-- U
+-- π−1,π−
+-- 2,π−
+-- 3,... ,π−
+-- n
+-- ,... ,
+-- U
+-- The next theorem verifies these assertions.
+-- Theorem 1.56. Let ⟨a1,a2,a3,...⟩be a sequence of real numbers and let
+-- r∈R
+-- (i) ⟨a1,a2,a3,...⟩U ≈r for every free ultrafilter U over N if and only if
+-- limn→∞an = r.
+-- (ii) ⟨a1,a2,a3,...⟩U is positive infinite for every free ultrafilter U over N if
+-- and only if limn→∞an = ∞.
+-- 28 1. The Hyperreal Numbers
+-- Proof. We prove (i). First assume that limn→∞an = r. Then for each
+-- positive real ε, we have |an−r|<εfor all but finitely many n∈N, and hence
+-- {n∈N : |an−r|<ε}∈U.
+-- Then |aU−
+-- ∗r|∗<∗ε. Since ε is arbitrary, we have aU ≈r.
+-- Now suppose it is not the case that limn→∞an = r. By the ε,δ condition
+-- 5.9 there is a real ε>0 such that the set
+-- X= {n∈N : |an−r|≥ε}
+-- is infinite. Using the proof of Theorem 1.42 one can show that there is a free
+-- ultrafilter U over N such that X ∈U. Then |aU−
+-- ∗r|∗≥∗ε, so aU ̸≈r. ⊣
+-- Here are some examples of sequences a such that the behavior of aU in R∗
+-- depends on the ultrafilter U.
+-- The equivalence class
+-- ⟨1,−1,1,−1,... ,(−1)n
+-- ,...⟩U
+-- is equal to 1 if {n: n is even}∈U, and is equal to−1 if {n: n is odd}∈U.
+-- The equivalence class
+-- 1,
+-- 1
+-- 2,3,1,
+-- 1
+-- 5,6,1,
+-- 1
+-- 7,8,...
+-- U
+-- is either one, infinitesimal, or infinite, depending on which congruence class
+-- modulo 3 belongs to U.
+-- For each r∈[−1,1] there is a free ultrafilter U over N such that
+-- ⟨sin 0,sin 1,sin 2,... ,sin n,...⟩U ≈r.
+-- The following theorem can be used to verify these examples. Its proof is
+-- similar to the proof of Theorem 1.56.
+-- Theorem 1.57. Let a: N →R and r∈R.
+-- (i) ⟨a0,a1,a2,...⟩U ≈r for some free ultrafilter U over N if and only if a
+-- has a subsequence converging to r.
+-- (ii) ⟨a0,a1,a2,...⟩U is positive infinite for some free ultrafilter U over N if
+-- and only if a has a subsequence diverging to ∞.
+-- A Definable Hyperreal Number System. The ultrapower of the real
+-- number system produces a hyperreal number system (∗,R,R∗) which satisfies
+-- Axioms A–E, but which depends on a free ultrafilter U over a countable index
+-- set I.
+-- We will next show how to modify the ultrapower to get a hyperreal number
+-- system which satisfies Axioms A–E and is definable in set theory. Our purpose
+-- here is only to explain why there is a definable hyperreal system. The details
+-- will not be needed in the rest of this monograph. For this reason, we will skip
+-- the proofs of some lemmas along the way.
+-- 1G. Building the Hyperreal Numbers 29
+-- First, we give some comments about the notion of being definable. In set
+-- theory, we say that a set X is definable by a first order formula θ(v) if we can
+-- prove that X is the unique set such that θ(X) holds. For example, the sets
+-- N of natural numbers, P(N) of sets of natural numbers, and R of equivalence
+-- classes of Cauchy sequences of rationals, are definable. A definable structure,
+-- such as an ordered field or a hyperreal number system, can be thought of
+-- as a structure that be described explicitly by a formula. By contrast, the
+-- ultrapower construction gives us a nonempty class of isomorphic structures,
+-- each depending on an ultrafilter U.
+-- We remark that definable sets can have elements which are not definable. In
+-- fact, there must be real numbers r∈R and sets of natural numbers X ∈P(N)
+-- which are not definable, because there are only countably many statements in
+-- the language of set theory, but the sets R and P(N) have uncountably many
+-- elements.
+-- It should be no surprise that something similar happens when we build a
+-- definable hyperreal number system. The set of all free ultrafilters over the
+-- set N is definable, but some (and possibly every) free ultrafilter over N is not
+-- definable. We are going to build a big but definable hyperreal number system
+-- from the set of all free ultrafilters over N. The idea will be to amalgamate all
+-- ultrapowers of R with index set N together into one large structure.
+-- The starting point is a product operation on finite sequences of ultrafilters,
+-- which can be used to amalgamate finitely many ultrapowers.
+-- Let U,V be ultrafilters over index sets I,J. The product U ⊗V is the set
+-- U ⊗V= {Z ⊆I×J: {j: {i: ⟨i,j⟩∈Z}∈U}∈V}.
+-- Warning: in general, U ⊗V will be diﬀerent from V ⊗U. The finite product
+-- U1 ⊗···⊗Un is defined inductively by
+-- U1 ⊗···⊗Un = (U1 ⊗···⊗Un−1) ⊗Un.
+-- Lemma 1.58. Given free ultrafilters U1,... ,Un over index sets I1,... ,In,
+-- the product U1 ⊗···⊗Un is a free ultrafilter over I1 ×···×In.
+-- The next ingredient is a definable function which maps a linearly ordered
+-- set onto the set of all free ultrafilters over N. This is the key idea that was
+-- introduced in the paper of Kanovei and Shelah [KS 2004].
+-- To get this function we need ordinal numbers in the sense of Von Neumann.
+-- These are defined in such a way that each ordinal number is equal to the
+-- set of all smaller ordinals numbers. Let c be the least ordinal number whose
+-- cardinality is the continuum 2ℵ0 , that is, the least ordinal number which can
+-- be mapped onto the set P(N).
+-- We define A to be the set of all functions a: c →P(N) such that range(a)
+-- is a free ultrafilter Ua over N. The set A is nonempty because, by Theorem
+-- 1.42, free ultrafilters over N exist.
+-- 30 1. The Hyperreal Numbers
+-- For X,Y ∈P(N), we write X <p Y if and only if n∈X 3−n < n∈Y 3−n
+-- .
+-- We define the lexicographic order <A on A as follows. For a,b∈A, a<A b if
+-- and only if a(α) <p b(α) where α is the least ordinal such that a(α) ̸= b(α).
+-- Lemma 1.59. <p is a linear ordering of P(N), <A is a linear ordering of
+-- A, and {Ua: a∈A}is the set of all free ultrafilters over N.
+-- We now build a whole definable family of hyperreal number systems, one
+-- for each nonempty finite subset σ of A. Arrange σ in increasing order,
+-- σ= {a1 <A ...<A an}.
+-- Let
+-- Uσ = Ua1 ⊗···⊗Uan
+-- be the product of the corresponding ultrafilters, and let R(σ) be the ultrapower
+-- of R modulo Uσ. By Theorem 1.55, the ultrapower yields a hyperreal number
+-- system ((σ),R,R(σ)) with an order relation <(σ) and a natural extension f(σ)
+-- for each real function f. We also put R(∅) = R where ∅is the empty set.
+-- For each pair of finite subsets σ ⊆τ of A, there is a natural embedding
+-- hστ: R(σ) →R(τ). To illustrate, we give the definition of hστ in the case that
+-- σ = {a1 <A a3}and τ = {a1 <A a2 <A a3}. Uσ is an ultrafilter over N ×N
+-- and Uτ is an ultrafilter over N ×N ×N. Given an element xUσ ∈R(σ) where
+-- x: N ×N →R, hστ(xUσ) is the element yUτ ∈R(τ) such that
+-- y(n1,n2,n3) = x(n1,n3).
+-- In particular, hσσ is the identity map on R(σ)
+-- .
+-- Lemma 1.60. Let τ be a finite subset of A.
+-- (i) If σ⊆ρ⊆τ then hστ is the composition hστ(x) = hρτ(hσρ(x)).
+-- (ii) For each x∈R(τ), there is a unique smallest subset σ ⊆τ such that x
+-- is in the range of hστ.
+-- (iii) If σ ⊆τ then for each system of formulas S and tuple ⃗x in R(σ)
+-- , ⃗x is
+-- a solution of S in R(σ) if and only if hστ(⃗x) is a solution of S in R(τ)
+-- .
+-- The proofs of Lemmas 1.58 and 1.60 can be found in Section 6.5 of the book
+-- [CK 1990].
+-- With the above lemmas, we can now amalgamate the hyperreal fields R(σ)
+-- into one large hyperreal field R•. The intuitive idea is to identify each element
+-- x ∈R(σ) with its image hστ(x) ∈R(τ), and then take R• to be the union of
+-- the sets R(σ). Formally, we can carry out this idea by introducing, for each
+-- finite σ⊆A and x∈R(σ), a new object called the thread of x, defined by
+-- hσ(x) = {(ρ,y): ρ⊆σ, hρσ(y) = x}∪{(τ,y): σ⊆τ, hστ(x) = y}.
+-- One can easily check that
+-- Lemma 1.61. If τ is a finite subset of A and σ ⊆τ, then hσ is the compo-
+-- sition hσ(x) = hτ(hστ(x)).
+-- 1G. Building the Hyperreal Numbers 31
+-- We then define R•to be the set of all threads,
+-- R•
+-- = {hσ(x): σ⊆A and x∈R(σ)},
+-- and define the natural extensions <• and f• in the obvious way on R•. This
+-- gives the desired result.
+-- Theorem 1.62. The hyperreal structure (•,R,R•) is definable and satisfies
+-- Axioms A–E.

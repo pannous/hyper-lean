@@ -1,0 +1,20 @@
+FROM phusion/baseimage:focal-1.1.0
+WORKDIR /opt/
+RUN apt -y update && apt -y upgrade
+RUN apt install -y curl git
+RUN curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf |\
+       bash -s -- --default-toolchain leanprover/lean4:stable -y
+ENV PATH="/root/.elan/bin:$PATH"
+# as per https://github.com/leanprover-community/mathlib4/wiki/Using-mathlib4-as-a-dependency
+RUN mkdir /opt/other/hyper_test
+WORKDIR /opt/other/hyper_test
+RUN lake +leanprover-community/mathlib4:lean-toolchain new project_name math
+# The purpose of lake new is to generate the initial project files based on a template
+# inclusion of `math` omits `Main.lean` and declares Mathlib as a dependency in your lakefile.toml
+WORKDIR /opt/other/hyper_test/project_name
+# Next, read `lakefile.toml` in the current directory (/opt/other/hyper_test/project_name).
+# Then identify the declared dependencies (in this case, Mathlib) and download and install these dependencies into your project.
+RUN lake exe cache get
+# cache the build of Mathlib
+RUN echo "import Mathlib.Data.Real.Basic" > HyperTest/mathlib_test.v4.lean
+RUN lake lean HyperTest/mathlib_test.v4.lean

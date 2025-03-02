@@ -27,7 +27,7 @@ structure Hyper :=
   infinite_part : ℚ -- ω-part
   exceptional : Bool -- NaN or ε² or ±∞
   -- higher orders ω² not implemented here => ε² ≈ 0 and ω² ≈ ∞
--- we can norm r + ε² to r and r + ε + ω + ω² to ∞
+  -- we can norm r + ε² to r and r + ε + ω + ω² to ∞
   -- deriving Repr not in lean 4
 
 

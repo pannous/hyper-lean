@@ -1,0 +1,33 @@
+name = "Hyper"
+
+[package]
+name = "Hyper"
+default_target = "Hyper"
+defaultTargets = ["Hyper"]
+
+[targets.default]
+type = "lean_lib"
+roots = ["Hyper"]
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+
+[[lean_lib]]
+name = "Hyper"
+
+# [[lean_exe]]
+# name = "Hyper"
+
+# [dependencies.mathlib]
+# source.git = "https://github.com/leanprover-community/mathlib4"
+# rev = "master"
+
+# [dependencies.Cli]
+# source.git = "https://github.com/mhuisi/lean4-cli.git"
+# rev = "nightly"
+
+# [dependencies.doc-gen4]
+# source.git = "https://github.com/leanprover/doc-gen4"
+# rev = "main"
+# meta.dev = { if = "doc" == "on" }

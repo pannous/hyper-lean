@@ -1,5 +1,5 @@
 -- import Mathlib.Data.Int.AbsoluteValue
-import Mathlib
+-- import Mathlib
 import Mathlib.Data.Real.Basic -- Import basic real number theory in LEAN 4
 import Mathlib.Data.Real.Ereal -- ∞
 import Mathlib.Data.Real.Hyperreal -- defined as hyperfilter germ
@@ -8,7 +8,12 @@ import Init.Prelude
 import Init.Control.Basic -- Import basic control structures in LEAN 4
 import Hyper.HyperUtil
 import Lean
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+
+#eval Float.sin 0
+-- #eval Real.sin 0  -- abstract function!
 -- import data.real.basic -- Import basic real number theory in LEAN 3
+
 
 namespace Hypers
 section HyperFun
@@ -449,6 +454,7 @@ lemma abs_of_neg (x : ℤ) : x < 0 → |x| = -x := by
   -- exact Int.neg_of_nat_of_lt h
   sorry
 
+
 lemma x_not_zero_means_abs_not_zero (x : ℤ) : x ≠ 0 → |x| > 0 := by
   intro h
   cases x
@@ -459,6 +465,7 @@ lemma x_not_zero_means_abs_not_zero (x : ℤ) : x ≠ 0 → |x| > 0 := by
       -- exact Nat.zero_lt_succ n
   case negSucc n =>
     simp [abs]
+    -- #search negative_smaller_zero
     exact negative_smaller_zero h
 
 
@@ -735,7 +742,7 @@ def hyperDerivativeOfConst (f : HyperFun) : HyperFun :=
 { components := fun x => f.components (x + 1) - f.components x, order := f.order - 1 }
 
 notation "∂" => hyperDerivative
-#eval ∂ sin 0
+-- #eval ∂ Real.sin 0
 
 end HyperDerivatives
 end HyperFun

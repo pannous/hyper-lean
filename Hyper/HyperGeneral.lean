@@ -18,8 +18,10 @@ section HyperGenerals
 
 -- Avoid Real Numbers When Possible:
 -- If the use of real numbers introduces complexity due to issues like non-decidability of equality, consider if your application can tolerate using rational numbers or fixed-point arithmetic, which do not have these issues in Lean.
-notation "𝔽" => ℚ -- our field, true alias
+-- notation "𝔽" => ℚ -- our field, true alias
 -- def 𝔽 := ℚ -- treats it as own Type!!
+
+variable {𝔽 : Type*} [field 𝔽] -- “Let 𝔽 be a field.”
 
 def Comps := List (𝔽 × 𝔽)
 -- def Comps := List (ℝ × ℝ)
@@ -30,15 +32,15 @@ def Comps := List (𝔽 × 𝔽)
 structure HyperGeneral :=
   components : List (𝔽 × 𝔽)
   -- components : 𝔽 → 𝔽 -- as Function, see HyperFun
--- components : List (ℝ × ℝ) -- allow π√ε
+  -- components : List (ℝ × ℝ) -- allow π√ε
   -- components : List (ℚ × ℚ) -- allow π√ε approximation for now
--- components : List (Float × Float) -- allow π√ε approximation for now
+  -- components : List (Float × Float) -- allow π√ε approximation for now
   -- components : List (ℝ × ℤ) -- [(3, 0), (1, 1), (2, -2)] => 3 + ω + 2ε^2 -- note ε = ω⁻¹
   -- components : ℤ → ℝ  -- generalized for infinite lists of components
   -- components : Comps -- with indirection we can't use add := λ x y => ⟨x.components ++ … why?
 
-structure HyperSimple :=
-  components : ℝ × ℤ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
+-- structure HyperSimple :=
+  -- components : ℝ × ℤ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
   -- components : ℝ × ℝ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
 
 structure HyperExtension (α : Type*) extends Real :=
@@ -46,8 +48,9 @@ structure HyperExtension (α : Type*) extends Real :=
 
 -- notation "ℚ*" => HyperGeneral -- but what about π?
 notation "𝔽*" => HyperGeneral
-notation "ℝ⋆" => HyperGeneral -- may conflict with Hyper from Hyper.lean
-notation "ℝ*" => HyperGeneral -- may conflict with Lean 4 notation for hyperreals
+notation "𝔽⋆" => HyperGeneral
+-- notation "ℝ⋆" => HyperGeneral -- may conflict with Hyper from Hyper.lean
+-- notation "ℝ*" => HyperGeneral -- may conflict with Lean 4 notation for hyperreals
 
 instance : One HyperGeneral where
   one := ⟨[(1, 0)]⟩
@@ -61,7 +64,7 @@ instance : Inhabited HyperGeneral where
   }
 
 def zero : HyperGeneral := ⟨[]⟩
-  def one : HyperGeneral := ⟨[(1, 0)]⟩
+def one : HyperGeneral := ⟨[(1, 0)]⟩
 def epsilon : HyperGeneral := ⟨[(1, -1)]⟩
 def omega : HyperGeneral := ⟨[(1, 1)]⟩
 
@@ -71,19 +74,19 @@ scoped notation "I" => one
 scoped notation "ε" => epsilon
 scoped notation "ω" => omega
 
--- instance : Coe ℝ ℝ⋆ where
+-- instance : Coe ℝ 𝔽* where
 --   coe r := HyperGeneral.mk [(r,0)]
 
-instance : Coe ℚ ℝ⋆ where
+instance : Coe ℚ 𝔽* where
   coe q := HyperGeneral.mk [(q,0)]
 
 -- This instance already exists in Lean’s standard library, so you don’t need to redefine it.
--- instance : Coe ℕ ℝ⋆ where
+-- instance : Coe ℕ 𝔽* where
   -- coe n := Nat.cast n --n.toReal
-instance : Coe ℕ ℝ⋆ where
+instance : Coe ℕ 𝔽* where
   coe (n:ℕ) : HyperGeneral := ⟨[((n:𝔽), 0)]⟩
 
-instance : Coe ℚ ℝ⋆ where
+instance : Coe ℚ 𝔽* where
   coe (q:ℚ) : HyperGeneral := ⟨[(q, 0)]⟩
 
 instance : Add HyperGeneral where
@@ -96,39 +99,39 @@ def simplify (a:HyperGeneral) : HyperGeneral :=
 
 
 
--- instance : Field HyperGeneral := {
---   mul := λ x y => HyperGeneral.mk (
---     List.bind x.components (λ px =>
---       y.components.map (λ py => (px.1 * py.1, px.2 + py.2)))
---   ),
---   -- add := λ x y => HyperGeneral.mk ( x.components ++ y.components ),
---   add := λ x y => ⟨x.components ++ y.components⟩,
---   neg := λ x => ⟨x.components.map (λ ⟨r, e⟩ => (-r, e))⟩,
---   inv := λ x => ⟨x.components.map (λ ⟨r, e⟩ => (r⁻¹, -e))⟩,
---   zero := zero,
---   one := one,
---   -- include proofs showing these satisfy field axioms
---   zero_add := sorry,
---   zero_mul := sorry,
---   add_assoc := sorry,
---   add_zero := sorry,
---   add_comm:=sorry,
---   add_left_neg:=sorry,
---   left_distrib:=sorry,
---   right_distrib:=sorry,
---   one_mul:=sorry,
---   mul_zero:=sorry,
---   mul_assoc:=sorry,
---   mul_one:=sorry,
---   mul_inv_cancel:=sorry,
---   mul_comm:=sorry,
---   zsmul:=sorry,
---   qsmul:=sorry,
---   exists_pair_ne:=sorry,
---   inv_zero:=sorry,
---   nnqsmul:=sorry,
---   nsmul:=sorry,
--- }
+instance : Field HyperGeneral := {
+  mul := λ x y => HyperGeneral.mk (
+    List.bind x.components (λ px =>
+      y.components.map (λ py => (px.1 * py.1, px.2 + py.2)))
+  ),
+  -- add := λ x y => HyperGeneral.mk ( x.components ++ y.components ),
+  add := λ x y => ⟨x.components ++ y.components⟩,
+  neg := λ x => ⟨x.components.map (λ ⟨r, e⟩ => (-r, e))⟩,
+  inv := λ x => ⟨x.components.map (λ ⟨r, e⟩ => (r⁻¹, -e))⟩,
+  zero := zero,
+  one := one,
+  -- include proofs showing these satisfy field axioms
+  zero_add := sorry,
+  zero_mul := sorry,
+  add_assoc := sorry,
+  add_zero := sorry,
+  add_comm:=sorry,
+  add_left_neg:=sorry,
+  left_distrib:=sorry,
+  right_distrib:=sorry,
+  one_mul:=sorry,
+  mul_zero:=sorry,
+  mul_assoc:=sorry,
+  mul_one:=sorry,
+  mul_inv_cancel:=sorry,
+  mul_comm:=sorry,
+  zsmul:=sorry,
+  qsmul:=sorry,
+  exists_pair_ne:=sorry,
+  inv_zero:=sorry,
+  nnqsmul:=sorry,
+  nsmul:=sorry,
+}
 
 
   -- inv_zero:= sorry,

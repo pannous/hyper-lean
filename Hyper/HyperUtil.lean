@@ -1,6 +1,47 @@
 import Mathlib.Data.Real.Basic -- Import basic real number theory in LEAN 4
 import Mathlib.Data.Real.Ereal -- ∞
 
+
+open Lean Meta
+
+def saveTheorems  : MetaM Unit := do -- ⚠️ takes a while to run!!
+  let env ← getEnv
+  let found_count ← IO.mkRef 0
+  -- let outFile ← IO.mkRef (← IO.FS.Handle.mk "lean_theorems.txt" IO.FS.Mode.write)
+  let mut outFile ← IO.FS.Handle.mk "search_results.txt" IO.FS.Mode.write
+  outFile.putStrLn s!"Theorem▸Type"
+  for (name, decl) in env.constants.toList do
+      let declName := name.toString
+      let declType ← Meta.ppExpr decl.type
+      found_count.modify (· + 1)
+      outFile.putStrLn s!"Theorem: {declName}\nType: {declType}\n"
+  outFile.flush
+  let count ← found_count.get
+  IO.println s!"Search complete. Found {count} theorems. Results saved to lean_theorems.txt"
+
+-- where
+  -- isTheorem (name: Name) : MetaM Bool := do
+  --   let some const ← getConstInfo? name | return false
+  --   pure $ const.isTheorem
+
+-- #eval saveTheorems  -- ⚠️ takes a while to run!!
+-- mouse over → busily processing
+
+def searchTheorems (query: String) : MetaM Unit := do
+  let env ← getEnv
+  let found_count ← IO.mkRef 0
+  env.constants.forM fun name _ => do
+    if name.toString.containsSubstr query then
+      println! "{name}"
+      found_count.modify (· + 1)
+
+  let foundCount ← found_count.get
+  println! "Total found: {foundCount}"
+
+-- #eval searchTheorems "negative_smaller_zero"  -- ⚠️ takes a while to run!!
+-- mouse over → busily processing
+#eval searchTheorems "lt_zero"  -- ⚠️ takes a while to run!!
+
 variable {T : Type} [DecidableEq T] [LT T] [DecidableRel (LT.lt : T → T → Prop)]
 variable {S : Type} [DecidableEq S] [LT S] [DecidableRel (LT.lt : S → S → Prop)]
 
