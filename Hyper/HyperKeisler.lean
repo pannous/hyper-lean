@@ -79,6 +79,7 @@ def near (x y : R*) : Prop := infinitesimal (x - y)
 -- Definition 1.2: Monad and Galaxy
 def monad (x : R*) : Set R* := {y | near x y}
 def galaxy (x : R*) : Set R* := {y | finite (x - y)}
+-- def galaxy' (x : R*) : Set R* := {y | finite (y - x)}
 def halo := monad -- alias
 
 -- def Finites : Set R* := galaxy 0
