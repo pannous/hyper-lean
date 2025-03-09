@@ -77,6 +77,13 @@ instance near_is_equivalence : Equivalence near where
   trans := near_trans
 
 
+lemma extension_add (a b : ℝ) : extension (a + b) = extension a + extension b :=
+  map_add extension a b
+
+theorem extension_add2 (a b : ℝ) : extension a + extension b = extension (a + b) :=
+  by rw [extension_add]
+
+theorem zero_le_zero_extension : (0 : ℝ) ≤ 0 := by linarith
 
 -- Theorem 1.3. The set Finite = galaxy(0) of finite elements is a subring of R∗, that
 -- is, sums, diﬀerences, and products of finite elements are finite.
@@ -100,13 +107,123 @@ by
       rw [extension.map_mul, abs_mul]  -- Uses RingHom property
       apply mul_lt_mul'' hr hs (abs_nonneg x) (abs_nonneg y)
 
+lemma zero_is_finite : finite 0 := by
+  use 1    -- use 0 < extension 1 QED
+  simp
+
+
+-- instance : LT R* where
+--   lt x y := (∃ a b : ℝ, (x = extension a ∨ x = a) ∧ (y = extension b ∨ y = b) ∧ a < b) ∨ x < y
+
+-- lemma ordered_field_transfer {α : Type} [LinearOrderedSemiring α] [CoeTC α ℝ]
+--     (a : α) (b : ℝ) : (a : R*) < extension b ↔ (a : ℝ) < b :=
+--   ordered_field_extension (a : ℝ) b
+
+
+-- lemma zero_lt_one : (0 : R*) < extension 1 :=
+lemma zero_lt_one : extension 0 < extension 1 :=
+  by
+    have h : 0 < 1 := by linarith
+    have h1 : ↑0 < ↑1 := by linarith
+    have h2 : (0: ℝ) < (1: ℝ):= by linarith
+    exact (ordered_field_extension (0: ℝ) (1: ℝ)).mpr h2
+
+-- axiom ordered_field_transfer : ∀ (r : ℝ) , (s : ℝ*) → (r < s ↔ extension r < s)
+-- axiom ordered_field_transfer_RR2 : ∀ (r : ℝ) , (s : ℝ) → (r < s ↔ r < extension s)
+lemma zero_lt_one_R1 : (0: ℝ) < (1: ℝ*) :=
+  by
+    have h1 : (1 : ℝ*) = extension 1 := by simp
+    have h2 : (0 : ℝ) < (1 : ℝ) := by linarith
+    have h3 : (0 : ℝ) < (extension 1) := by exact (ordered_field_transfer_RR2 (0 : ℝ) (1 : ℝ)).mp h2
+    simp
+
+lemma zero_lt_one_R : 0 < extension 1 :=
+  by
+    have h : 0 < 1 := by linarith
+    have h1 : ↑0 < ↑1 := by linarith
+    have h2 : (0: ℝ) < (1: ℝ):= by linarith
+    exact ordered_field_transfer 0 1
+    -- exact (ordered_field_extension (0: ℝ) (1: ℝ)).mpr h2
+
+
+lemma one_is_finite : finite 1 := by
+  use 2    -- use 1 < extension 2 QED
+  -- 1 < extension 2 <=> 0 < extension 1 because we can subtract 1 from both sides
+  simp [extension] at *
+  have h : 0 < extension 1 := zero_is_finite
+
+
+
 def Finites : Set R* := {y | finite y} --  galaxy 0
+noncomputable def Finites_subring : Subring R* where
+  carrier := Finites
+  zero_mem' := zero_is_finite
+  one_mem' := one_is_finite
+  -- zero_mem' := ⟨0, by sorry⟩
+  one_mem' :=  ⟨1, by sorry⟩
+
+  add_mem' := by
+    intro x y ⟨a, hx⟩ ⟨b, hy⟩
+    use a + b
+    simp [finite] at *
+    calc
+      |x + y| ≤ |x| + |y| := abs_add x y
+      _       < extension a + extension b := add_lt_add hx hy
+      _       = extension (a + b)         := by exact extension_add2 a b
+    sorry
+
+  mul_mem' := by
+    intro x y ⟨a, hx⟩ ⟨b, hy⟩
+    use a * b
+    simp [finite] at *
+    calc
+      |x * y| = |x| * |y|         := abs_mul x y
+      _       < extension a * extension b :=
+        -- requires 0 < extension a, 0 < extension b, and |x|,|y| < those
+        mul_lt_mul'' hx hy (abs_nonneg x) (abs_nonneg y)
+      _  = extension (a * b) := (extension.map_mul a b).symm
+      _  = extension a * extension b := by rw [extension.map_mul]
+  neg_mem' := by
+    intro x ⟨a, hx⟩
+    use a
+    simp [finite] at *
+    exact hx
+
+
+-- def Finites_subring2 : Subring R* where
+--   carrier := Finites
+--   subringProp := {
+--   zero_mem := ⟨1, by simp [finite]⟩
+--   one_mem := ⟨2, by simp [finite]⟩
+--   add_mem := by
+--     intro x y ⟨a, hx⟩ ⟨b, hy⟩
+--     use a + b
+--     simp [finite] at *
+--     calc
+--       |x + y| ≤ |x| + |y| := abs_add _ _
+--       _ < extension a + extension b := add_lt_add hx hy
+--       _ = extension (a + b) := (extension.map_add a b).symm
+--   neg_mem := by
+--     intro x ⟨a, hx⟩
+--     use a
+--     simp [finite] at *
+--     rw [abs_neg]
+--     exact hx
+--   mul_mem := by
+--     intro x y ⟨a, hx⟩ ⟨b, hy⟩
+--     use a * b
+--     simp [finite] at *
+--     calc
+--       |x * y| = |x| * |y| := abs_mul x y
+--       _ < extension a * extension b := mul_lt_mul'' hx hy (abs_nonneg _) (le_of_lt infinitesimal_pos.1)
+--       _ = extension (a * b) := (extension.map_mul a b).symm
+--   }
 
 -- function expected at
 --   Subring ↑Finites
 -- term has type
 --   Type
-instance finites_are_subring : Subring finite R* where
+instance finites_are_subring : Subring ↑Finites R* where
   zero_mem := by
     -- `0` is finite since `|0| = 0 < extension r` for any `r > 0`
     use 1
@@ -140,11 +257,10 @@ instance finites_are_subring : Subring finite R* where
     intro x y hx hy
     exact (galaxy_zero_subring x y hx hy).2.1
 
+
 lemma finite_sub_closed {x y : R*} (hx : finite x) (hy : finite y) : finite (x - y) :=
   (galaxy_zero_subring x y hx hy).2.1
 
-lemma extension_add (a b : ℝ) : extension (a + b) = extension a + extension b :=
-  map_add extension a b
 
 open Classical
 
@@ -199,7 +315,7 @@ by
     -- sorry
     exact subset_contradiction (Set.inter_subset_left _ _) (Set.inter_subset_right _ _) hz
 
-
+-- Intersecting galaxies are equal
 theorem galaxy_inter_eq2 : ∀ x y : R*, (galaxy x ∩ galaxy y) ≠ ∅ → galaxy x = galaxy y :=
 by
   intros x y h_nonempty
@@ -544,3 +660,7 @@ by
   use r * s
   rw [extension.map_mul, abs_mul]  -- Uses RingHom property
   apply mul_lt_mul'' hr hs (abs_nonneg x) (abs_nonneg y)
+
+-- axiom st_halo : ∀ (r : ℝ) (h : R*), h ∈ halo (extension r) → st h = r
+lemma st_halo (r : ℝ) (h : R*) (hh : h ∈ halo (extension r)) : st h = r :=
+  st_extension r
