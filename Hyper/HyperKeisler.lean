@@ -20,7 +20,18 @@ import Mathlib.Tactic.Linarith
 
 -- ⚠️ Lean 4 DOES NOT CHECK SOUNDNESS OF AXIOMS ⚠️
 
-axiom Hyperreal : Type
+-- [@implemented_by ] <<< only when executing code in Lean #eval, not in proofs
+-- [@extern ...] fast C implementation
+-- axiom Hyperreal : Type -- e.g.
+-- structure Hyperreal' := (real : ℝ) (epsilon : ℝ)
+structure Hyperreal' where
+  real : ℝ
+  hype : ℝ -- not to be confused with hyper(ℝ) embedding
+
+-- 	•	Use a class only if you need multiple models of hyperreals.
+--  ℝ (for proofs) and Float (for computation).
+def Hyperreal := Hyperreal' -- Now they are the same
+
 -- notation "Hyper" => Hyperreal
 notation "R*" => Hyperreal
 notation "ℝ*" => Hyperreal
@@ -48,7 +59,14 @@ axiom LinearOrderedField_Hyperreal : LinearOrderedField R*
 noncomputable instance : LinearOrderedField R* := LinearOrderedField_Hyperreal
 
 -- The standard embedding ℝ → R* is a Ring Homomorphism
-axiom hyper : ℝ →+* R*
+axiom hyper : ℝ →+* R* -- embedding constructor
+-- constant (hyper : ℝ →+* R*) -- embedding constructor CAN BE DEFINED LATER!
+-- def hyper : ℝ →+* R* :=
+--   RingHom.mk (fun r => ⟨r, 0⟩) -- explicit embedding
+--     (by simp)  -- map_one' -- prove it preserves 1
+--     (by simp)  -- map_mul' -- prove it preserves multiplication
+--     (by simp)  -- map_zero' -- prove it preserves 0
+--     (by simp)  -- map_add' -- prove it preserves addition
 
 -- axiom extension : ℝ → R*   -- without RingHom which we would have to add later
 
@@ -100,6 +118,7 @@ theorem ordered_field_transfer2 (r : R*) (s : ℝ) (z : R*) (hz : z = hyper s) :
 
 -- Axiom C: Existence of a positive infinitesimal ε
 axiom epsilon : R*
+
 axiom infinitesimal_pos : 0 < epsilon ∧ ∀ r : ℝ, epsilon < hyper r
 
 -- Extend the order: ℝ is naturally embedded in Hyperreal
@@ -121,23 +140,33 @@ axiom D : ∀ {n : ℕ} (f : (ℝ^n) → ℝ),
 axiom E : ∀ (P : R* → Prop), (∀ r : ℝ, P (hyper r)) → (∀ x : R*, P x)
 
 -- Axiom F: Standard part function
--- axiom st : R* → ℝ
-def st (x : R*) : ℝ := sorry -- Will be implemented later, e.g. :
--- structure Hyperreal' := (real : ℝ) (epsilon : ℝ)
--- def standard (x : Hyperreal') : ℝ := x.real
-class StandardPart (α : Type*) := (st : α → ℝ)
+-- axiom real : R* → ℝ -- noncomputable and we can't make it computable later
+-- axiom real_part : R* → ℝ standard part
+-- axiom hyper_part : R* → R* vs standard part
+-- def real (x : R*) : ℝ := sorry -- Will be implemented later, e.g. :
+-- def real (x : R*) : ℝ := x.real -- If implemented as a structure
+def real : R* → ℝ
+| epsilon => 0 -- "redundant"
+| x       => x.real + 1
 
-notation "real" => st -- alias real part of a hyperreal akin to `Re` in complex numbers
-notation "standard" => st --  noncomputable def standard := st -- alias
-axiom st_extension : ∀ r : ℝ, st (hyper r) = r
-axiom extension_st : ∀ r : ℝ, hyper (st r) = r -- todo: as lemma
-axiom pure_epsilon : st epsilon = 0
+-- structure Hyperreal' := (real : ℝ) (epsilon : ℝ)
+
+class StandardPart (α : Type*) := (real : α → ℝ)
+
+notation "st" => real -- alias st standard = real part of a hyperreal akin to `Re` in complex numbers
+notation "standard" => real --  noncomputable def standard := real -- alias
+axiom st_extension : ∀ r : ℝ, real (hyper r) = r
+axiom extension_st : ∀ r : ℝ, hyper (real r) = r -- todo: as lemma
+-- axiom pure_epsilon : real epsilon = 0  -- redundant but can't hurt
+lemma pure_epsilon : real epsilon = 0  := by simp [real]
+#reduce real epsilon -- 0.0
+#eval real epsilon -- 0.0
 
 -- Add a "real" method to Hyperreal for accessing the standard part
-@[inline] def Hyperreal.real (x : R*) : ℝ := st x
-#eval epsilon.real -- 0.0
+-- @[inline] def Hyperreal.real (x : R*) : ℝ := real x -- already defined
+-- #eval epsilon.real -- 0.0
 
-lemma st_extension' (r : ℝ) : st (r : R*) = r := st_extension r -- via coercion
+lemma st_extension' (r : ℝ) : real (r : R*) = r := st_extension r -- via coercion
 -- Definition 1.1: Infinitesimals, finites, and infinite elements
 def finite  (x : R*) : Prop := ∃ r : ℝ, |x| < hyper r
 def infinite  (x : R*) : Prop := ∀ r : ℝ, r > 0 → |x| > hyper r
@@ -167,7 +196,7 @@ def Infinites'' : Set R* :=  Hyperreals \ Finites  -- Complement of the finite s
 -- Set R* represents the type of all subsets of  R^ *.
 -- •	Set.univ is the universal set in Lean, meaning the set of all elements of  R^ *.
 
-axiom st_reals : ∀ r : ℝ, st (hyper r) = r
+axiom st_reals : ∀ r : ℝ, real (hyper r) = r
 
 
 
@@ -218,14 +247,14 @@ example (r : ℝ) : r = hyper r := rfl
 def R_subset : Set R* := Set.range hyper
 def R_subtype : Type := { x : R* // ∃ r : ℝ, x = hyper r }
 
-lemma st_is_inverse (x : R*) (h : x ∈ R_subset) : hyper (st x) = x := by
+lemma st_is_inverse (x : R*) (h : x ∈ R_subset) : hyper (real x) = x := by
   obtain ⟨r, hr⟩ := h -- x = hyper r for some r ∈ ℝ
   have h0 : hyper r = x := hr
-  have h1 : st x = r := by rw [←h0, st_extension]
+  have h1 : real x = r := by rw [←h0, st_extension]
   rw [h1]
   exact hr
 
-noncomputable def st_R_subset : R_subset → ℝ := λ x => st x -- standard part of x in R_subset
+noncomputable def st_R_subset : R_subset → ℝ := λ x => real x -- standard part of x in R_subset
 
 @[simps apply] -- ≃ Equiv Equivalence
 noncomputable def R_embedded_equivalent : ℝ ≃ R_subset := {
@@ -233,9 +262,9 @@ noncomputable def R_embedded_equivalent : ℝ ≃ R_subset := {
   invFun := st_R_subset, -- 𝞅⁻¹
   left_inv := λ r => by simp [st_R_subset, st_extension], -- 𝞅⁻¹•𝞅=1
   right_inv := λ ⟨x, ⟨r, hr⟩⟩ => by -- 𝞅•𝞅⁻¹=1
-    show (⟨hyper (st x), ⟨st x, rfl⟩⟩ : R_subset) = ⟨x, ⟨r, hr⟩⟩
+    show (⟨hyper (real x), ⟨real x, rfl⟩⟩ : R_subset) = ⟨x, ⟨r, hr⟩⟩
     apply Subtype.ext
-    show hyper (st x) = x
+    show hyper (real x) = x
     rw [← hr, extension_st]
 }
 
@@ -272,13 +301,13 @@ notation a "≃ₜ" b => Nonempty (a ≃ b) -- Topological Equivalence
 
 noncomputable def real_homeo : ℝ ≃ₜ R :=
 { toFun := hyper,
-  invFun := st, -- assuming `st` is well-defined
-  left_inv := st_extension, -- st(hyper r) = r
+  invFun := real, -- assuming `real` is well-defined
+  left_inv := st_extension, -- real(hyper r) = r
   right_inv := λ x, by
     { rcases x with ⟨r, hr⟩,
       exact Subtype.ext (st_extension r) },
   continuous_toFun := sorry, -- Follows from standard topology properties
-  continuous_invFun := sorry } -- Needs proof from `st`
+  continuous_invFun := sorry } -- Needs proof from `real`
 
 
 -- theorem R_star_superset : R_subset ⊂ Set.univ := by
