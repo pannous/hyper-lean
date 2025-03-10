@@ -126,9 +126,13 @@ notation "real" => st -- alias real part of a hyperreal akin to `Re` in complex 
 notation "standard" => st --  noncomputable def standard := st -- alias
 axiom st_extension : ∀ r : ℝ, st (extension r) = r
 axiom extension_st : ∀ r : ℝ, extension (st r) = r -- todo: as lemma
+axiom pure_epsilon : st epsilon = 0
+
+-- Add a "real" method to Hyperreal for accessing the standard part
+@[inline] noncomputable def Hyperreal.real (x : R*) : ℝ := st x
+#eval epsilon.real -- 0.0
 
 lemma st_extension' (r : ℝ) : st (r : R*) = r := st_extension r -- via coercion
-#eval epsilon.real -- 0.0
 -- Definition 1.1: Infinitesimals, finites, and infinite elements
 def finite  (x : R*) : Prop := ∃ r : ℝ, |x| < extension r
 def infinite  (x : R*) : Prop := ∀ r : ℝ, r > 0 → |x| > extension r
@@ -137,16 +141,10 @@ def infinitesimal (x : R*) : Prop := ∀ r : ℝ, r > 0 → |x| < extension r
 -- lemma infinitesimal_iff_infinitesimal2 : infinitesimal x ↔ infinitesimal2 x :=
 --   by simp [infinitesimal, infinitesimal2]
 
-def near (x y : R*) : Prop := infinitesimal (x - y)
-def cofinite (x y : R*) : Prop := finite (x - y)
--- def near (x y : R*) : Prop := infinitesimal extension (x - y)
-
--- Definition 1.2: Monad and Galaxy
-def monad (x : R*) : Set R* := {y | near x y}
-def galaxy (x : R*) : Set R* := {y | finite (x - y)}
--- def galaxy' (x : R*) : Set R* := {y | finite (y - x)}
--- def galaxy (x : R*) : Set R* := {y | cofinite (x y)}
-def halo := monad -- alias
+-- Type definitions as subtypes
+def Finiteh : Type := {x : R* // finite x}
+def Infiniteh : Type := {x : R* // infinite x}
+def Infinitesimal : Type := {x : R* // infinitesimal x}
 
 -- def Finites : Set R* := galaxy 0
 def Finites : Set R* := {y | finite y} --  galaxy 0
@@ -163,6 +161,21 @@ def Infinites'' : Set R* :=  Hyperreals \ Finites  -- Complement of the finite s
 -- def Infinites : Set R* := Set.univ \ Finites  -- Complement of the finite set R*
 -- Set R* represents the type of all subsets of  R^ *.
 -- •	Set.univ is the universal set in Lean, meaning the set of all elements of  R^ *.
+
+axiom st_reals : ∀ r : ℝ, st (extension r) = r
+
+
+
+def near (x y : R*) : Prop := infinitesimal (x - y)
+def cofinite (x y : R*) : Prop := finite (x - y)
+-- def near (x y : R*) : Prop := infinitesimal extension (x - y)
+
+-- Definition 1.2: Monad and Galaxy
+def monad (x : R*) : Set R* := {y | near x y}
+def galaxy (x : R*) : Set R* := {y | finite (x - y)}
+-- def galaxy' (x : R*) : Set R* := {y | finite (y - x)}
+-- def galaxy (x : R*) : Set R* := {y | cofinite (x y)}
+def halo := monad -- alias
 
 
 lemma extension_zero : extension 0 = (0 : R*) :=
