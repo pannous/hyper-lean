@@ -1,11 +1,12 @@
--- import data.real.basic -- Import basic real number theory in LEAN 3
 import Mathlib.Data.Real.Basic -- Import basic real number theory in LEAN 4
-import Mathlib.Data.Real.Ereal -- ∞
+-- import Mathlib.Data.Real.Ereal -- ∞
 import Mathlib.Data.Real.Hyperreal -- defined as hyperfilter germ
 import Init.Data.Nat.Basic
 import Init.Prelude
 import Init.Control.Basic -- Import basic control structures in LEAN 4
 import Lean
+-- import data.real.basic -- Import basic real number theory in LEAN 3
+
 
 notation "∞" => (⊤ : EReal)
 notation "-∞" => (⊥ : EReal)
@@ -15,7 +16,7 @@ notation "𝔽" => Float -- calculable implementation versus theoretical one
 -- def Hyperreal : Type :=  Germ (hyperfilter ℕ : Filter ℕ) ℚ deriving Inhabited
 
 namespace Hypers
-section HyperQ
+section HyperQ -- HyperRationals
 
 -- Approximation of Hyper numbers with ℚ (rationals) (versus floats)
 
@@ -52,6 +53,7 @@ structure HyperSimple := -- Not applicable for derivatives where we need x+ε �
 notation "ℚ⋆" => Hyper  -- type \ R \ star <tab> for ℚ⋆
 -- notation "ℚ*" => Hyper -- may conflict with Lean 4 notation for hyperreals
 
+-- cast Nat to Prop / Bool
 instance : OfNat Prop 0 where
   ofNat := false
 
@@ -63,6 +65,13 @@ instance : OfNat Bool 0 where
 
 instance : OfNat Bool 1 where
   ofNat := true
+
+instance : Coe ℤ Bool where
+  coe r := r ≠ 0
+
+instance : Coe ℤ Prop where
+  coe r := r ≠ 0
+
 
 instance : One Hyper where
   one := ⟨1, 0, 0, 0⟩
@@ -83,6 +92,7 @@ def Infinity :    Hyper := ⟨0, 0, 1, 1⟩ -- ω² ≈ ∞
 def Infinisimal : Hyper := ⟨0, 0, 0, 1⟩ -- ε²
 -- def Infinisimal : Hyper := ⟨0, 1, 0, 1⟩ -- ε²
 def NotANumber :  Hyper := ⟨1, 0, 0, 1⟩ -- NaN
+-- def Undefined :  Hyper := ⟨0, 0, 0, 1⟩ -- vs Infinisimal
 def Minus_Infinity : Hyper := ⟨0, 0, -1, 1⟩ -- -ω² ≈ -∞
 def Negative_Infinity : Hyper := ⟨0, 0, -1, 1⟩ -- -ω² ≈ -∞
 -- def NotANumber : Hyper := ⟨*, 0, 0, 1⟩ -- NaN -- including 0,0,0,1 !
@@ -100,13 +110,6 @@ scoped notation "ω²" => Infinity
 scoped notation "∞" => Infinity
 scoped notation "ε²" => Infinisimal
 scoped notation "NaN" => NotANumber
-
-
-instance : Coe ℤ Bool where
-  coe r := r ≠ 0
-
-instance : Coe ℤ Prop where
-  coe r := r ≠ 0
 
 -- todo: take float as rational (should be doable?)
 -- object
@@ -132,6 +135,26 @@ instance : Coe ℕ ℚ⋆ where
 
 instance : Coe ℚ ℚ⋆ where
   coe r := Hyper.mk r 0 0 0
+
+-- Replace the axiom with a computable implementation
+/-- Approximates a real number as a rational with specified precision -/
+def toRationalApprox (r : ℝ) (precision : Nat := 1000000) : ℚ :=
+  -- Use ToRat typeclass from Lean's standard library to convert a real to a rational
+  -- This is a computable operation with bounded precision
+  let n := (r * precision).toInteger
+  ⟨n, precision⟩
+
+-- Use the computable version instead of the axiom
+-- axiom closest_ratio : ℝ → ℚ -- arbitrary rational approximation (not computable)
+
+instance : Coe ℝ ℚ⋆ where
+  coe r := Hyper.mk (toRationalApprox r) 0 0 0
+
+def hyper : ℝ → Hyper := λ r => ⟨(toRationalApprox r), 0, 0, 0⟩
+
+-- Optionally, allow specifying precision for more accurate approximations
+def hyperWithPrecision (r : ℝ) (precision : Nat := 1000000) : Hyper :=
+  ⟨(toRationalApprox r precision), 0, 0, 0⟩
 
 instance : SMul ℚ ℚ⋆ where
   smul r x := ⟨r * x.real_part, r * x.epsilon_part, r * x.infinite_part , x.exceptional ⟩

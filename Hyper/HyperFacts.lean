@@ -13,10 +13,10 @@ import Hyper.HyperKeisler
 namespace Hyperreal
 -- axiom Hyperreal : Type
 
--- variable {Hyperreal : Type} [LinearOrderedField Hyperreal] (extension : ℝ →+* Hyperreal)
---   (ordered_field_extension : ∀ (r s : ℝ), extension r < extension s ↔ r < s)
+-- variable {Hyperreal : Type} [LinearOrderedField Hyperreal] (hyper : ℝ →+* Hyperreal)
+--   (ordered_field_extension : ∀ (r s : ℝ), hyper r < hyper s ↔ r < s)
 --   (epsilon : Hyperreal)
---   (infinitesimal_pos : 0 < epsilon ∧ ∀ r : ℝ, epsilon < extension r)
+--   (infinitesimal_pos : 0 < epsilon ∧ ∀ r : ℝ, epsilon < hyper r)
 
 -- using  triangle inequality
 -- abs_add (a b : α) : |a + b| ≤ |a| + |b|
@@ -27,15 +27,15 @@ namespace Hyperreal
 -- axiom near_trans : ∀ x y z : R*, near x y → near y z → near x z
 
 
-lemma extension_zero : extension 0 = (0 : R*) :=
-  by exact extension.map_zero
+lemma extension_zero : hyper 0 = (0 : R*) :=
+  by exact hyper.map_zero
 
 lemma zero_is_infinitesimal : infinitesimal (0 : R*) := by
   intro r hr
-  -- By definition, "infinitesimal (0 : R*)" means ∀ r>0, |0| < extension r
+  -- By definition, "infinitesimal (0 : R*)" means ∀ r>0, |0| < hyper r
   simp only [infinitesimal, abs_zero]
-  -- Show 0 < extension r
-  rw [← extension_zero]      -- replace 0 with extension 0
+  -- Show 0 < hyper r
+  rw [← extension_zero]      -- replace 0 with hyper 0
   exact (ordered_field_extension 0 r).mpr hr
 
 lemma near_refl (x : R*) : x ≈ x := by
@@ -48,7 +48,7 @@ lemma near_symm {x y : R*} : x ≈ y → y ≈ x := by
   -- We must show infinitesimal (y - x).
   intro h
   intro r hr
-  -- h says ∀ r>0, |x - y| < extension r.
+  -- h says ∀ r>0, |x - y| < hyper r.
   -- But |y - x| = |x - y|.
   specialize h r hr
   rwa [abs_sub_comm] at h
@@ -63,11 +63,11 @@ lemma near_trans {x y z : R*} (hxy : x ≈ y) (hyz : y ≈ z) : x ≈ z := by
         -- This lemma states x - z = (x - y) + (y - z)
         rw [← sub_add_sub_cancel x y z]
     _ ≤ |x - y| + |y - z| := abs_add _ _
-    _ < extension (r / 2) + extension (r / 2) := by
+    _ < hyper (r / 2) + hyper (r / 2) := by
       have hr2 : r / 2 > 0 := by linarith
       exact add_lt_add (hxy (r/2) hr2) (hyz (r/2) hr2)
-    _ = extension ((r / 2) + (r / 2)) := by rw [extension.map_add]
-    _ = extension r := by simp
+    _ = hyper ((r / 2) + (r / 2)) := by rw [hyper.map_add]
+    _ = hyper r := by simp
 
 
 
@@ -77,10 +77,10 @@ instance near_is_equivalence : Equivalence near where
   trans := near_trans
 
 
-lemma extension_add (a b : ℝ) : extension (a + b) = extension a + extension b :=
-  map_add extension a b
+lemma extension_add (a b : ℝ) : hyper (a + b) = hyper a + hyper b :=
+  map_add hyper a b
 
-theorem extension_add2 (a b : ℝ) : extension a + extension b = extension (a + b) :=
+theorem extension_add2 (a b : ℝ) : hyper a + hyper b = hyper (a + b) :=
   by rw [extension_add]
 
 theorem zero_le_zero_extension : (0 : ℝ) ≤ 0 := by linarith
@@ -95,49 +95,49 @@ by
   obtain ⟨s, hs⟩ := hy
   apply And.intro
   · use r + s
-    rw [extension.map_add]  -- Uses RingHom property
+    rw [hyper.map_add]  -- Uses RingHom property
     apply lt_of_le_of_lt (abs_add x y)
     exact add_lt_add hr hs
   · apply And.intro
     · use r + s
-      rw [extension.map_add]
+      rw [hyper.map_add]
       apply lt_of_le_of_lt (abs_sub x y)
       exact add_lt_add hr hs
     · use r * s
-      rw [extension.map_mul, abs_mul]  -- Uses RingHom property
+      rw [hyper.map_mul, abs_mul]  -- Uses RingHom property
       apply mul_lt_mul'' hr hs (abs_nonneg x) (abs_nonneg y)
 
 lemma zero_is_finite : finite 0 := by
-  use 1    -- use 0 < extension 1 QED
+  use 1    -- use 0 < hyper 1 QED
   simp
 
 
 -- instance : LT R* where
---   lt x y := (∃ a b : ℝ, (x = extension a ∨ x = a) ∧ (y = extension b ∨ y = b) ∧ a < b) ∨ x < y
+--   lt x y := (∃ a b : ℝ, (x = hyper a ∨ x = a) ∧ (y = hyper b ∨ y = b) ∧ a < b) ∨ x < y
 
 -- lemma ordered_field_transfer {α : Type} [LinearOrderedSemiring α] [CoeTC α ℝ]
---     (a : α) (b : ℝ) : (a : R*) < extension b ↔ (a : ℝ) < b :=
+--     (a : α) (b : ℝ) : (a : R*) < hyper b ↔ (a : ℝ) < b :=
 --   ordered_field_extension (a : ℝ) b
 
 
--- lemma zero_lt_one : (0 : R*) < extension 1 :=
-lemma zero_lt_one : extension 0 < extension 1 :=
+-- lemma zero_lt_one : (0 : R*) < hyper 1 :=
+lemma zero_lt_one : hyper 0 < hyper 1 :=
   by
     have h : 0 < 1 := by linarith
     have h1 : ↑0 < ↑1 := by linarith
     have h2 : (0: ℝ) < (1: ℝ):= by linarith
     exact (ordered_field_extension (0: ℝ) (1: ℝ)).mpr h2
 
--- axiom ordered_field_transfer : ∀ (r : ℝ) , (s : ℝ*) → (r < s ↔ extension r < s)
--- axiom ordered_field_transfer_RR2 : ∀ (r : ℝ) , (s : ℝ) → (r < s ↔ r < extension s)
+-- axiom ordered_field_transfer : ∀ (r : ℝ) , (s : ℝ*) → (r < s ↔ hyper r < s)
+-- axiom ordered_field_transfer_RR2 : ∀ (r : ℝ) , (s : ℝ) → (r < s ↔ r < hyper s)
 lemma zero_lt_one_R1 : (0: ℝ) < (1: ℝ*) :=
   by
-    have h1 : (1 : ℝ*) = extension 1 := by simp
+    have h1 : (1 : ℝ*) = hyper 1 := by simp
     have h2 : (0 : ℝ) < (1 : ℝ) := by linarith
-    have h3 : (0 : ℝ) < (extension 1) := by exact (ordered_field_transfer_RR2 (0 : ℝ) (1 : ℝ)).mp h2
+    have h3 : (0 : ℝ) < (hyper 1) := by exact (ordered_field_transfer_RR2 (0 : ℝ) (1 : ℝ)).mp h2
     simp
 
-lemma zero_lt_one_R : 0 < extension 1 :=
+lemma zero_lt_one_R : 0 < hyper 1 :=
   by
     have h : 0 < 1 := by linarith
     have h1 : ↑0 < ↑1 := by linarith
@@ -147,10 +147,10 @@ lemma zero_lt_one_R : 0 < extension 1 :=
 
 
 lemma one_is_finite : finite 1 := by
-  use 2    -- use 1 < extension 2 QED
-  -- 1 < extension 2 <=> 0 < extension 1 because we can subtract 1 from both sides
-  simp [extension] at *
-  have h : 0 < extension 1 := zero_is_finite
+  use 2    -- use 1 < hyper 2 QED
+  -- 1 < hyper 2 <=> 0 < hyper 1 because we can subtract 1 from both sides
+  simp [hyper] at *
+  have h : 0 < hyper 1 := zero_is_finite
 
 
 
@@ -168,8 +168,8 @@ noncomputable def Finites_subring : Subring R* where
     simp [finite] at *
     calc
       |x + y| ≤ |x| + |y| := abs_add x y
-      _       < extension a + extension b := add_lt_add hx hy
-      _       = extension (a + b)         := by exact extension_add2 a b
+      _       < hyper a + hyper b := add_lt_add hx hy
+      _       = hyper (a + b)         := by exact extension_add2 a b
     sorry
 
   mul_mem' := by
@@ -178,11 +178,11 @@ noncomputable def Finites_subring : Subring R* where
     simp [finite] at *
     calc
       |x * y| = |x| * |y|         := abs_mul x y
-      _       < extension a * extension b :=
-        -- requires 0 < extension a, 0 < extension b, and |x|,|y| < those
+      _       < hyper a * hyper b :=
+        -- requires 0 < hyper a, 0 < hyper b, and |x|,|y| < those
         mul_lt_mul'' hx hy (abs_nonneg x) (abs_nonneg y)
-      _  = extension (a * b) := (extension.map_mul a b).symm
-      _  = extension a * extension b := by rw [extension.map_mul]
+      _  = hyper (a * b) := (hyper.map_mul a b).symm
+      _  = hyper a * hyper b := by rw [hyper.map_mul]
   neg_mem' := by
     intro x ⟨a, hx⟩
     use a
@@ -201,8 +201,8 @@ noncomputable def Finites_subring : Subring R* where
 --     simp [finite] at *
 --     calc
 --       |x + y| ≤ |x| + |y| := abs_add _ _
---       _ < extension a + extension b := add_lt_add hx hy
---       _ = extension (a + b) := (extension.map_add a b).symm
+--       _ < hyper a + hyper b := add_lt_add hx hy
+--       _ = hyper (a + b) := (hyper.map_add a b).symm
 --   neg_mem := by
 --     intro x ⟨a, hx⟩
 --     use a
@@ -215,8 +215,8 @@ noncomputable def Finites_subring : Subring R* where
 --     simp [finite] at *
 --     calc
 --       |x * y| = |x| * |y| := abs_mul x y
---       _ < extension a * extension b := mul_lt_mul'' hx hy (abs_nonneg _) (le_of_lt infinitesimal_pos.1)
---       _ = extension (a * b) := (extension.map_mul a b).symm
+--       _ < hyper a * hyper b := mul_lt_mul'' hx hy (abs_nonneg _) (le_of_lt infinitesimal_pos.1)
+--       _ = hyper (a * b) := (hyper.map_mul a b).symm
 --   }
 
 -- function expected at
@@ -225,9 +225,9 @@ noncomputable def Finites_subring : Subring R* where
 --   Type
 instance finites_are_subring : Subring ↑Finites R* where
   zero_mem := by
-    -- `0` is finite since `|0| = 0 < extension r` for any `r > 0`
+    -- `0` is finite since `|0| = 0 < hyper r` for any `r > 0`
     use 1
-    simp [extension]
+    simp [hyper]
 
   neg_mem := by
     -- If `x` is finite, then `-x` is finite because `|-x| = |x|`
@@ -248,9 +248,9 @@ instance finites_are_subring : Subring ↑Finites R* where
     exact (galaxy_zero_subring x y hx hy).2.2
 
   one_mem := by
-    -- `1` is finite since `|1| = 1 < extension 2`
+    -- `1` is finite since `|1| = 1 < hyper 2`
     use 2
-    simp [extension]
+    simp [hyper]
 
   sub_mem := by
     -- Closure under subtraction follows from `galaxy_zero_subring`
@@ -266,7 +266,7 @@ open Classical
 
 open Set -- ne_empty_iff_nonempty / nonempty_iff_ne_empty  s ≠ ∅ ↔ s.Nonempty
 
--- def finite  (x : R*) : Prop := ∃ r : ℝ, |x| < extension r
+-- def finite  (x : R*) : Prop := ∃ r : ℝ, |x| < hyper r
 
 lemma finite_add {x y : R*} (hx : finite x) (hy : finite y) : finite (x + y) :=
   (galaxy_zero_subring x y hx hy).1
@@ -282,13 +282,13 @@ lemma finite_sub_symm2 (x y : R*) : finite (x - y) ↔ finite (y - x) :=
     constructor
     · intro h
       obtain ⟨r, hr⟩ := h
-      -- have hr : |x - y| < extension r
+      -- have hr : |x - y| < hyper r
       have h1 : |x - y| = |y - x| := by rw [abs_sub_comm]
       rw [h1] at hr
       exact ⟨r, hr⟩
     · intro h
       obtain ⟨r, hr⟩ := h
-      -- have hr : |y - x| < extension r
+      -- have hr : |y - x| < hyper r
       have h2 :  |y - x| = |x - y| := by rw [abs_sub_comm]
       rw [h2] at hr
       exact ⟨r, hr⟩
@@ -359,8 +359,8 @@ by
   simp only [galaxy, Set.mem_setOf_eq]
   constructor
   · intro hz
---  finite (x - z) => |x - z| < extension r for some r
--- |y - z| = |y - w + w - z| ≤ |y - w| + |w - z| < extension r + extension r = 2 * extension r
+--  finite (x - z) => |x - z| < hyper r for some r
+-- |y - z| = |y - w + w - z| ≤ |y - w| + |w - z| < hyper r + hyper r = 2 * hyper r
 -- |y - z| = |y - w + w - z| ≤ |y - w| + |w - x + x - z| ≤ |y - w| + |w - x | + | x - z|
 -- |y - z| <= finite +  finite + finite
 -- => finite (y - z) QE
@@ -368,15 +368,15 @@ by
     obtain ⟨r_xz, hr1⟩ := hz
     obtain ⟨r_yw, hr2⟩ := h_finite_yw
     obtain ⟨r_wx, hr3⟩ := h_finite_wx
-    have h_bound : |y - z| < extension (r_wx + r_yw + r_xz) :=
+    have h_bound : |y - z| < hyper (r_wx + r_yw + r_xz) :=
     calc
       |y - z| = |(y - w) + (w - z)|   := by rw [←sub_add_sub_cancel y w z]
       _ ≤ |y - w| + |w - z|           := abs_add (y - w) (w - z)
       _ = |y - w| + |(w - x) + (x - z)| := by rw [←sub_add_sub_cancel w x z]
       _ ≤ |y - w| + (|w - x| + |x - z|) := by exact add_le_add_left (abs_add (w - x) (x - z)) _
-      _ < extension r_yw + (extension r_wx + extension r_xz) := add_lt_add hr2 (add_lt_add hr3 hr1)
-      -- _ = extension (r_yw + r_wx + r_xz) := by rw [extension_add, extension_add]
-      _ = extension (r_wx + r_yw + r_xz) := by rw [extension_add, extension_add]
+      _ < hyper r_yw + (hyper r_wx + hyper r_xz) := add_lt_add hr2 (add_lt_add hr3 hr1)
+      -- _ = hyper (r_yw + r_wx + r_xz) := by rw [extension_add, extension_add]
+      _ = hyper (r_wx + r_yw + r_xz) := by rw [extension_add, extension_add]
     exact ⟨r_wx + r_yw + r_xz, h_bound⟩
   · intro hz
     have h_finite_wz : finite (w - z) := finite_add h_finite_wy hz
@@ -658,9 +658,9 @@ by
   obtain ⟨r, hr⟩ := hx
   obtain ⟨s, hs⟩ := hy
   use r * s
-  rw [extension.map_mul, abs_mul]  -- Uses RingHom property
+  rw [hyper.map_mul, abs_mul]  -- Uses RingHom property
   apply mul_lt_mul'' hr hs (abs_nonneg x) (abs_nonneg y)
 
--- axiom st_halo : ∀ (r : ℝ) (h : R*), h ∈ halo (extension r) → st h = r
-lemma st_halo (r : ℝ) (h : R*) (hh : h ∈ halo (extension r)) : st h = r :=
+-- axiom st_halo : ∀ (r : ℝ) (h : R*), h ∈ halo (hyper r) → st h = r
+lemma st_halo (r : ℝ) (h : R*) (hh : h ∈ halo (hyper r)) : st h = r :=
   st_extension r
