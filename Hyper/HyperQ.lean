@@ -1,10 +1,15 @@
 import Mathlib.Data.Real.Basic -- Import basic real number theory in LEAN 4
 -- import Mathlib.Data.Real.Ereal -- ∞
 import Mathlib.Data.Real.Hyperreal -- defined as hyperfilter germ
+-- import Mathlib.Data.Float.Basic -- Float
 import Init.Data.Nat.Basic
+-- import Init.Data.Float.Basic
 import Init.Prelude
 import Init.Control.Basic -- Import basic control structures in LEAN 4
 import Lean
+import Mathlib.Data.Real.Basic
+-- import Mathlib.Data.Float.Basic
+import Mathlib.Algebra.Order.Floor
 -- import data.real.basic -- Import basic real number theory in LEAN 3
 
 
@@ -127,22 +132,24 @@ scoped notation "NaN" => NotANumber
 -- instance : Coe ℝ ℚ⋆ where
 --   coe r := Hyper.mk r 0 0 0
 
-instance : Coe ℤ ℚ⋆ where
-  coe r := Hyper.mk r 0 0 0
+instance : Coe ℤ ℚ⋆ where coe r := Hyper.mk r 0 0 0
+instance : Coe ℕ ℚ⋆ where coe r := Hyper.mk r 0 0 0
+instance : Coe ℚ ℚ⋆ where coe r := Hyper.mk r 0 0 0
 
-instance : Coe ℕ ℚ⋆ where
-  coe r := Hyper.mk r 0 0 0
 
-instance : Coe ℚ ℚ⋆ where
-  coe r := Hyper.mk r 0 0 0
+noncomputable
+def realToInteger (r : ℝ) : ℤ := Int.ofNat (Nat.floor r)
+-- def realToInteger (r : ℝ) : ℤ := Int.floor r
+-- def realToInteger (r : ℝ) : ℤ := Int.ofNat (Float.floor (Float.ofReal r).toNat)
 
--- Replace the axiom with a computable implementation
 /-- Approximates a real number as a rational with specified precision -/
+-- noncomputable
 def toRationalApprox (r : ℝ) (precision : Nat := 1000000) : ℚ :=
   -- Use ToRat typeclass from Lean's standard library to convert a real to a rational
   -- This is a computable operation with bounded precision
-  let n := (r * precision).toInteger
+  let n := (r * precision)
   ⟨n, precision⟩
+  -- Rat.mk n precision
 
 -- Use the computable version instead of the axiom
 -- axiom closest_ratio : ℝ → ℚ -- arbitrary rational approximation (not computable)
@@ -155,6 +162,9 @@ def hyper : ℝ → Hyper := λ r => ⟨(toRationalApprox r), 0, 0, 0⟩
 -- Optionally, allow specifying precision for more accurate approximations
 def hyperWithPrecision (r : ℝ) (precision : Nat := 1000000) : Hyper :=
   ⟨(toRationalApprox r precision), 0, 0, 0⟩
+
+-- Adding a function to convert Hyper to ℝ with a standard part
+def real (h : Hyper) : ℝ := h.real_part
 
 instance : SMul ℚ ℚ⋆ where
   smul r x := ⟨r * x.real_part, r * x.epsilon_part, r * x.infinite_part , x.exceptional ⟩
@@ -643,23 +653,6 @@ lemma hyper_mul_comm (a b : Hyper) : a * b = b * a := by
 
 
 
-lemma hyper_left_distrib (a b c : Hyper) : a * (b + c) = a * b + a * c := by
-  let left := a * (b + c)
-  let summe := (b + c)
-  let right := a * b + a * c
-  unfold Mul.mul at left
-  unfold Mul.mul at right
-  unfold Add.add at summe
-  let ar := a.real_part
-  let ae := a.epsilon_part
-  let ai := a.infinite_part
-  let br := b.real_part
-  let be := b.epsilon_part
-  let bi := b.infinite_part
-  let cr := c.real_part
-  let ce := c.epsilon_part
-  let ci := c.infinite_part
-
 -- instance : Mul Hyper where
 --   mul x y :=
 --     ⟨ x.r * y.r + x.e * y.i + x.i * y.e,
@@ -670,18 +663,61 @@ lemma hyper_left_distrib (a b c : Hyper) : a * (b + c) = a * b + a * c := by
 --     || x.i ≠ 0 && y.i ≠ 0
 --       ⟩
 
-  -- unfold Add.add at right
+
+
+lemma hyper_left_distrib (a b c : Hyper) : a * (b + c) = a * b + a * c := by
+  let left := a * (b + c)
+  let summe := (b + c)
+  let right := a * b + a * c
+
+  unfold Mul.mul at left
+  unfold Mul.mul at right
+  unfold Add.add at summe
+  let ar := a.real_part
+  let ae := a.epsilon_part
+  let ai := a.infinite_part
+  let ax := a.exceptional
+  let br := b.real_part
+  let be := b.epsilon_part
+  let bi := b.infinite_part
+  let bx := b.exceptional
+  let cr := c.real_part
+  let ce := c.epsilon_part
+  let ci := c.infinite_part
+  let cx := c.exceptional
+
   apply Hyper.ext
   -- a * (b + c) = a * b + a * c
-  -- { show ar * (br + cr) + ae * (bi + ci) + ai * (be + ce) =
-  --        ar * br + ae * bi + ai * be +
-  --        ar * cr + ae * ci + ai * ce; ring }
-  { sorry }
-  -- { show ar * (be + ce) + ae * (br + cr) = ar * be + ar * ce + ae * br + ae * cr; ring }
-  { sorry }
+  {
+    sorry
+    -- { show a.real_part * ( b.real_part + c.real_part) +
+    -- + … + a.epsilon_part * b.infinite_part + a.infinite_part * b.epsilon_part = b.real_part * a.real_part + b.epsilon_part * a.infinite_part + b.infinite_part * a.epsilon_part; ring }
+  }
+  -- {
+  -- -- a * (b + c) = a * b + a * c
+  --   show (a * (b + c)).real_part = (a * b + a * c).real_part
+  --   calc
+  --         (a * (b + c)).real_part = (a * (b + c)).real_part := by rfl
+  --     _ = (a * ⟨ br + cr , be + ce , bi + ci ⟩ ).real_part := by rfl
+  --   _ = ar * br + ar * cr + ae * bi + ae * ci + ai * be + ai * ce := by sorry
+  --   _ = ar * br + ae * bi + ai * be + ar * cr + ae * ci + ai * ce := by rw [add_comm, add_assoc]
+  --   _ = (ar * br + ae * bi + ai * be) + (ar * cr + ae * ci + ai * ce) := by sorry
+  --   _ = (a * b).real_part + (a * c).real_part := by sorry
+  --   _ = (a * b + a * c).real_part := by sorry
+  -- }
+  -- {
+  --   show (a * (b + c)).epsilon_part = (a * b + a * c).epsilon_part
+  --   sorry
+  -- }
+  {
+    show (a * (b + c)).infinite_part = (a * b + a * c).infinite_part
+    sorry
+  }
+  {
+    show (a * (b + c)).exceptional = (a * b + a * c).exceptional
+    sorry
+  }
   -- { show ar * (bi + ci) + ai * (br + cr) = ar * bi + ai * br + ar * ci + ai * cr; ring }
-  { sorry }
-  { sorry }
 
 
 
@@ -690,7 +726,7 @@ lemma hyper_mul_assoc (a b c : Hyper) : a * b * c = a * (b * c) := by
   let right := a * (b * c)
   unfold Mul.mul at left
   unfold Mul.mul at right
-  -- have right_is: right = a.real_part * b.real_part * c.real_part + a.epsilon_part * b.infinite_part * c.infinite_part := by simp
+  have right_is: right = a.real_part * b.real_part * c.real_part + a.epsilon_part * b.infinite_part * c.infinite_part := by sorry
   apply Hyper.ext
   {sorry}
   {sorry}

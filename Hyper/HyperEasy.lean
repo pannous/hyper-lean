@@ -56,21 +56,6 @@ notation "ℝ⋆" => Hyper  -- type \ R \ star <tab> for ℝ⋆
 -- notation "ℝ*" => Hyper -- may conflict with Lean 4 notation for hyperreals
 
 
-instance : OfNat Prop 0 where
-  ofNat := false
-
-instance : OfNat Prop 1 where
-  ofNat := true
-
-instance : OfNat Bool 0 where
-  ofNat := false
-
-instance : OfNat Bool 1 where
-  ofNat := true
-
-instance : One Hyper where
-  one := ⟨1, 0, 0, 0⟩
-
 -- Zero.zero
 instance : Zero Hyper where
   zero := ⟨0, 0, 0, 0⟩
