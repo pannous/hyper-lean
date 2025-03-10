@@ -27,10 +27,6 @@ notation "ℝ*" => Hyperreal
 notation "R+" => { r : ℝ // r > 0 }
 notation "ℝ+" => { r : ℝ // r > 0 }
 
--- Hyperreal as a set! ⚠️ Hyperreal ≠ Hyperreals ⚠️ confusion!
--- def Hyperreals : Set R* := Set.univ  -- The set of all hyperreal numbers (trivial & redundant!)
---  redundant since R* already represents all hyperreal numbers as a type.
-
 -- axiom R_subtype : ℝ ⊂ ℝ*
 
 -- namespace Hyperreal
@@ -156,8 +152,14 @@ def halo := monad -- alias
 def Finites : Set R* := {y | finite y} --  galaxy 0
 def Infinitesimals : Set R* := {y | infinitesimal y} -- monad 0
 def Infinites : Set R* := {y | infinite y} --
--- def Infinites : Set R* := {y | ¬ finite y}  -- Equivalent to the complement of galaxy(0)
--- def Infinites : Set R* := R* \ Finites  -- Complement of the finite set R* error, R* is a Type!
+
+-- Hyperreal as a set! ⚠️ Hyperreal Type ≠ Hyperreals Set ⚠️ confusion!
+def Hyperreals : Set R* := Set.univ  -- The set of all hyperreal numbers (trivial & redundant!)
+def Reals : Set ℝ := Set.univ  -- ℝ as set (trivial & redundant!)
+def R_subset : Set R* := {y | finite y ∧ ¬ infinitesimal y} -- ℝ embedded in R*
+def R_subset' : Set R* := Set.range extension -- ℝ embedded in R*
+def Infinites' : Set R* := {y | ¬ finite y}  -- Equivalent to the complement of galaxy(0)
+def Infinites'' : Set R* :=  Hyperreals \ Finites  -- Complement of the finite set
 -- def Infinites : Set R* := Set.univ \ Finites  -- Complement of the finite set R*
 -- Set R* represents the type of all subsets of  R^ *.
 -- •	Set.univ is the universal set in Lean, meaning the set of all elements of  R^ *.
@@ -207,12 +209,12 @@ lemma st_is_inverse (x : R*) (h : x ∈ R_subset) : extension (st x) = x := by
 
 noncomputable def st_R_subset : R_subset → ℝ := λ x => st x -- standard part of x in R_subset
 
-@[simps apply]
+@[simps apply] -- ≃ Equiv Equivalence
 noncomputable def R_embedded_equivalent : ℝ ≃ R_subset := {
-  toFun := λ r => ⟨extension r, ⟨r, rfl⟩⟩,
-  invFun := st_R_subset,
-  left_inv := λ r => by simp [st_R_subset, st_extension],
-  right_inv := λ ⟨x, ⟨r, hr⟩⟩ => by
+  toFun := λ r => ⟨extension r, ⟨r, rfl⟩⟩, -- 𝞅
+  invFun := st_R_subset, -- 𝞅⁻¹
+  left_inv := λ r => by simp [st_R_subset, st_extension], -- 𝞅⁻¹•𝞅=1
+  right_inv := λ ⟨x, ⟨r, hr⟩⟩ => by -- 𝞅•𝞅⁻¹=1
     show (⟨extension (st x), ⟨st x, rfl⟩⟩ : R_subset) = ⟨x, ⟨r, hr⟩⟩
     apply Subtype.ext
     show extension (st x) = x
@@ -248,6 +250,7 @@ lemma proper_extension : epsilon ∉ R_subset := by
   -- linarith
   -- by_contradiction
 
+notation a "≃ₜ" b => Nonempty (a ≃ b) -- Topological Equivalence
 
 noncomputable def real_homeo : ℝ ≃ₜ R :=
 { toFun := extension,
@@ -281,12 +284,18 @@ notation a " ⪽ " b => Nonempty (a ↪ b) -- Embedding (too weak, we have equiv
 theorem R_embedded0 : ℝ ⪽ ℝ* := -- as TYPES!
   ⟨R_embedded_equivalent.toEmbedding.trans (Function.Embedding.subtype _)⟩
 
+-- notation a " ⪦ " b  " a is equivalent/homomorphic to a subtype of b"
 -- notation a " ⪦ " b => Nonempty (a ≃ { x : b // P x })
-notation a " ⪦ " b => ∃ c, (a ≃ c) ∧ (c ↪ b) -- Subtype Embedding
+-- notation a " ⪦ " b => ∃ c, (a ≃ c) ∧ (c ↪ b) -- Subtype Embedding
 notation a " ⪦ " b => Nonempty (Σ c, (a ≃ c) × (c ↪ b))
 theorem R_embedded : ℝ ⪦ ℝ* :=
   ⟨R_subtype, R_embedded_equivalent, Function.Embedding.subtype⟩
 
 notation a " ⫇ " b => ∃ c, a ≃ c ∧ c ⊆ b -- Subset Embedding
+-- theorem R_as_subset :  ℝ ⫇ R* := by
+--   exact ⟨R_embedded_equivalent, R_subset⟩
+theorem R_as_subset : Reals ⫇ Hyperreals := by
+  exact ⟨R_embedded_equivalent, R_subset⟩
+
 theorem R_as_subset : Set.univ ℝ ⫇ Set.univ R* := by
   exact ⟨R_embedded_equivalent, R_subset⟩
