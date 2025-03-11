@@ -146,8 +146,8 @@ axiom E : ∀ (P : R* → Prop), (∀ r : ℝ, P (hyper r)) → (∀ x : R*, P x
 -- def real (x : R*) : ℝ := sorry -- Will be implemented later, e.g. :
 -- def real (x : R*) : ℝ := x.real -- If implemented as a structure
 def real : R* → ℝ
-| epsilon => 0 -- "redundant"
-| x       => x.real + 1
+-- | epsilon => 0 -- "redundant"
+| x       => x.real
 
 -- structure Hyperreal' := (real : ℝ) (epsilon : ℝ)
 
@@ -157,10 +157,11 @@ notation "st" => real -- alias st standard = real part of a hyperreal akin to `R
 notation "standard" => real --  noncomputable def standard := real -- alias
 axiom st_extension : ∀ r : ℝ, real (hyper r) = r
 axiom extension_st : ∀ r : ℝ, hyper (real r) = r -- todo: as lemma
--- axiom pure_epsilon : real epsilon = 0  -- redundant but can't hurt
-lemma pure_epsilon : real epsilon = 0  := by simp [real]
+axiom pure_epsilon : real epsilon = 0  -- redundant but can't hurt
+lemma pure_epsilon': real epsilon = 0  := by exact pure_epsilon -- simp [real] or pure_epsilon
 #reduce real epsilon -- 0.0
-#eval real epsilon -- 0.0
+-- noncomputable MTFK!!
+-- #eval real epsilon -- 0.0
 
 -- Add a "real" method to Hyperreal for accessing the standard part
 -- @[inline] def Hyperreal.real (x : R*) : ℝ := real x -- already defined
