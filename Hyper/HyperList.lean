@@ -75,6 +75,8 @@ instance : Zero R* where
 #eval (0:𝔽*) -- [] OK
 #eval (1:𝔽*) -- [(1, 0)] OK
 
+
+
 def zero : R* := []
 def one : R* := [(1, 0)]
 def epsilon : R* := [(1, -1)]
