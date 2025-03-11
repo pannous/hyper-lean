@@ -10,6 +10,8 @@ import Mathlib.Algebra.Ring.Subring.Basic
 import Hyper.HyperKeisler
 -- import Mathlib.Logic.Classical
 
+-- IDEALLY All facts here should be independent of the implementation and specific structure !!
+
 namespace Hyperreal
 -- axiom Hyperreal : Type
 

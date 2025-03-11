@@ -1,12 +1,16 @@
-
 -- /-- The hyperreal numbers ℝ⋆ form a linear ordered field. -/
+
+-- This file should be part of HyperFacts:
+-- This file should be independent of the specific implementation
+-- The notion .real can be added as alias to any type later on
+
 -- define < and ≤ for hyperreals
 -- noncomputable -- because it depends on 'Real.instLinearOrderedField', and it does not have executable code
 
-lemma hyper_le_total (a b : Hyper) : a.real_part ≤ b.real_part ∨ b.real_part ≤ a.real_part := by
-  let or1 := a.real_part ≤ b.real_part
-  let or2 := b.real_part ≤ a.real_part
-  apply or.elim (Real.le_total a.real_part b.real_part)
+lemma hyper_le_total (a b : Hyper) : a.real ≤ b.real ∨ b.real ≤ a.real := by
+  let or1 := a.real ≤ b.real
+  let or2 := b.real ≤ a.real
+  apply or.elim (Real.le_total a.real b.real)
   { intro h
     apply or.inl h
   }
@@ -15,7 +19,7 @@ lemma hyper_le_total (a b : Hyper) : a.real_part ≤ b.real_part ∨ b.real_part
   }
 
 
-lemma hyper_transitivity (a b c : Hyper) (h₁ : a.real_part < b.real_part) (h₂ : b.real_part < c.real_part) : a.real_part < c.real_part := by
+lemma hyper_transitivity (a b c : Hyper) (h₁ : a.real < b.real) (h₂ : b.real < c.real) : a.real < c.real := by
     apply lt_trans h₁ h₂
     -- simp only [le];
     cases --h₁
@@ -33,7 +37,7 @@ lemma hyper_transitivity (a b c : Hyper) (h₁ : a.real_part < b.real_part) (h�
     assumption;
     apply le_trans h₁₂_right h₂₂_right
 
-lemma hyper_le_antisymm (a b : Hyper) (h₁ : a.real_part ≤ b.real_part) (h₂ : b.real_part ≤ a.real_part) : a = b := by
+lemma hyper_le_antisymm (a b : Hyper) (h₁ : a.real ≤ b.real) (h₂ : b.real ≤ a.real) : a = b := by
   -- intros a b
   simp only [le, lt];
   intro h₁ h₂;
@@ -101,9 +105,9 @@ lemma hyper_le_antisymm {a b : Hyper} : a ≤ b ∧ b ≤ a → a = b := by
   intros h
   cases h
   apply Hyper.ext
-  { show a.real_part = b.real_part; sorry }
-  { show a.epsilon_part = b.epsilon_part; sorry }
-  { show a.infinite_part = b.infinite_part; sorry }
+  { show a.real = b.real; sorry }
+  { show a.epsilon = b.epsilon; sorry }
+  { show a.infinite = b.infinite; sorry }
   --
   --  with
   -- | h1 h2
@@ -119,8 +123,8 @@ lemma hyper_le_total {a b : Hyper} :
 }
 
 instance : LinearOrder Hyper where
-  le a b := a.real_part < b.real_part || (a.real_part = b.real_part && a.epsilon_part < b.epsilon_part) || (a.real_part = b.real_part && a.epsilon_part = b.epsilon_part && a.infinite_part ≤ b.infinite_part)
-  lt a b := a.real_part < b.real_part || (a.real_part = b.real_part && a.epsilon_part < b.epsilon_part) || (a.real_part = b.real_part && a.epsilon_part = b.epsilon_part && a.infinite_part < b.infinite_part)
+  le a b := a.real < b.real || (a.real = b.real && a.epsilon < b.epsilon) || (a.real = b.real && a.epsilon = b.epsilon && a.infinite ≤ b.infinite)
+  lt a b := a.real < b.real || (a.real = b.real && a.epsilon < b.epsilon) || (a.real = b.real && a.epsilon = b.epsilon && a.infinite < b.infinite)
   le_refl a := by simp [le]
   le_trans := hyper_transitivity
   le_antisymm := hyper_le_antisymm

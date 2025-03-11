@@ -12,6 +12,7 @@ import Mathlib.Data.Real.Ereal -- ∞  OR :
 notation "∞" => (⊤ : EReal)
 notation "-∞" => (⊥ : EReal)
 
+
 -- scoped notation "ε" => epsilon
 -- scoped notation "ω" => omega
 
@@ -96,9 +97,13 @@ notation "𝔽⋆" => R*
   -- components : ℝ × ℤ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
   -- components : ℝ × ℝ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
 
+notation a "¡" b => ⟦[(a, b)]⟧  -- ‡˚◊¡ı÷˙
+-- infix:90 "¡" => Quotient.mk
+
 
 instance : One R* where
   one := ⟦[(1, 0)]⟧
+  -- one := 1¡0
 
 instance : Zero R* where
   zero := ⟦[]⟧
@@ -130,11 +135,30 @@ instance : Coe (𝔽×𝔽) 𝔽* where
   coe (q:𝔽×𝔽) : R* := ⟦[(q.1, q.2)]⟧
 
 instance : Coe (List (𝔽 × 𝔽)) 𝔽* where
-  coe := ⟦id⟧
+  coe l := ⟦ l ⟧
+  -- coe := ⟦id⟧
+  -- coe := Quotient.mk id
 
 instance : HAppend R* R* R* where
   hAppend x y := Quotient.lift₂ (λ l₁ l₂ => ⟦l₁ ++ l₂⟧)
     (λ _ _ _ _ h₁ h₂ => Quotient.sound (by unfold HyperEq at h₁ h₂ ⊢; simp [h₁, h₂])) x y
+
+
+instance : HAdd ℕ R* R* where
+  hAdd n x := ⟦[(n, 0)]⟧ + x
+
+-- Gets the canonical representative of a hyperreal number as a simplified list
+def canonicalRep (x : R*) : Comps :=
+  Quotient.lift simplify
+    (λ a b h => by
+      unfold HyperEq at h
+      exact h) x
+
+-- Convenient function to extract the list representation
+def toList (x : R*) : Comps := canonicalRep x
+
+-- Example usage:
+#eval toList (1 + ω + ε) -- Should return the simplified list
 
 instance : HAppend R* Comps R* where
   hAppend x y := Quotient.lift (λ l => ⟦l ++ y⟧)

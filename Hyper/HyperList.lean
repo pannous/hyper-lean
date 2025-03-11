@@ -47,15 +47,9 @@ notation "𝔽⋆" => R*
 -- notation "ℝ⋆" => R* -- may conflict with Hyper from Hyper.lean
 -- notation "ℝ*" => R* -- may conflict with Lean 4 notation for hyperreals
 
--- def Hyper:= R* -- remove!
+def zero : R* := []
+def zero' : R* := [(0,0)]
 
-  -- components : 𝔽 → 𝔽 -- as Function, see HyperFun
-  -- components : List (ℝ × ℝ) -- allow π√ε
-  -- components : List (ℚ × ℚ) -- allow π√ε approximation for now
-  -- components : List (Float × Float) -- allow π√ε approximation for now
-  -- components : List (ℝ × ℤ) -- [(3, 0), (1, 1), (2, -2)] => 3 + ω + 2ε^2 -- note ε = ω⁻¹
-  -- components : ℤ → ℝ  -- generalized for infinite lists of components
-  -- components : Comps -- with indirection we can't use add := λ x y => x ++ … why?
 
 -- structure HyperSimple :=
   -- components : ℝ × ℤ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
@@ -75,9 +69,6 @@ instance : Zero R* where
 #eval (0:𝔽*) -- [] OK
 #eval (1:𝔽*) -- [(1, 0)] OK
 
-
-
-def zero : R* := []
 def one : R* := [(1, 0)]
 def epsilon : R* := [(1, -1)]
 def omega : R* := [(1, 1)]
@@ -103,15 +94,62 @@ instance : Coe (ℚ×ℚ) 𝔽* where
 instance : Coe (𝔽×𝔽) 𝔽* where
   coe (q:𝔽×𝔽) : R* := (q.1, q.2) :: []
 
+
+instance : DecidableEq 𝔽 := inferInstance
+instance [DecidableEq 𝔽] : DecidableEq (𝔽 × 𝔽) := inferInstance
+instance [DecidableEq (𝔽 × 𝔽)] : DecidableEq (List (𝔽 × 𝔽)) := inferInstance
+instance [DecidableEq (List (𝔽 × 𝔽))] : DecidableEq R* :=
+  inferInstance  -- Uses Lean's built-in instance resolution
+
+def normalize (x : R*) : R* :=
+  if x = [] ∨ x = [(0,0)] then [] else x
+
 instance : Coe (List (𝔽 × 𝔽)) R* where
-  coe := id
+  coe x := normalize x
+
+instance : Coe (List (𝔽 × 𝔽)) R* where
+  coe x := normalize x
+
+
+instance : Coe (List (ℕ × ℕ)) R* where
+  coe x := normalize  x
 
 instance : HAppend R* R* R* where
   hAppend := List.append
 
 
-instance : HAppend R* Comps R* where
+instance : HAppend R* (List (𝔽 × 𝔽)) R* where
   hAppend := List.append
+
+
+instance : HAppend (List (𝔽 × 𝔽)) R* R* where
+  hAppend := List.append
+
+-- instance : HAppend R* (List (ℚ × ℚ)) R* where
+--   hAppend := List.append
+
+-- instance : HAppend R* (List (𝔽 × 𝔽)) R* where
+--   hAppend := List.append
+
+-- instance : HAppend R* (List (ℚ × ℚ)) R* where
+--   hAppend := List.append
+
+
+instance : EmptyCollection R* where
+  emptyCollection := []
+
+#eval ([] : R*) ++ [(1,0)]  -- [(1,0)]
+#eval [(1,0)] ++ ([] : R*)  -- [(1,0)]
+-- #eval [] ++ one  -- [(1,0)]
+-- #eval one ++ []   -- [(1,0)]
+
+
+-- instance : HAppend R* [] R* where
+--   hAppend := id
+
+
+-- instance : HAppend R* List(𝔽×𝔽) R* where
+--   hAppend := List.append
 
 
 def simplify (a : R*) : R* :=
@@ -132,33 +170,35 @@ infix:50 " ≅ " => HyperEq
 
 instance : Add R* where
   add x y := x ++ y -- unordered list :(
+  -- add x y := normalize (x ++ y) -- unordered list :(
 
 instance : Neg R* where
-  neg x := x.map λ (r, e) => (-r, e)
-  -- neg x := x.map λ ⟨r, e⟩ => (-r, e) -- !! Elements in the list can be denoted as ⟨r, e⟩ OR (r,e) real+exponents
-
+  neg x := normalize (x.map λ (r, e) => (-r, e))
 
 instance : Sub R* where sub x y := x + -y
 
 -- scalar multiplication r • a
--- instance : HSMul ℕ R* R* where
---   hSMul n x := if n = 0 then [] else x.map (λ (r, e) => (n * r, e))
+instance : HSMul ℕ R* R* where
+  hSMul n x := if n = 0 then [] else x.map (λ (r, e) => (n * r, e))
 
--- instance : HSMul ℤ R* R* where
---   hSMul n x := if n = 0 then [] else x.map (λ (r, e) => (n * r, e))
+instance : HSMul ℤ R* R* where
+  hSMul n x := if n = 0 then [] else x.map (λ (r, e) => (n * r, e))
 
 instance : HSMul 𝔽 R* R* where
-  hSMul r a := simplify (a.map (λ ⟨s, e⟩  => ((r * s), e)))
+  hSMul n x := if n = 0 then [] else x.map (λ (r, e) => (n * r, e))
+
+-- instance : HSMul 𝔽 R* R* where
+--   hSMul r a := simplify (a.map (λ ⟨s, e⟩  => ((r * s), e)))
 
 
-instance : HSMul ℕ R* R* where
-  hSMul r a := (a.map (λ ⟨s, e ⟩ => ((r * s), e)))
+-- instance : HSMul ℕ R* R* where
+--   hSMul r a := (a.map (λ ⟨s, e ⟩ => ((r * s), e)))
 
 -- instance : Mul 𝔽 R* where
 --   mul r a := r • a
 
 instance : Mul R* where
-  mul x y := (x.product y).map (λ ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2))
+  mul x y := normalize ((x.product y).map (λ ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2)))
   -- mul x y := (x.product y).map (λ ⟨⟨r1, e1⟩, ⟨r2, e2⟩⟩ => (r1 * r2, e1 + e2))
 
 instance : Inv R* where
@@ -199,20 +239,8 @@ instance : Equivalence HyperEq := {
   trans := by intro x y z hxy hyz; unfold HyperEq at hxy hyz ⊢; rw [hxy, hyz]
 }
 
-instance [DecidableEq 𝔽] : DecidableEq (𝔽 × 𝔽) := inferInstance
-instance : DecidableEq 𝔽 := inferInstance  -- If `𝔽` already has one
-
--- instance  [DecidableEq Comps] : DecidableEq R* :=
---   λ x y =>
---     match decEq x y  with
---     | isTrue h  => isTrue h
---     | isFalse h => isFalse h
 
 lemma simplify_preserves_eq {x y : R*} (h : x = y) : simplify x = simplify y := by rw [h]
--- lemma simplify_eq_implies_eq {x y : R*} (h : simplify x = simplify y) : x = y := by
---   apply Equivalence.trans
---   apply Equivalence.symm
---   exact h
 
 -- trick to make ≅ into real equality = for proofs
 instance HyperSetoid : Setoid R* :=
@@ -226,14 +254,6 @@ instance HyperSetoid : Setoid R* :=
 def HyperQuotient := Quotient HyperSetoid
 -- def HyperQuotient := Quotient R*
 
-instance : DecidableEq ℚ := inferInstance
-instance : DecidableEq 𝔽 := inferInstance
-instance [DecidableEq 𝔽] : DecidableEq (𝔽 × 𝔽) := inferInstance
-instance [DecidableEq (𝔽 × 𝔽)] : DecidableEq (List (𝔽 × 𝔽)) := inferInstance
-
-instance [DecidableEq (List (𝔽 × 𝔽))] : DecidableEq R* :=
-  inferInstance  -- Uses Lean's built-in instance resolution
-
 instance [DecidableEq Comps] : DecidableEq HyperQuotient :=
   λ x y =>
     Quotient.recOnSubsingleton₂ x y (λ x y =>
@@ -245,7 +265,6 @@ instance [DecidableEq Comps] : DecidableEq HyperQuotient :=
           exact Quotient.exact contra  -- Convert `⟦x⟧ = ⟦y⟧` to `simplify x = simplify y`
         )
     )
-
 
 -- instance : ToString R* where
   -- toString f := simplify f |>.toString
@@ -304,96 +323,85 @@ scoped notation:max n "ω" => n • ω
 --     apply Setoid.refl -- HyperEq.refl
 
 
+lemma zero_add : ∀ x : R*,  zero + x = x :=
+  λ x => by
+    simp only [Add.add, zero]  -- Expand definitions but not HyperEq
+    -- We need to show: normalize (x ++ []) = x
+    have h : ([] : R*) ++ x = x := by
+      rw [List.nil_append]
+    show ([] : R*) ++ x = x
+    rw [h]
+
+
+lemma add_zero : ∀ x : R*, x + zero = x :=
+  λ x => by
+    simp only [Add.add, zero]  -- Expand definitions but not HyperEq
+    -- We need to show: normalize (x ++ []) = x
+    have h : x ++ ([] : R*) = x := by
+      rw [List.append_nil]
+    show x ++ ([] : R*) = x
+    rw [h]
+
+    -- Now we need to show: normalize x = x
+    -- This is true because normalize only affects empty lists or lists with [(0,0)]
+    -- cases x with
+    -- | nil =>
+    --   simp [normalize]  -- Empty list case is trivial
+    -- | cons hd tl =>
+    --   simp [normalize]  -- For non-empty list, we only need to check if it's [(0,0)]
+    --   by_cases h : x = [(0,0)]
+    --   · rw [h]
+    --     simp [normalize]
+    --   · simp [normalize, h]
+    --     rfl
+
 instance : Field R* := {
   zero := zero,
   one := one,
-  add := λ x y => x ++ y,
-  neg := λ x => x.map (λ (r, e) => (-r, e)),
+  add := λ x y => normalize (x ++ y),
+  neg := λ x => normalize (x.map (λ (r, e) => (-r, e))),
   inv := λ x => x.map (λ (r, e) => (r⁻¹, -e)),
-  mul := λ x y => (x.product y).map (λ ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2)),
+  mul := λ x y => normalize ((x.product y).map (λ ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2))),
   div := λ x y => x * y⁻¹,
   npow := λ n x => x.map (λ (r, e) => (r^n, e*n)),
   nsmul := λ n x => x.map (λ (r, e) => (n * r, e)),
   qsmul := λ q x => x.map (λ (r, e) => (q * r, e)),
   nnqsmul := λ q x => x.map (λ (r, e) => (q * r, e)),
-  zsmul := λ n x => x.map (λ (r, e) => (n * r, e)),
-
+  -- zsmul := λ n x => x.map (λ r, e => (n * r, e)),
+  zsmul := λ n x => if n = 0 then [] else x.map (λ (r, e) => (n * r, e)),
   zsmul_zero' := by
-    show ∀ x : R*, 0 • x = zero
+    -- show ∀ x : R*, 0 • x = zero
     intro x
-    rw [HSMul.hSMul]
-    simp,
+    simp [HSMul.hSMul, zero]
+    rfl
   zsmul_succ' := by
     intros n x
-    rw [List.map_cons]
-    simp,
+    simp [HSMul.hSMul]
+    cases n
+    · -- n = 0 case
+      simp [zero, List.map_append]
+      rfl
+    · -- n = succ k case
+      simp [Nat.succ_eq_add_one]
+      have h : (n + 1) = 0 ↔ False := by
+        simp [Nat.succ_ne_zero]
+      simp [h]
+      sorry -- Full proof requires working with list manipulations
+
   zsmul_neg' := by
     intros n x
-    rw [List.map_neg]
-    simp,
-  -- gsmul := λ n x => x.map (λ r, e => (n * r, e)),
-  add_assoc := by
-    intros a b c
-    have h : (a ++ b) ++ c = a ++ (b ++ c) :=
-      List.append_assoc a b c
-    exact congrArg HyperGeneral.mk h
-  zero_add := by
-    intros a
-    rfl,
-  add_zero := by
-    intros a
-    have h: (0:R*) =  []  := sorry
-    have h1: a ++ [] = a := List.append_nil a
-    rw [h, h1]
-    rfl
-  add_comm := by
-    intros a b
-    rw [List.append_comm]
-    rfl,
-  -- add_left_neg := by
-  --   intros a
-  --   simp only [List.map_map]
-  --   -- Simplification would require a proper grouping function.
-  --   sorry,
-  mul_assoc := by
-    intros a b c
-    rw [List.product_assoc]
-    rfl,
-  one_mul := by
-    intros a
-    rw [List.product_one_left]
-    rfl,
-  mul_one := by
-    intros a
-    rw [List.product_one_right]
-    rfl,
-  left_distrib := by
-    intros a b c
-    simp only [List.product_distrib_left]
-    rfl,
-  right_distrib := by
-    intros a b c
-    simp only [List.product_distrib_right]
-    rfl,
-  mul_comm := by
-    intros a b
-    rw [List.product_comm]
-    rfl,
-  mul_inv_cancel := by
-    intros a ha
-    -- Need to define a simplification that cancels inverses in our structure.
-    sorry,
-  -- inv_mul_cancel := by
-  --   intros a ha
-  --   -- Same issue as above, requires simplification function.
-  --   sorry,
-  -- zero_ne_one := by
-  --   intro h
-  --   -- This would require proving that `[] ≠ [(1,0)]` which is trivial but needs explicit `List` reasoning.
-  --   sorry
+    simp [HSMul.hSMul]
+    cases n
+    · -- n = 0 case
+      simp [zero]
+      rfl
+    · -- n > 0 case
+      have h : -n = 0 ↔ False := by simp [neg_eq_zero]
+      simp [h]
+      sorry -- Full proof requires completing list manipulations
 
---   -- include proofs showing these satisfy field axioms
---   zero_add := sorry,
+  -- include proofs showing these satisfy field axioms
+  zero_add := sorry,
   zero_mul := sorry,
   mul_zero:=sorry,
   exists_pair_ne := sorry,
@@ -416,7 +424,19 @@ instance : Field R* := {
   --   rw [List.map_nil, List.nil_append]
   --   rfl,
 --   add_assoc := sorry,
---   add_zero := sorry,
+  add_zero :=
+    by
+      intro a
+      -- simp [zero]
+      have h : a ++ [] = a := by
+        induction x with
+        | nil => rfl
+        | cons hd tl ih => simp [List.append]
+        rw [ih]
+      show x ++ [] = x
+      rw [List.append_nil]
+      rfl
+
 --   add_comm:=sorry,
 --   -- add_left_neg:=sorry,
 --   left_distrib:=sorry,
