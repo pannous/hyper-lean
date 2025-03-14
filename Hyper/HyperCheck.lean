@@ -1,4 +1,4 @@
-import Hyper.HyperSort
+import Hyper.HyperList
 -- import HyperSort
 
 namespace Hypers
