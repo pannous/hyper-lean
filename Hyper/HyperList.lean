@@ -39,6 +39,7 @@ instance : Coe ℚ 𝔽* where coe (q:ℚ) : R* := [(q, 0)]
 instance : Coe ℤ 𝔽* where coe (q:ℤ) : R* := [(q, 0)]
 instance : Coe (ℚ×ℚ) 𝔽* where coe (q:ℚ×ℚ) : R* := (q.1, q.2) :: []
 instance : Coe (𝔽×𝔽) 𝔽* where coe (q:𝔽×𝔽) : R* := (q.1, q.2) :: []
+instance : Coe (𝔽 × ℤ) 𝔽* where coe (q:𝔽×ℤ) : R* := (q.1, q.2) :: []
 instance : Coe (ℕ × ℕ) 𝔽* where coe (q: ℕ×ℕ) : R* := (q.1, q.2) :: []
 instance : Coe (ℤ × ℤ) 𝔽* where coe (q: ℤ×ℤ) : R* := (q.1, q.2) :: []
 instance : Coe (ℕ × ℕ) (𝔽 × 𝔽) where coe (q: ℕ×ℕ) : (𝔽 × 𝔽) := ((q.1:𝔽), (q.2:𝔽))
@@ -47,6 +48,7 @@ instance : Coe (ℕ × ℕ) R* where coe x := [x]
 -- UN-SIMPLIFIED!
 instance : Coe (List (𝔽 × 𝔽)) R* where coe x := x -- simplify x
 instance : Coe (List (ℕ × ℕ)) R* where coe x := x.map (λ (a, b) => ((a : 𝔽), (b : 𝔽)))
+instance : Coe (List (𝔽 × ℤ)) R* where coe x := x.map (λ (a, b) => ((a : 𝔽), (b : 𝔽)))
 instance : Coe (List (ℤ × ℤ)) (List (𝔽 × 𝔽)) where coe x := x.map (λ (a, b) => ((a : 𝔽), (b : 𝔽)))
 
 --  for the propositional equality x = y, not the boolean equality x == y.
@@ -77,6 +79,22 @@ def simplify (a : R*) : R* :=
     else
       (r, e) :: acc
   ) [] |>.filter (λ (r, _) => r ≠ 0) -- remove all zero coefficients (0,*)
+
+def simplifyOrdered (l : R*) : Prop :=
+  ∀ (a b : ℕ) (r₁ e₁ r₂ e₂ : 𝔽),
+    l.get? a = some (r₁, e₁) → l.get? b = some (r₂, e₂) → a < b → e₁ ≤ e₂
+
+lemma simplify_preserves_order (l : R*) (h : simplifyOrdered l) : simplifyOrdered (simplify l) := by
+  unfold simplify
+  induction l with
+  | nil => simp [simplifyOrdered] -- Trivial base case
+  | cons hd tl ih =>
+    unfold List.foldl
+    -- Case 1: If hd is added to the accumulator without merging, ordering remains.
+    -- Case 2: If it merges with an existing term, the ordering is still valid.
+    -- We need to prove that `updated.filter (λ (r', _) => r' ≠ 0)` maintains order.
+    sorry
+    -- todo
 
 def normalize (x : R*) : R* := simplify x
 -- def normalize (x : R*) : R* := if x = [(0,0)] then [] else x
@@ -197,6 +215,7 @@ instance : Repr R* where
   reprPrec f _ := if debugMode then List.toString f else toString f
 
 
+
 -- scoped notation:max "ε²" => (ε * ε)
 -- ⚠️ doesn't work: a is treated as unit => 2ε² => 2ε*2ε !!
 -- scoped notation:max a "²" => (a * a)
@@ -217,6 +236,8 @@ scoped notation:max "∜" a => a^(1/4)
 #eval 1 + 2ω + ε + ε⁻¹ - (1 + ω - 2ε + 2/ε) -- should cancel out to 3ε
 #eval ε + 3 - 4ω + 2ε²
 
+#eval ((1,0) : R*) -- todo HERE not coerced / simplified to 1 see HyperCheck.lean
+#eval ([(1,0)] : R*)
 
 -- only works for 𝔽 == ℝ !!
 -- instance : HPow R R* R* where

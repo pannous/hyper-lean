@@ -1,70 +1,93 @@
 import Mathlib.Data.Real.Basic
 
-axiom Hyperreal : Type
+-- Since everything here is defined axiomatically
+-- everything needs to be marked as noncomputable but don't worry once it's compiled it will be computed anyways!!
 
+notation "𝔽" => ℚ -- OUR FIELD!!
+-- notation "𝔽" => ℝ -- OUR FIELD!!
+
+axiom Hyperreal : Type -- e.g.:
+-- def Hyperreal : Type := List (𝔽 × 𝔽)
 notation "R*" => Hyperreal
-notation "ℝ*" => Hyperreal
 
 axiom LinearOrderedField_Hyperreal : LinearOrderedField R* -- property
+noncomputable instance : LinearOrderedField R* := LinearOrderedField_Hyperreal -- proof
 
-noncomputable
-instance : LinearOrderedField R* := LinearOrderedField_Hyperreal -- proof
+axiom hyper : 𝔽 →+* R* -- embedding constructor is Ring homomorphism
 
-axiom hyper : ℝ →+* R* -- embedding constructor is Ring homomorphism
-
-noncomputable instance : Coe ℝ ℝ* := ⟨hyper⟩
-noncomputable instance : Coe ℕ R* := ⟨λ n => hyper (n : ℝ)⟩
-noncomputable instance : Coe ℤ R* := ⟨λ z => hyper (z : ℝ)⟩
-noncomputable instance : Coe ℚ R* := ⟨λ q => hyper (q : ℝ)⟩
+notation "𝔽*" => Hyperreal
+notation "ℝ*" => Hyperreal
+notation "R+" => { r : ℝ // r > 0 }
+notation "ℝ+" => { r : ℝ // r > 0 }
 
 
--- Order compatibility with ℝ
-axiom ordered_field_extension : ∀ (r s : ℝ), hyper r < hyper s ↔ r < s
--- heterogeneous order relation or coercive order -- apply '<' to ℝ and ℝ*  e.g. 0 < hyper 1 !
-axiom ordered_field_transfer : ∀ (r : ℝ) (s : ℝ*), r < s ↔ hyper r < s
-axiom ordered_field_reverse : ∀ (s : ℝ*) (r : ℝ), s < r ↔ s < hyper r
+noncomputable instance : Coe 𝔽 𝔽* := ⟨hyper⟩
+noncomputable instance : Coe ℕ R* := ⟨λ n => hyper (n : 𝔽)⟩
+noncomputable instance : Coe ℤ R* := ⟨λ z => hyper (z : 𝔽)⟩
+noncomputable instance : Coe ℚ R* := ⟨λ q => hyper (q : 𝔽)⟩
+-- noncomputable instance : Coe ℝ R* := ⟨λ r => hyper (r : 𝔽)⟩ -- ℝ -> ℚ  not possible :(
 
-class IsProperSubtype (A B : Type) : Prop where
-  coe : Coe A B
-  proper : ∃ (S : Set B), (Set.range coe = S) ∧ S ⊂ Set.univ
+-- Axiom C: Existence of a positive infinitesimal ε
+axiom epsilon : R*
+notation "ε" => epsilon
+notation "ω" => epsilon⁻¹
 
+axiom epsilon_pos : 0 < epsilon
 
-class IsProperSubtype2 (A B : Type) : Prop where
-  -- coe : Coe A B
-  -- proper : ∃ (S : Set B), (Set.range (fun x : A => coe x) = S) ∧ S ⊂ Set.univ
-  proper : ∃ (S : Set B), (Set.range (fun x : A => (x : B)) = S) ∧ S ⊂ Set.univ
+-- Axiom C extension: ε is infinitesimal
+axiom infinitesimal_pos : ∀ r : 𝔽, epsilon < hyper r
 
+-- Order compatibility with 𝔽
+axiom ordered_field_extension : ∀ (r s : 𝔽), hyper r < hyper s ↔ r < s
 
-class IsProperSubtype (A B : Type) : Prop where
-  coe : Coe A B
-  proper : ∃ (S : Set B), (Set.range (coe : A → B) = S) ∧ S ⊂ Set.univ
-
-class IsProperSubtype (A B : Type) : Prop where
-  as_set : Set B
-  subset_axiom : (Set.univ : Set A) ⊆ as_set
-  strict : (Set.univ : Set A) ≠ as_set
-
-class IsSubtype (A B : Type) : Prop where
-  coe : Coe A B
-  nontrivial : Nonempty A → Nonempty B  -- Ensures A is nonempty only if B is.
-
-notation A "⪽" B => IsSubtype A B
-
-axiom R_subtype : ℝ ⪽ ℝ* -- theoretically but we don't want to inherit lean's structure of ℝ
-
-def R_subset : Set R* := Set.range hyper
+-- heterogeneous order relation or coercive order -- apply '<' to 𝔽 and 𝔽*  e.g. 0 < hyper 1 !
+axiom ordered_field_transfer : ∀ (r : 𝔽) (s : 𝔽*), r < s ↔ hyper r < s
+axiom ordered_field_reverse : ∀ (s : 𝔽*) (r : 𝔽), s < r ↔ s < hyper r
 
 
-noncomputable def st_R_subset : R_subset → ℝ := λ x => real x -- standard part of x in R_subset
+-- Extend the order: ℝ is naturally embedded in Hyperreal
+axiom real_le_hyperreal : ∀ r : 𝔽 , ∀ x : R*, (r : R*) ≤ x ↔ (hyper r) ≤ x
 
-@[simps apply] -- ≃ Equiv Equivalence
-noncomputable def R_embedded_equivalent : ℝ ≃ R_subset := {
-  toFun := λ r => ⟨hyper r, ⟨r, rfl⟩⟩, -- 𝞅
-  invFun := st_R_subset, -- 𝞅⁻¹
-  left_inv := λ r => by simp [st_R_subset, st_extension], -- 𝞅⁻¹•𝞅=1
-  right_inv := λ ⟨x, ⟨r, hr⟩⟩ => by -- 𝞅•𝞅⁻¹=1
-    show (⟨hyper (real x), ⟨real x, rfl⟩⟩ : R_subset) = ⟨x, ⟨r, hr⟩⟩
-    apply Subtype.ext
-    show hyper (real x) = x
-    rw [← hr, extension_st]
-}
+-- Notation for R*ⁿ *Rⁿ Hyperreal vectors
+notation "R*"n => (Fin n → R*) -- STILL needs to be wrapped as (R*n) WHY?
+notation "𝔽^"n => (Fin n → 𝔽)
+-- notation "ℝ^"n => (Fin n → ℝ)
+-- notation "*ℝⁿ" => Fin n → ℝ*
+
+-- Axiom D: Natural extension of functions
+axiom D : ∀ {n : ℕ} (f : R* → 𝔽),
+  ∃ f_star : (R*n) → R*,
+  ∀ (x : 𝔽^n), f_star (hyper ∘ x) = hyper (f x)
+
+
+-- Axiom E: Transfer principle
+axiom E : ∀ (P : R* → Prop), (∀ r : 𝔽, P (hyper r)) → (∀ x : R*, P x)
+
+
+-- Axiom F: Standard part function
+axiom st : R* → 𝔽 -- noncomputable and we can't make it computable later
+
+axiom st_extension : ∀ r : 𝔽 , st (hyper r) = r
+axiom extension_st : ∀ r : 𝔽 , hyper (st r) = r -- todo: as lemma
+axiom pure_epsilon : st epsilon = 0  -- redundant but can't hurt
+
+def finite  (x : R*) : Prop := ∃ r : 𝔽 , |x| < hyper r
+-- def infinite  (x : R*) : Prop := ∀ r : 𝔽, r > 0 → |x| > hyper r
+-- def infinitesimal (x : R*) : Prop := ∀ r : 𝔽, r > 0 → |x| < hyper r
+-- def infinitesimal0 (x : R*) : Prop := ∃ r : 𝔽 , x = r*ε -- excluding ε^2 !
+-- def infinite0 (x : R*) : Prop := ∃ r : 𝔽 , x = r*ω -- excluding ω^2 + xyz !
+def infinite (x : R*) : Prop := ∃ r : 𝔽 , |x| > r*ω
+def infinitesimal (x : R*) : Prop := ∃ r : 𝔽 , |x| < r*ε -- including ε^2 !
+
+
+
+def near (x y : R*) : Prop := infinitesimal (x - y)
+def cofinite (x y : R*) : Prop := finite (x - y)
+-- def near (x y : R*) : Prop := infinitesimal hyper (x - y)
+
+-- Definition 1.2: Monad and Galaxy
+def monad (x : R*) : Set R* := {y | near x y}
+def galaxy (x : R*) : Set R* := {y | finite (x - y)}
+-- def galaxy' (x : R*) : Set R* := {y | finite (y - x)}
+-- def galaxy (x : R*) : Set R* := {y | cofinite (x y)}
+def halo := monad -- alias
