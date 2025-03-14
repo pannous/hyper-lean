@@ -3,16 +3,21 @@ import Mathlib.Tactic.NormNum
 
 def debugMode : Bool := false -- show ε, ω, etc. in output
 -- def debugMode : Bool := true -- [(1,0)]
+-- set_option autoImplicit false  -- Sometimes helps with implicit warnings
+-- set_option trace.compiler.silent true HALU
+-- set_option warn.noMessages true HALU
+-- set_option logFilter "error" HALU
+set_option warningAsError false
 
 notation "∞" => (⊤ : EReal)
 notation "-∞" => (⊥ : EReal)
 namespace Hypers
-section HyperGenerals
+section HyperLists
 notation "𝔽" => ℚ
 def Comps := List (𝔽 × 𝔽)
-def HyperGeneral : Type := List (𝔽 × 𝔽)
+def HyperList : Type := List (𝔽 × 𝔽)
 
-notation "R*" => HyperGeneral
+notation "R*" => HyperList
 notation "𝔽*" => R*
 instance : One R* where one := [(1, 0)]
 instance : Zero R* where zero := ([]:R*)
@@ -71,7 +76,7 @@ def simplify (a : R*) : R* :=
       updated.filter (λ (r', _) => r' ≠ 0)
     else
       (r, e) :: acc
-  ) [] |>.filter (λ (r, e) => r ≠ 0) -- remove all zero coefficients (0,*)
+  ) [] |>.filter (λ (r, _) => r ≠ 0) -- remove all zero coefficients (0,*)
 
 def normalize (x : R*) : R* := simplify x
 -- def normalize (x : R*) : R* := if x = [(0,0)] then [] else x
@@ -161,7 +166,7 @@ instance : ToString R* where
     let terms := simplify f
     let (constants, exponentials) := terms.partition (λ (_, e) => e = 0)
     let constSum := constants.foldl (λ acc (c, _) => acc + c) (0:𝔽)
-    if constSum = 0 then "0" else
+    if terms == [] then "0" else
     let expStr := exponentials.map (λ (c, e) =>
       if c = 0 ∧ e = 0 then "0"
       else
@@ -192,18 +197,24 @@ instance : Repr R* where
   reprPrec f _ := if debugMode then List.toString f else toString f
 
 
-scoped notation:max a "²" => a * a
-scoped notation:max a "³" => a * a * a
-scoped notation:max a "⁴" => a * a * a * a
-scoped notation:max n "ε" => n • ε
-scoped notation:max n "ω" => n • ω
+-- scoped notation:max "ε²" => (ε * ε)
+-- ⚠️ doesn't work: a is treated as unit => 2ε² => 2ε*2ε !!
+-- scoped notation:max a "²" => (a * a)
+-- scoped notation:max a "³" => a * a * a
+-- scoped notation:max a "⁴" => a * a * a * a
+-- scoped notation:1 n "ε" => (n * ε)  -- Explicit multiplication instead of •
+scoped notation:max n "ε" => (n • ε)
+scoped notation:max n "ε²" => (n • ε*ε)
+-- scoped notation:1 a "²" => (a) * (a)
+scoped notation:max n "ω" => (n • ω)
+scoped notation:max n "ω²" => (n • ω*ω)
 scoped notation:max "√" a => a^(1/2)
 scoped notation:max "∛" a => a^(1/3)
 scoped notation:max "∜" a => a^(1/4)
 
 -- #eval zero
--- #eval 1 + ω + 1 + 1/ε
-#eval 1 + ω + 1 + ε⁻¹ - (1 + ω + 2 + 1/ε) -- should cancel out to -1
+#eval 1 + ω - ( 1 + 1/ε ) -- should cancel out to 0
+#eval 1 + 2ω + ε + ε⁻¹ - (1 + ω - 2ε + 2/ε) -- should cancel out to 3ε
 #eval ε + 3 - 4ω + 2ε²
 
 
@@ -212,49 +223,10 @@ scoped notation:max "∜" a => a^(1/4)
 --   hPow n x := x.map (λ (r, e) => (r^n, e*n))
 -- #eval ε + 3 - 4*ω + √ε²
 
-  -- #eval nil : R*
-
--- #eval one + ([(1,0)]:R*) -- FAILS!
-
-
--- #eval [(1,0)] + one -- fails because 1, 0 are special, too hard to figure out the type
--- #eval [(3,3)] + one -- fails because WHY?? succ ^^ ?
--- #eval [(3,3)] + one -- fails because WHY??
--- #eval [(3,(3:ℕ))] + one -- fails because WHY??
--- #eval one + ([(1,0)]:R*) -- FAILS!?!
-
-
-
--- #eval ↑[⟨1,0⟩] + (1,0)
-
--- Why do these fail they should match the definitions:
--- instance : HAdd R* (ℕ × ℕ) R* where hAdd x y := merge x y
--- instance : Coe (ℕ × ℕ) R* where coe x := x
--- #check ([(1,0)]:R*) -- List (ℚ × ℚ) but not really R* ?
-#eval ([(1,0)]:R*) == one -- true by definition
-#eval ([(1,0)]:R*) == 1
-#eval ([(-1,0)]:R*) == -1
-#eval ([(2,0)]:R*) == 2
-#eval ([(-2,0)]:R*) == -2
--- #eval one + ([(1,0)]:R*)
-#eval ([⟨1,0⟩] : R*) + ([⟨1,0⟩] : R*)
-#eval ([⟨1,0⟩] : R*) + 1
-#eval ([⟨1,0⟩] : R*) + ↑1
--- #eval ([⟨1,0⟩] : R*) + (1,0)
--- #eval ([(1,0)] : R*) + 1
--- #eval ([(1,0)] : R*) + (1,0)
--- #eval ([(1,0)] : R*) + [(1,0)]
-
--- #eval ([(1,0)] : R*) == 1 -- true by definition
--- #eval ([] : R*) == O -- true by definition
-
-
 
 -- SELF COERCION!
--- instance : Coe R* R* where
---   coe := simplify
-
-
+instance : Coe R* R* where
+  coe := simplify
 
 -- Define a proper equality relation
 def HyperEq (x y : R*) : Prop := simplify x = simplify y
@@ -292,10 +264,11 @@ instance : DecidableEq R* :=
 
 
 -- standard == equality  would this to recursion: (simplify x) == (simplify y) ?
+instance : BEq R* where beq x y := (simplify x) = (simplify y)
 instance : BEq (List (𝔽 × 𝔽)) where beq x y := (simplify x) = (simplify y)
 instance : BEq (List (ℚ × ℚ)) where beq x y := (simplify x) = (simplify y)
-instance : BEq (List (ℤ × ℤ)) where beq x y := (simplify (x:R*)) = (simplify (x:R*))
-instance : BEq (List (ℕ × ℕ)) where beq x y := (simplify (x:R*)) = (simplify (x:R*))
+instance : BEq (List (ℤ × ℤ)) where beq x y := (simplify (x:R*)) = (simplify (y:R*))
+instance : BEq (List (ℕ × ℕ)) where beq x y := (simplify (x:R*)) = (simplify (y:R*))
 
 
 -- standard ≈ equality
@@ -303,8 +276,7 @@ instance : BEq (List (ℕ × ℕ)) where beq x y := (simplify (x:R*)) = (simplif
 instance : HasEquiv R* where Equiv x y := simplify x == simplify y
 infix:50 " ≅ " => HyperEq  -- NOT NEEDED, we have the standard ≈ ≠ ~ !!!
 
-
-#eval ([(0,0)] : R*) ≈ (0: R*) -- true now
+#eval ([(0,0)] : R*) ≈ (0: R*) -- true now FALSE AGAIN?????
 #eval ([(0,0)] : R*) = (0: R*) -- always false! (OK)
 
 -- Adding additional evaluation to check equality with simplified forms
@@ -391,6 +363,9 @@ lemma n_1_smul (x: R*) : (n:ℤ)•x + (1:ℤ)•x = ((n + 1):ℤ) • x := by
 -- lemma smul_neg (a : 𝔽 ) (u : R*) : a • (-u) = -(a • u) :=
 --   by rewrite [-neg_one_smul, -mul_smul, mul_neg_one_eq_neg, neg_smul]
 
+@[simp]
+lemma neg_zero : -0 = (0:R*) := by rfl
+
 lemma smul_neg : ∀ (n : ℤ) (x : R*), (-n) • x = -(n • x) :=
   λ n x => by
   cases n with
@@ -444,23 +419,23 @@ lemma smul_neg : ∀ (n : ℤ) (x : R*), (-n) • x = -(n • x) :=
     --     = (n + 1) • x := by rw [neg_negSucc]
     --   _ = -( -[1+ n] • x) := by rw [negSucc_smul]
 
-lemma smul_neg : ∀ (n : ℤ) (x : R*), (-n) • x = -(n • x) :=
-  λ n x => by
-  cases n with
-  | ofNat n =>
-    induction n with
-    | zero =>
-      show 0•(x:R*) = -(0•x:R*)
-      calc
-        (0 : ℤ) • (x:R*)
-        = [] := by rw [HSMul.hSMul, zero]
-        _ = [] := by rw [HSMul.hSMul, neg_zero]
-    | succ n ih =>
-      simp [HSMul.hSMul, ih, neg_zero]
-      rw [neg_smul_eq_smul_neg]
-  | negSucc n =>
-    simp [HSMul.hSMul]
-    rw [neg_smul_eq_smul_neg]
+-- lemma smul_neg' : ∀ (n : ℤ) (x : R*), (-n) • x = -(n • x) :=
+--   λ n x => by
+--   cases n with
+--   | ofNat n =>
+--     induction n with
+--     | zero =>
+--       show 0•(x:R*) = -(0•x:R*)
+--       calc
+--         (0 : ℤ) • (x:R*)
+--         = [] := by rw [HSMul.hSMul, zero]
+--         _ = [] := by rw [HSMul.hSMul, neg_zero]
+--     | succ n ih =>
+--       simp [HSMul.hSMul, ih, neg_zero]
+--       rw [neg_smul_eq_smul_neg]
+--   | negSucc n =>
+--     simp [HSMul.hSMul]
+--     rw [neg_smul_eq_smul_neg]
 
 lemma zsmul_neg : ∀ (n : ℤ) (x : R*), n • x = -n • -x :=
   λ n x => by
@@ -468,7 +443,6 @@ lemma zsmul_neg : ∀ (n : ℤ) (x : R*), n • x = -n • -x :=
     | ofNat n =>
       induction n with
       | zero =>
-
         sorry
         -- simp [HSMul.hSMul, zero]
       | succ n ih =>
@@ -479,23 +453,23 @@ lemma zsmul_neg : ∀ (n : ℤ) (x : R*), n • x = -n • -x :=
       simp [HSMul.hSMul]
       sorry
 
-lemma zsmul_neg' : ∀ (n : ℤ) (x : R*), n • x = -n • -x := λ n x => by
-    induction n with
-    | hz =>
-      simp [HSMul.hSMul, zero]
-    | hn n ih =>
-    -- case n = 0
+-- lemma zsmul_neg' : ∀ (n : ℤ) (x : R*), n • x = -n • -x := λ n x => by
+--     induction n with
+--     | hz =>
+--       simp [HSMul.hSMul, zero]
+--     | hn n ih =>
+--     -- case n = 0
 
-    -- case n = 1
+--     -- case n = 1
 
-      simp [HSMul.hSMul, ih, Neg.neg]
-      sorry
-    | hp n ih =>
-      simp [HSMul.hSMul]
-      rw [ih]
-      rw [Neg.neg, Neg.neg]
-      -- rw [zsmul_neg, zsmul_neg]
-      sorry
+--       simp [HSMul.hSMul, ih, Neg.neg]
+--       sorry
+--     | hp n ih =>
+--       simp [HSMul.hSMul]
+--       rw [ih]
+--       rw [Neg.neg, Neg.neg]
+--       -- rw [zsmul_neg, zsmul_neg]
+--       sorry
 
 
 
@@ -511,13 +485,13 @@ lemma smul_succ : ∀ (n : ℕ) (x : R*), (n + 1) • x = x + n • x :=
       -- rw [ih]
 
 -- x + 0 • x = x
-lemma zsmul_succ : ∀ (n : ℕ) (x : R*), (n + 1) • x = x + n • x :=
-  λ n x => by
-    induction n with
-    | zero =>
-      simp [Nat.succ_eq_add_one, smul_zero, add_zero, zero_times,one_times]
-    | succ n ih =>
-      simp [Nat.succ_eq_add_one, smul_succ]
+-- lemma zsmul_succ : ∀ (n : ℕ) (x : R*), (n + 1) • x = x + n • x :=
+--   λ n x => by
+--     induction n with
+--     | zero =>
+--       simp [Nat.succ_eq_add_one, smul_zero, add_zero, zero_times,one_times]
+--     | succ n ih =>
+--       simp [Nat.succ_eq_add_one, smul_succ]
 
 
 
@@ -567,5 +541,5 @@ instance : Field R* := {
   mul_inv_cancel := by sorry,
   add_zero := by sorry
 }
-end HyperGenerals
+end HyperLists
 end Hypers
