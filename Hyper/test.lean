@@ -4,6 +4,22 @@ import Mathlib.Tactic
 
 -- Complex.ext_iff : ∀ {z w : ℂ}, z = w ↔ (z.re = w.re ∧ z.im = w.im)
 
+-- for pairs:
+-- instance : BEq (Nat × Nat) where
+  -- beq (a1,b1) (a2,b2) := (a1 == a2) && (b1 == b2)
+
+-- for lists:
+instance [BEq α] : BEq (List α) where
+  beq as bs :=
+    match as, bs with
+    | [],      []      => true
+    -- | [],      (0,0)::[]      => true
+    | a :: as, b :: bs => (a == b) && (as == bs)
+    | _,       _       => false
+
+#eval [1, 2, 3] == [1, 2, 3] -- true
+#eval [1, 2, 3] == [1, 2, 4] -- false
+
 open Complex Set
 
 def real_as_complex : Type := {z : ℂ // z.im = 0}
