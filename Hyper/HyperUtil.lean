@@ -1,5 +1,5 @@
 import Mathlib.Data.Real.Basic -- Import basic real number theory in LEAN 4
-import Mathlib.Data.Real.Ereal -- ∞
+-- import Mathlib.Data.Real.Ereal -- ∞
 
 
 open Lean Meta
@@ -27,11 +27,25 @@ def saveTheorems  : MetaM Unit := do -- ⚠️ takes a while to run!!
 -- #eval saveTheorems  -- ⚠️ takes a while to run!!
 -- mouse over → busily processing
 
+-- String.contains checks if a string contains a Char !!! no other method WTH !?
+def contains (s sub : String) : Bool :=
+  let sLen := s.length
+  let subLen := sub.length
+  if subLen = 0 then true
+  else if subLen > sLen then false
+  else
+    -- Check all possible starting positions
+    (List.range (sLen - subLen + 1)).any (fun i =>
+      s.substrEq ⟨i⟩ sub ⟨0⟩ subLen)
+
+-- #eval contains "hello world" "world"  -- true
+-- #eval contains "Lean" "Haskell"       -- false
+
 def searchTheorems (query: String) : MetaM Unit := do
   let env ← getEnv
   let found_count ← IO.mkRef 0
   env.constants.forM fun name _ => do
-    if name.toString.containsSubstr query then
+    if contains name.toString query then
       println! "{name}"
       found_count.modify (· + 1)
 
@@ -40,7 +54,7 @@ def searchTheorems (query: String) : MetaM Unit := do
 
 -- #eval searchTheorems "negative_smaller_zero"  -- ⚠️ takes a while to run!!
 -- mouse over → busily processing
-#eval searchTheorems "lt_zero"  -- ⚠️ takes a while to run!!
+-- #eval searchTheorems "lt_zero"  -- ⚠️⚠️⚠️⚠️⚠️ takes a while to run!! ⚠️⚠️⚠️⚠️⚠️⚠️
 
 variable {T : Type} [DecidableEq T] [LT T] [DecidableRel (LT.lt : T → T → Prop)]
 variable {S : Type} [DecidableEq S] [LT S] [DecidableRel (LT.lt : S → S → Prop)]
@@ -116,8 +130,16 @@ notation "⅞" => (7 / 8 : ℚ)
 
 -- end Pair
 
+set_option quotPrecheck false
+-- we may import the ereal later
+-- import Mathlib.Data.Real.Ereal
 notation "∞" => (⊤ : EReal)
 notation "-∞" => (⊥ : EReal)
+set_option quotPrecheck true
+
+notation "(" a ",∞)" => Set.Ioi a -- (a,∞) = {x: a<x}
+notation "(-∞," a ")" => Set.Iio a -- (-∞,a) = {x: x<a}
+notation "(-∞,∞)" => Set.Univ -- (-∞,∞) = ℝ OR WHATEVER THE DOMAIN IS!
 
 def square {α : Type*} [Mul α] (x : α) : α := x * x
 def inv_square {α : Type*} [Inv α] [Mul α]  (x : α) : α := (x * x)⁻¹
@@ -140,10 +162,45 @@ instance : ToString Bool where
   toString ja :=
     if ja then "true" else "false"
 
-notation "doh" => sorry
-notation "todo" => sorry
-notation "obvious" => sorry
-notation "definition" => sorry
+-- notation "huh" => sorry
+-- notation "doh" => sorry
+-- notation "todo" => sorry -- todo + text
+-- notation "obvious" => sorry
+-- notation "excercise" => sorry
+
+macro "obvious" : tactic => `(tactic| sorry)
+macro "excercise" : tactic => `(tactic| sorry)
+
+-- notation "definition" => rfl
+
+
+-- macro "definition" : tactic => `(tactic| rfl;simp)
+-- macro "definition" : tactic => `(tactic| try rfl <|> try simp <|> try unfold Neg.neg; unfold OfNat.ofNat)
+macro "definition" : tactic => `(tactic| rfl)
+example : 1 + 1 = 2 := by definition
+
+macro "expansion" : tactic => `(tactic| rfl) -- expand definitions
+-- macro "reduction" : tactic => `(tactic| rfl) -- reduce to definition
+-- macro "reducing" : tactic => `(tactic| rfl) -- reduce to definition
+-- macro "reduce" : tactic => `(tactic| rfl) -- reduce to definition
+
+open Lean Elab Command
+
+syntax "proposition" ident (ppSpace (colGt ident <|> term))* ":" term ":=" term : command
+macro_rules | `(proposition $name:ident $args* : $type := $proof) => `(lemma $name $args* : $type := $proof)
+
+proposition testProp : 1 + 1 = 2 := by rfl
+
+syntax "fact" ident (ppSpace (colGt ident <|> term))* ":" term ":=" term : command
+macro_rules | `(fact $name:ident $args* : $type := $proof) => `(lemma $name $args* : $type := $proof)
+
+fact testFact : 1 + 1 = 2 := by rfl
+
+
+syntax "corollary" ident (ppSpace (colGt ident <|> term))* ":" term ":=" term : command
+macro_rules | `(corollary $name:ident $args* : $type := $proof) => `(lemma $name $args* : $type := $proof)
+
+corollary testCorollary : 1 + 1 = 2 := by rfl
 
 -- cast Nat to Prop / Bool
 instance : OfNat Prop 0 where ofNat := false
@@ -153,22 +210,22 @@ instance : OfNat Bool 1 where ofNat := true
 instance : Coe ℤ Bool where coe r := r ≠ 0
 instance : Coe ℤ Prop where coe r := r ≠ 0
 
--- Replace the axiom with a computable implementation
-/-- Approximates a real number as a rational with specified precision -/
-def toRationalApprox (r : ℝ) (precision : Nat := 1000000) : ℚ :=
-  -- Use ToRat typeclass from Lean's standard library to convert a real to a rational
-  -- This is a computable operation with bounded precision
-  let n := (r * precision).toInteger
-  ⟨n, precision⟩
+-- -- Replace the axiom with a computable implementation
+-- /-- Approximates a real number as a rational with specified precision -/
+-- def toRationalApprox (r : ℝ) (precision : Nat := 1000000) : ℚ :=
+--   -- Use ToRat typeclass from Lean's standard library to convert a real to a rational
+--   -- This is a computable operation with bounded precision
+--   let n := (r * precision).toInteger
+--   ⟨n, precision⟩
 
--- Use the computable version instead of the axiom
--- axiom closest_ratio : ℝ → ℚ -- arbitrary rational approximation (not computable)
+-- -- Use the computable version instead of the axiom
+-- -- axiom closest_ratio : ℝ → ℚ -- arbitrary rational approximation (not computable)
 
-instance : Coe ℝ ℚ⋆ where
-  coe r := Hyper.mk (toRationalApprox r) 0 0 0
+-- instance : Coe ℝ ℚ⋆ where
+--   coe r := Hyper.mk (toRationalApprox r) 0 0 0
 
-def hyper : ℝ → Hyper := λ r => ⟨(toRationalApprox r), 0, 0, 0⟩
+-- def hyper : ℝ → Hyper := λ r => ⟨(toRationalApprox r), 0, 0, 0⟩
 
--- Optionally, allow specifying precision for more accurate approximations
-def hyperWithPrecision (r : ℝ) (precision : Nat := 1000000) : Hyper :=
-  ⟨(toRationalApprox r precision), 0, 0, 0⟩
+-- -- Optionally, allow specifying precision for more accurate approximations
+-- def hyperWithPrecision (r : ℝ) (precision : Nat := 1000000) : Hyper :=
+--   ⟨(toRationalApprox r precision), 0, 0, 0⟩
