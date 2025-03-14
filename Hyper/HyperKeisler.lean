@@ -12,6 +12,9 @@ import Mathlib.Tactic.Linarith
 -- import Mathlib.Data.Set.Univ
 -- import Mathlib.Data.Set.Range
 
+namespace Hypers
+section HyperKeisler
+
 -- set_option autoImplicit false -- to debug
 -- set_option diagnostics true
 -- set_option diagnostics.threshold 1000
@@ -22,7 +25,6 @@ import Mathlib.Tactic.Linarith
 
 -- [@implemented_by ] <<< only when executing code in Lean #eval, not in proofs
 -- [@extern ...] fast C implementation
--- axiom Hyperreal : Type -- e.g.
 -- structure Hyperreal' := (real : ℝ) (epsilon : ℝ)
 structure Hyperreal' where
   real : ℝ
@@ -30,9 +32,12 @@ structure Hyperreal' where
 
 -- 	•	Use a class only if you need multiple models of hyperreals.
 --  ℝ (for proofs) and Float (for computation).
-def Hyperreal := Hyperreal' -- Now they are the same
+axiom Hyperreal : Type -- e.g.
+-- def Hyperreal := Hyperreal' -- Now they are the same
 
 -- notation "Hyper" => Hyperreal
+notation "𝔽" => ℚ -- our Field !
+notation "R" => ℝ
 notation "R*" => Hyperreal
 notation "ℝ*" => Hyperreal
 notation "R+" => { r : ℝ // r > 0 }
@@ -40,7 +45,7 @@ notation "ℝ+" => { r : ℝ // r > 0 }
 
 -- axiom R_subtype : ℝ ⊂ ℝ*
 
--- namespace Hyperreal
+--
 -- put at the end of the file:
 -- end Hyperreal
 
@@ -49,7 +54,7 @@ notation "ℝ+" => { r : ℝ // r > 0 }
 
 -- Axiom A
 -- R is a complete ordered field (yes just the real numbers, we know them)
-notation "R" => ℝ
+
 
 -- Axiom B: R* is an ordered field extension of R
 -- Declare that Hyperreal is a linear ordered field
@@ -124,30 +129,32 @@ axiom infinitesimal_pos : 0 < epsilon ∧ ∀ r : ℝ, epsilon < hyper r
 -- Extend the order: ℝ is naturally embedded in Hyperreal
 axiom real_le_hyperreal : ∀ r : ℝ, ∀ x : R*, (r : R*) ≤ x ↔ (hyper r) ≤ x
 
--- Axiom D: Natural extension of functions
-
 -- Notation for R*ⁿ *Rⁿ Hyperreal vectors
 notation "R*"n => (Fin n → R*) -- STILL needs to be wrapped as (R*n) WHY?
 -- notation "R^"n => (Fin n → ℝ) ambiguous :
 notation "ℝ^"n => (Fin n → ℝ)
 -- notation "ℝⁿ" => Fin n → ℝ
 
+-- Axiom D: Natural extension of functions
 axiom D : ∀ {n : ℕ} (f : (ℝ^n) → ℝ),
   ∃ f_star : (R*n) → R*,
   ∀ (x : ℝ^n), f_star (hyper ∘ x) = hyper (f x)
 
+
 -- Axiom E: Transfer principle
 axiom E : ∀ (P : R* → Prop), (∀ r : ℝ, P (hyper r)) → (∀ x : R*, P x)
 
+
 -- Axiom F: Standard part function
--- axiom real : R* → ℝ -- noncomputable and we can't make it computable later
+-- axiom st : R* → ℝ -- noncomputable and we can't make it computable later
+axiom real : R* → ℝ -- noncomputable and we can't make it computable later
 -- axiom real_part : R* → ℝ standard part
 -- axiom hyper_part : R* → R* vs standard part
 -- def real (x : R*) : ℝ := sorry -- Will be implemented later, e.g. :
 -- def real (x : R*) : ℝ := x.real -- If implemented as a structure
-def real : R* → ℝ
+-- def real : R* → ℝ
 -- | epsilon => 0 -- "redundant"
-| x       => x.real
+-- | x       => x.real
 
 -- structure Hyperreal' := (real : ℝ) (epsilon : ℝ)
 
@@ -189,8 +196,11 @@ def Infinites : Set R* := {y | infinite y} --
 -- Hyperreal as a set! ⚠️ Hyperreal Type ≠ Hyperreals Set ⚠️ confusion!
 def Hyperreals : Set R* := Set.univ  -- The set of all hyperreal numbers (trivial & redundant!)
 def Reals : Set ℝ := Set.univ  -- ℝ as set (trivial & redundant!)
-def R_subset : Set R* := {y | finite y ∧ ¬ infinitesimal y} -- ℝ embedded in R*
-def R_subset' : Set R* := Set.range hyper -- ℝ embedded in R*
+-- def R_subset : Set R* := {y | finite y ∧ ¬ infinitesimal y} -- ℝ embedded in R*
+def R_subset : Set R* := Set.range hyper  -- ℝ embedded in R*
+def R_subtype : Type := { x : R* // ∃ r : ℝ, x = hyper r }
+def R_subtype' := { x : R* // x ∈ R_subset }
+
 def Infinites' : Set R* := {y | ¬ finite y}  -- Equivalent to the complement of galaxy(0)
 def Infinites'' : Set R* :=  Hyperreals \ Finites  -- Complement of the finite set
 -- def Infinites : Set R* := Set.univ \ Finites  -- Complement of the finite set R*
@@ -236,8 +246,9 @@ infix:50 " ∻ " => cofinite -- ∺ within same galaxy 🌌
 example (r : ℝ) (x : R*) : r + x = hyper r + x := rfl
 example (r : ℝ) : r = hyper r := rfl
 
-def R_subset : Set R* := Set.range hyper
-def R_subtype : Type := { x : R* // ∃ r : ℝ, x = hyper r }
+noncomputable def st_R_subset : R_subset → ℝ := λ x => real x -- standard part of x in R_subset
+noncomputable def st_R_subtype : R_subtype → ℝ := λ s => real s.val -- wth is s.val? egal ;)
+noncomputable def st_R_subtype' : R_subtype' → ℝ := λ s => real s.val
 
 lemma st_is_inverse (x : R*) (h : x ∈ R_subset) : hyper (real x) = x := by
   obtain ⟨r, hr⟩ := h -- x = hyper r for some r ∈ ℝ
@@ -246,10 +257,25 @@ lemma st_is_inverse (x : R*) (h : x ∈ R_subset) : hyper (real x) = x := by
   rw [h1]
   exact hr
 
-noncomputable def st_R_subset : R_subset → ℝ := λ x => real x -- standard part of x in R_subset
+lemma st_is_inverse_back (x : R) : real (hyper x) = x := st_extension x
 
-@[simps apply] -- ≃ Equiv Equivalence
-noncomputable def R_embedded_equivalent : ℝ ≃ R_subset := {
+lemma st_is_inverse' (x : R*) (h : x = hyper r) : hyper (real x) = x := by
+  obtain ⟨r, hr⟩ := h -- x = hyper r for some r ∈ ℝ
+  have h: real (hyper r) = r := st_extension r
+  rw [h]
+
+noncomputable def R_subtype_equiv : ℝ ≃ R_subtype := {
+  toFun := λ r => ⟨hyper r, ⟨r, rfl⟩⟩,
+  invFun := λ s => real s.val,
+  left_inv := λ r => by simp only; exact st_is_inverse_back (r),
+  right_inv := λ ⟨x, ⟨r, hr⟩⟩ => by
+    apply Subtype.ext
+    simp [st_is_inverse]
+    exact st_is_inverse' x hr
+}
+
+-- @[simps apply] -- ≃ Equiv Equivalence
+noncomputable def R_subset_equivalent : ℝ ≃ R_subset := {
   toFun := λ r => ⟨hyper r, ⟨r, rfl⟩⟩, -- 𝞅
   invFun := st_R_subset, -- 𝞅⁻¹
   left_inv := λ r => by simp [st_R_subset, st_extension], -- 𝞅⁻¹•𝞅=1
@@ -260,34 +286,19 @@ noncomputable def R_embedded_equivalent : ℝ ≃ R_subset := {
     rw [← hr, extension_st]
 }
 
--- TODO: Define R as a subtype of R*
--- axiom R_star_superset : ℝ ⊂ R* for types :(
--- axiom R_real_subtype : ℝ = R_subtype -- CHAOS! don't do this!
--- noncomputable def R_subtype_equiv : ℝ ≃ R_subtype := {
---   toFun := λ r => ⟨hyper r, ⟨r, rfl⟩⟩,
---   invFun := sorry, --λ ⟨x, ⟨r, hr⟩⟩ => r,
---   left_inv := λ r => rfl,
---   right_inv := λ ⟨x, ⟨r, hr⟩⟩ => by
---     apply Subtype.ext
---     exact hr
--- }
 
 
 instance : Coe R+ ℝ := ⟨Subtype.val⟩ -- coercion from R+ to ℝ
-
+instance : Coe R_subtype ℝ* := ⟨Subtype.val⟩ -- coercion from R to R*  ( R ≃ ℝ )
 
 -- theorem epsilon_not_in_R : epsilon ∉ R_subset := by
 lemma proper_extension : epsilon ∉ R_subset := by
   intro h
-  obtain ⟨r, hr⟩ := h  -- Assume ε = hyper r for some r ∈ ℝ
-  have h1 : 0 < epsilon := infinitesimal_pos.1
-  have h2 : epsilon < hyper (r + 1) := infinitesimal_pos.2 (r + 1)
-  have h3 : hyper r < hyper (r + 1) := by rw [hr]
-  rw [hr] at h1 h2
-  show False
-  contradiction
-  -- linarith
-  -- by_contradiction
+  obtain ⟨r0, hr⟩ := h  -- Assume ε = hyper r for some r ∈ ℝ
+  -- axiom infinitesimal_pos : 0 < epsilon ∧ ∀ r : ℝ, epsilon < hyper r
+  have k : epsilon < hyper r0 := infinitesimal_pos.2 r0
+  rw [hr] at k
+  exact lt_irrefl _ k -- Contradiction ¬a < a
 
 notation a "≃ₜ" b => Nonempty (a ≃ b) -- Topological Equivalence
 
@@ -302,39 +313,34 @@ noncomputable def real_homeo : ℝ ≃ₜ R :=
   continuous_invFun := sorry } -- Needs proof from `real`
 
 
--- theorem R_star_superset : R_subset ⊂ Set.univ := by
--- theorem R_star_superset2 : R_subset ⊂ Hyperreals := by
---   rw [Set.ssubset_def]
---   constructor
---   · exact Set.subset_univ R_subset -- ℝ is a subset of ℝ*
---   · use epsilon -- Find an element in ℝ* that is not in ℝ
---     intro h
---     obtain ⟨r, hr⟩ := h -- Assume ε = hyper r for some r ∈ ℝ
---     have h1 : 0 < epsilon := infinitesimal_pos.1
---     have h2 : epsilon < hyper (r + 1) := infinitesimal_pos.2 (r + 1)
---     rw [hr] at h1 h2 -- Substitute ε = hyper r
---     linarith -- Contradiction
-
--- notation a "⫇" b  => R_subset ⊂ Set.univ
-
-
 -- ⪦ ⫉ ⪽ ⪿ ⫁ ⫇
 notation a " ⪽ " b => Nonempty (a ↪ b) -- Embedding (too weak, we have equivalence of subtypes)
 theorem R_embedded0 : ℝ ⪽ ℝ* := -- as TYPES!
-  ⟨R_embedded_equivalent.toEmbedding.trans (Function.Embedding.subtype _)⟩
+  ⟨R_subset_equivalent.toEmbedding.trans (Function.Embedding.subtype _)⟩
+
+-- def R_subtype : Type := { x : R* // ∃ r : ℝ, x = hyper r }
+-- instance : Coe R_subtype ℝ* := ⟨Subtype.val⟩ -- coercion from R to R*  ( R ≃ ℝ )
 
 -- notation a " ⪦ " b  " a is equivalent/homomorphic to a subtype of b"
 -- notation a " ⪦ " b => Nonempty (a ≃ { x : b // P x })
 -- notation a " ⪦ " b => ∃ c, (a ≃ c) ∧ (c ↪ b) -- Subtype Embedding
-notation a " ⪦ " b => Nonempty (Σ c, (a ≃ c) × (c ↪ b))
-theorem R_embedded : ℝ ⪦ ℝ* :=
-  ⟨R_subtype, R_embedded_equivalent, Function.Embedding.subtype⟩
+-- notation a " ⪦ " b => ∃ (c : Type b), Nonempty ( a ≃ c )
+-- notation a " ⪦ " b => Nonempty (Σ (c : Type b), (a ≃ c) × (a ↪ b))
+notation a " ⪦ " b => Nonempty (Σ (c : Type), (a ≃ c) × (c ↪ b))
 
-notation a " ⫇ " b => ∃ c, a ≃ c ∧ c ⊆ b -- Subset Embedding
--- theorem R_as_subset :  ℝ ⫇ R* := by
---   exact ⟨R_embedded_equivalent, R_subset⟩
-theorem R_as_subset : Reals ⫇ Hyperreals := by
-  exact ⟨R_embedded_equivalent, R_subset⟩
+theorem R_as_subtype : ℝ ⪦ ℝ* :=
+  ⟨⟨R_subtype, R_subtype_equiv, ⟨Subtype.val, Subtype.coe_injective⟩⟩⟩
 
-theorem R_as_subset : Set.univ ℝ ⫇ Set.univ R* := by
-  exact ⟨R_embedded_equivalent, R_subset⟩
+theorem R_is_subset : R_subset ⊆ Hyperreals := by
+  simp [R_subset, Hyperreals]
+
+-- notation a " ⫇ " b => Set a ⊆ Set b -- Subset Embedding via intermediate equivalence embedding
+notation a " ⫇ " b => ∃ (c : Set b), Nonempty ( a ≃ c )
+
+theorem R_as_subset : ℝ ⫇ R* := by
+  let c := R_subset
+  have h1 : Nonempty (ℝ ≃ c) := ⟨R_subset_equivalent⟩
+  exact ⟨c, h1⟩
+
+end HyperKeisler
+end Hypers

@@ -5,6 +5,18 @@ namespace Hypers
 -- open Hypers.HyperList
 lemma one_plus_one_eq_two : one + one = 2 := by rfl
 
+#eval ([⟨1,0⟩] : R*) == one
+#eval ([⟨1,0⟩] : R*) == 1
+#eval ([⟨1,0⟩] : R*) = one
+#eval ([⟨1,0⟩] : R*) = 1
+#eval simplify ([⟨1,0⟩] : R*)
+#eval one
+#eval 1
+#eval (1 : R*)
+#eval ((1,0) : R*)
+#eval ([(1,0)] : R*)
+
+
 #eval ([]:𝔽*) = (0:𝔽*)
 #eval ([]:𝔽*) = []
 #eval (0:𝔽*) = []
@@ -16,6 +28,9 @@ lemma one_plus_one_eq_two : one + one = 2 := by rfl
 #eval -1 + one
 #eval 1 - one
 #eval -1 - one
+
+
+
 #eval one + zero
 #eval one + 0
 #eval one + 1
