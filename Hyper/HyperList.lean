@@ -144,11 +144,6 @@ def simplify (a : R*) : R* :=
       (r, e) :: acc
   ) []
 
-def HyperEq (x y : R*) : Prop := simplify x = simplify y
-
--- notation x " ≅ " y => HyperEq x y  -- ≃ equal after simplification
-infix:50 " ≅ " => HyperEq
-
 
 
 instance : Add R* where
@@ -198,59 +193,6 @@ instance : HDiv 𝔽 R* R* where
   -- hDiv x y := (x:R*) * y⁻¹
   -- hDiv x y := if x = 0 then [] else x • y⁻¹
 
-
--- class HyperEqClass (x y : R*) : Prop := (eqv : simplify x = simplify y)
-instance : Reflexive HyperEq := by
-  intro x
-  rfl
-
-instance : Symmetric HyperEq := by
-  intro x y h
-  unfold HyperEq at h  -- Expands `HyperEq` into `simplify x = simplify y`
-  unfold HyperEq       -- Expands `HyperEq` in the goal (`y ≅ x` → `simplify y = simplify x`)
-  rw [h]               -- Now `rw` applies correctly
-
-instance : Transitive HyperEq := by
-  intro x y z hxy hyz
-  unfold HyperEq at hxy hyz
-  unfold HyperEq
-  rw [hxy, hyz]
-
-instance : Equivalence HyperEq := {
-  refl := by intro x; rfl,
-  symm := by intro x y h; unfold HyperEq at h ⊢; rw [h],
-  trans := by intro x y z hxy hyz; unfold HyperEq at hxy hyz ⊢; rw [hxy, hyz]
-}
-
-
-lemma simplify_preserves_eq {x y : R*} (h : x = y) : simplify x = simplify y := by rw [h]
-
--- trick to make ≅ into real equality = for proofs
-instance HyperSetoid : Setoid R* :=
-{ r := HyperEq,
-  iseqv := ⟨
-    (by intro x; rfl),  -- Reflexivity
-    (by intro x y h; unfold HyperEq at h ⊢; rw [h]),  -- Symmetry
-    (by intro x y z hxy hyz; unfold HyperEq at hxy hyz ⊢; rw [hxy, hyz])  -- Transitivity
-  ⟩ }
-
-def HyperQuotient := Quotient HyperSetoid
--- def HyperQuotient := Quotient R*
-
-instance [DecidableEq Comps] : DecidableEq HyperQuotient :=
-  λ x y =>
-    Quotient.recOnSubsingleton₂ x y (λ x y =>
-      match decEq (simplify x) (simplify y) with
-      | isTrue h  => isTrue (Quotient.sound h)  -- Lift `simplify x = simplify y` to `⟦x⟧ = ⟦y⟧`
-      | isFalse h => isFalse (by
-          intro contra
-          apply h
-          exact Quotient.exact contra  -- Convert `⟦x⟧ = ⟦y⟧` to `simplify x = simplify y`
-        )
-    )
-
--- instance : ToString R* where
-  -- toString f := simplify f |>.toString
 
 instance : ToString R* where
   toString f :=

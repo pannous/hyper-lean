@@ -1,6 +1,7 @@
 import Mathlib.Data.Real.Basic -- Import basic real number theory in LEAN 4
 -- import Mathlib.Data.Real.Ereal -- ∞
 
+-- ⚠️⚠️⚠️ Including this file messed up your original file be careful ⚠️⚠️⚠️
 
 open Lean Meta
 
@@ -164,21 +165,18 @@ instance : ToString Bool where
 
 -- notation "huh" => sorry
 -- notation "doh" => sorry
--- notation "todo" => sorry -- todo + text
--- notation "obvious" => sorry
--- notation "excercise" => sorry
-
+macro "todo" : tactic => `(tactic| sorry) -- todo + text
 macro "obvious" : tactic => `(tactic| sorry)
 macro "excercise" : tactic => `(tactic| sorry)
 
 -- notation "definition" => rfl
-
-
 -- macro "definition" : tactic => `(tactic| rfl;simp)
 -- macro "definition" : tactic => `(tactic| try rfl <|> try simp <|> try unfold Neg.neg; unfold OfNat.ofNat)
 macro "definition" : tactic => `(tactic| rfl)
 example : 1 + 1 = 2 := by definition
 
+macro "rofl" : tactic => `(tactic| rfl)
+macro "reflexivity" : tactic => `(tactic| rfl)
 macro "expansion" : tactic => `(tactic| rfl) -- expand definitions
 -- macro "reduction" : tactic => `(tactic| rfl) -- reduce to definition
 -- macro "reducing" : tactic => `(tactic| rfl) -- reduce to definition
@@ -229,3 +227,23 @@ instance : Coe ℤ Prop where coe r := r ≠ 0
 -- -- Optionally, allow specifying precision for more accurate approximations
 -- def hyperWithPrecision (r : ℝ) (precision : Nat := 1000000) : Hyper :=
 --   ⟨(toRationalApprox r precision), 0, 0, 0⟩
+
+
+
+syntax "#assert" term : command
+
+-- unsafe def fatalAssert (cond : Bool) (msg : String) : Unit := if ¬cond then (unsafeCast (panic! msg) : Unit) else ()
+-- macro_rules | `(#assert! $cond) => `(#eval! fatalAssert $cond s!"Assertion failed: $($cond)")
+-- macro_rules | `(#assert $cond) => `(if $cond then () else throw (IO.userError s!"Assertion failed: $($cond)"))
+-- macro_rules | `(#assert $cond) => `(if $cond then #eval Except.ok () else #eval Except.error s!"Assertion failed: $(quote $(Lean.toExpr cond))")
+-- macro_rules | `(#assert $cond) => `( #eval if $cond then () else panic! s!"Assertion failed: $($cond)")
+-- macro_rules | `(#assert $cond) => `(#eval if $cond then Except.ok () else Except.error s!"Assertion failed: $(quote $cond)")
+-- macro_rules | `(#assert $cond) => `(#eval if $cond then Except.ok () else Except.error s!"Assertion failed: {quote $cond}")
+macro_rules | `(#assert $cond) => `(#eval if $cond then Except.ok () else Except.error s!"Assertion failed!")
+-- macro_rules | `(#assert $cond) => `(#eval if $cond then Except.ok () else Except.error s!"Assertion failed: $(quote $(Lean.toExpr cond))")
+
+
+-- Example Usage
+-- #assert (1 + 1 = 2)  -- Does nothing
+-- #assert (1 + 1 = 3)
+-- #assert (1 + 1 = 3) "Math is broken!"  -- Panics with "Math is broken!"
