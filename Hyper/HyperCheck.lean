@@ -1,8 +1,10 @@
 import Hyper.HyperSort
+-- import HyperSort
 
+namespace Hypers
+-- open Hypers.HyperList
 lemma one_plus_one_eq_two : one + one = 2 := by rfl
 
--- import HyperSort
 #eval ([]:𝔽*) = (0:𝔽*)
 #eval ([]:𝔽*) = []
 #eval (0:𝔽*) = []
@@ -19,20 +21,20 @@ lemma one_plus_one_eq_two : one + one = 2 := by rfl
 #eval one + 1
 #eval one - 1
 #eval one + (1:R*)
-#eval one + (1,0)
 #eval one + [(1,0)]
 #eval one + ((1,0):R*)
-#eval (1,0) + one
 #eval [((1:ℕ),(0:ℕ))] + one
 #eval [((1:𝔽),(0:𝔽))] + one
 #eval ((1,0):R*) + one
 #eval ([(1,0)]:R*) + one
-#eval ([⟨1,0⟩] : R*)
+#eval ([⟨1,0⟩] : R*) == one
+#eval ([⟨1,0⟩] : R*) == 1
+#eval ([⟨1,0⟩] : R*) = one
+#eval ([⟨1,0⟩] : R*) = 1
+#eval simplify ([⟨1,0⟩] : R*)
 #eval ([(1,0)] : R*)
-#eval ((1,0) : R*) + (1,0)
 #eval ⟨1,0⟩ + (1,0)
 #eval (1,0) + (1,0)
-#eval [(1,0)]  + (1,0)
 #eval ([] : R*) ++ [(1,0)]
 #eval ([(1,0)] : R*) ++ [(1,0)]
 #eval [(1,0)] ++ []
@@ -49,6 +51,11 @@ lemma one_plus_one_eq_two : one + one = 2 := by rfl
 #eval  2ω * ε
 #eval  1 + 2ω + 1 + 2ω
 
+-- ERROR: need signiture or coe!
+#eval one + (1,0)
+#eval (1,0) + one
+#eval ((1,0) : R*) + (1,0)
+#eval [(1,0)]  + (1,0)
 
 -- instance : Decidable ((x:R*) ≈ (y:R*)) :=
 --   match decEq (simplify x) (simplify y) with
@@ -117,8 +124,6 @@ lemma norm_zero_typed_empty_ofnat_nat :  (([] : R*) == ↑0) := by rfl
 #eval BEq.beq ([(0,0)]:R*) [] -- true iff BEq (List (ℚ × ℚ)) is defined WHY??
 
 
-@[simp]
-lemma neg_zero : -0 = (0:R*) := by rfl
 lemma one_plus_zero_eq_one : one + zero = 1 := by rfl
 lemma empty_eq_zero : ([] : 𝔽*) = (0 : 𝔽*) := by rfl
 lemma empty_eq_empty : ([] : 𝔽*) = [] := by rfl
