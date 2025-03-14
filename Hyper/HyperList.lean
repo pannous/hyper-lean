@@ -16,7 +16,7 @@ notation "-∞" => (⊥ : EReal)
 -- scoped notation "ω" => omega
 
 namespace Hypers
-section HyperGenerals
+section HyperLists
 
 -- Avoid Real Numbers When Possible:
 -- If the use of real numbers introduces complexity due to issues like non-decidability of equality, consider if your application can tolerate using rational numbers or fixed-point arithmetic, which do not have these issues in Lean.
@@ -30,17 +30,21 @@ def Comps := List (𝔽 × 𝔽)
 -- def Comps := List (ℝ × ℤ) -- ℤ for exponents integer powers of ε and ω enough for now
 -- def Comps := List (ℚ × ℚ)  -- but what about π?
 
-def HyperGeneral : Type := List (𝔽 × 𝔽)
+def OrderedList (α : Type) [LE α] : Type :=
+  { l : List α // l.Sorted (· ≤ ·) }
 
--- structure HyperGeneral :=
+def HyperList : Type := List (𝔽 × 𝔽)
+-- def HyperList : Type := { l : List (ℤ × 𝔽) // l.Sorted (λ a b => a.1 ≤ b.1) }
+
+-- structure HyperList :=
   -- components : List (𝔽 × 𝔽)
--- instance : Setoid HyperGeneral :=
+-- instance : Setoid HyperList :=
 -- { r := HyperEq, -- Use `≅` as the equivalence relation
 --   iseqv := ⟨Equivalence.refl, Equivalence.symm, Equivalence.trans⟩ }
--- def HyperReal := Quotient (Setoid HyperGeneral)
+-- def HyperReal := Quotient (Setoid HyperList)
 
 -- notation "R*" => HyperReal
-notation "R*" => HyperGeneral
+notation "R*" => HyperList
 -- notation "ℚ*" => R* -- but what about π?
 notation "𝔽*" => R*
 notation "𝔽⋆" => R*
@@ -104,44 +108,23 @@ instance [DecidableEq (List (𝔽 × 𝔽))] : DecidableEq R* :=
 def normalize (x : R*) : R* :=
   if x = [] ∨ x = [(0,0)] then [] else x
 
-instance : Coe (List (𝔽 × 𝔽)) R* where
-  coe x := normalize x
+instance : Coe (List (𝔽 × 𝔽)) R* where coe x := normalize x
+instance : Coe (List (𝔽 × 𝔽)) R* where coe x := normalize x
+-- instance : Coe (List (ℕ × ℕ)) R* where coe x := normalize ↑x
 
-instance : Coe (List (𝔽 × 𝔽)) R* where
-  coe x := normalize x
+instance : HAppend R* R* R* where hAppend := List.append
+instance : HAppend R* (List (𝔽 × 𝔽)) R* where hAppend := List.append
+-- instance : HAppend R* (List (ℚ × ℚ)) R* where hAppend := List.append
+-- instance : HAppend R* (List (𝔽 × 𝔽)) R* where hAppend := List.append
+instance : HAppend (List (𝔽 × 𝔽)) R* R* where hAppend := List.append
 
-
-instance : Coe (List (ℕ × ℕ)) R* where
-  coe x := normalize  x
-
-instance : HAppend R* R* R* where
-  hAppend := List.append
-
-
-instance : HAppend R* (List (𝔽 × 𝔽)) R* where
-  hAppend := List.append
-
-
-instance : HAppend (List (𝔽 × 𝔽)) R* R* where
-  hAppend := List.append
-
--- instance : HAppend R* (List (ℚ × ℚ)) R* where
---   hAppend := List.append
-
--- instance : HAppend R* (List (𝔽 × 𝔽)) R* where
---   hAppend := List.append
-
--- instance : HAppend R* (List (ℚ × ℚ)) R* where
---   hAppend := List.append
-
-
-instance : EmptyCollection R* where
-  emptyCollection := []
+instance : EmptyCollection R* where emptyCollection := []
 
 #eval ([] : R*) ++ [(1,0)]  -- [(1,0)]
 #eval [(1,0)] ++ ([] : R*)  -- [(1,0)]
--- #eval [] ++ one  -- [(1,0)]
--- #eval one ++ []   -- [(1,0)]
+#eval [(1,0)] ++ ([(1,0)] : R*)  -- [(1,0)]
+#eval [] ++ one  -- [(1,0)]
+#eval one ++ []   -- [(1,0)]
 
 
 -- instance : HAppend R* [] R* where
@@ -488,5 +471,5 @@ instance : Field R* := {
   -- nnqsmul:= λ x y => sorry,
   -- nsmul:= λ x y => sorry,
 
-end HyperGenerals
+end HyperLists
 end Hypers

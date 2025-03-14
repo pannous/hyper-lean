@@ -231,15 +231,6 @@ lemma zero_is_infinitesimal : infinitesimal (0 : R*) := by
 infix:50 " ≈ " => near
 infix:50 " ∻ " => cofinite -- ∺ within same galaxy 🌌
 
--- (a,∞) = {x: a<x}
-notation "(" a ",∞)" => Set.Ioi a
-
--- (-∞,a) = {x: x<a}
-notation "(-∞," a ")" => Set.Iio a
-
--- (-∞,∞) = R
-notation "(-∞,∞)" => Set.Univ
-
 
 -- Coercion from R to R* works
 example (r : ℝ) (x : R*) : r + x = hyper r + x := rfl
