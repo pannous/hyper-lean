@@ -78,7 +78,7 @@ def finite  (x : R*) : Prop := ∃ r : 𝔽 , |x| < hyper r
 -- def infinite0 (x : R*) : Prop := ∃ r : 𝔽 , x = r*ω -- excluding ω^2 + xyz !
 def infinite (x : R*) : Prop := ∃ r : 𝔽 , |x| > r*ω
 def infinitesimal (x : R*) : Prop := ∃ r : 𝔽 , |x| < r*ε -- including ε^2 !
-
+def hyperinteger (x : R*) : Prop := ∃ r : Nat , x = r*ω
 
 
 def near (x y : R*) : Prop := infinitesimal (x - y)

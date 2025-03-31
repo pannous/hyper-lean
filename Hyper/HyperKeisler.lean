@@ -37,7 +37,9 @@ axiom Hyperreal : Type -- e.g.
 
 -- notation "Hyper" => Hyperreal
 notation "𝔽" => ℚ -- our Field !
+-- notation "𝔽" => ℝ -- our Field is ℝ ONLY IN Keisler!!
 notation "R" => ℝ
+-- notation "R" => R_subset -- alias dangerous??
 notation "R*" => Hyperreal
 notation "ℝ*" => Hyperreal
 notation "R+" => { r : ℝ // r > 0 }
@@ -94,12 +96,20 @@ noncomputable instance : Coe ℚ R* := ⟨λ q => hyper (q : ℝ)⟩
 
 -- Order compatibility with ℝ
 axiom ordered_field_extension : ∀ (r s : ℝ), hyper r < hyper s ↔ r < s
+theorem ordered_field_extension' : ∀ (r s : ℝ),  r > s ↔ hyper r > hyper s := by
+    simp [ordered_field_extension]
+-- theorem ordered_field_extension' : ∀ (r s : ℝ), hyper r > hyper s ↔ r > s := by
+--     simp [ordered_field_extension]
 
 -- theorem ordered_field_transfer (r : ℝ) (s : ℝ*) : r < s ↔ hyper r < s :=
 --   ordered_field_extension r (coe s)
 
 -- heterogeneous order relation or coercive order
 -- apply '<' to ℝ and ℝ*  e.g. 0 < hyper 1 !
+-- instance : StrictMono hyper := ordered_field_extension
+-- instance : StrictMono R* := ⟨ hyper, ordered_field_extension ⟩
+  -- { to_fun := hyper, monotone := ordered_field_transfer }
+
 axiom ordered_field_transfer : ∀ (r : ℝ) , (s : ℝ*) → (r < s ↔ hyper r < s)
 axiom ordered_field_reverse : ∀ (s : ℝ*) (r : ℝ), s < r ↔ s < hyper r
 -- TODO: proof that these follow IF THEY DO:
@@ -124,7 +134,11 @@ theorem ordered_field_transfer2 (r : R*) (s : ℝ) (z : R*) (hz : z = hyper s) :
 -- Axiom C: Existence of a positive infinitesimal ε
 axiom epsilon : R*
 
-axiom infinitesimal_pos : 0 < epsilon ∧ ∀ r : ℝ, epsilon < hyper r
+axiom epsilon_pos : 0 < epsilon
+axiom epsilon_infinitesimal : ∀ r : ℝ, r > 0 → epsilon < hyper r
+-- axiom epsilon_infinitesimal : ∀ r : ℝ+, epsilon < hyper r
+-- axiom epsilon_infinitesimal' : ∀ r : ℝ, epsilon < |hyper r|
+-- axiom epsilon_infinitesimal'' : ∀ r : ℝ, epsilon < hyper |r|
 
 -- Extend the order: ℝ is naturally embedded in Hyperreal
 axiom real_le_hyperreal : ∀ r : ℝ, ∀ x : R*, (r : R*) ≤ x ↔ (hyper r) ≤ x
@@ -145,36 +159,6 @@ axiom D : ∀ {n : ℕ} (f : (ℝ^n) → ℝ),
 axiom E : ∀ (P : R* → Prop), (∀ r : ℝ, P (hyper r)) → (∀ x : R*, P x)
 
 
--- Axiom F: Standard part function
--- axiom st : R* → ℝ -- noncomputable and we can't make it computable later
-axiom real : R* → ℝ -- noncomputable and we can't make it computable later
--- axiom real_part : R* → ℝ standard part
--- axiom hyper_part : R* → R* vs standard part
--- def real (x : R*) : ℝ := sorry -- Will be implemented later, e.g. :
--- def real (x : R*) : ℝ := x.real -- If implemented as a structure
--- def real : R* → ℝ
--- | epsilon => 0 -- "redundant"
--- | x       => x.real
-
--- structure Hyperreal' := (real : ℝ) (epsilon : ℝ)
-
-class StandardPart (α : Type*) := (real : α → ℝ)
-
-notation "st" => real -- alias st standard = real part of a hyperreal akin to `Re` in complex numbers
-notation "standard" => real --  noncomputable def standard := real -- alias
-axiom st_extension : ∀ r : ℝ, real (hyper r) = r
-axiom extension_st : ∀ r : ℝ, hyper (real r) = r -- todo: as lemma
-axiom pure_epsilon : real epsilon = 0  -- redundant but can't hurt
-lemma pure_epsilon': real epsilon = 0  := by exact pure_epsilon -- simp [real] or pure_epsilon
-#reduce real epsilon -- 0.0
--- noncomputable MTFK!!
--- #eval real epsilon -- 0.0
-
--- Add a "real" method to Hyperreal for accessing the standard part
--- @[inline] def Hyperreal.real (x : R*) : ℝ := real x -- already defined
--- #eval epsilon.real -- 0.0
-
-lemma st_extension' (r : ℝ) : real (r : R*) = r := st_extension r -- via coercion
 -- Definition 1.1: Infinitesimals, finites, and infinite elements
 def finite  (x : R*) : Prop := ∃ r : ℝ, |x| < hyper r
 def infinite  (x : R*) : Prop := ∀ r : ℝ, r > 0 → |x| > hyper r
@@ -207,6 +191,43 @@ def Infinites'' : Set R* :=  Hyperreals \ Finites  -- Complement of the finite s
 -- Set R* represents the type of all subsets of  R^ *.
 -- •	Set.univ is the universal set in Lean, meaning the set of all elements of  R^ *.
 
+
+-- Theorem 1.9. (Standard Part Principle) Every finite x ∈R∗ is infinitely
+-- close to a unique real number r ∈R. That is, every finite monad contains a
+-- unique real number.
+
+
+-- axiom st : R* → ℝ -- noncomputable and we can't make it computable later
+axiom real : R* → ℝ -- noncomputable and we can't make it computable later
+-- axiom real_part : R* → ℝ standard part
+-- axiom hyper_part : R* → R* vs standard part
+-- def real (x : R*) : ℝ := sorry -- Will be implemented later, e.g. :
+-- def real (x : R*) : ℝ := x.real -- If implemented as a structure
+-- def real : R* → ℝ
+-- | epsilon => 0 -- "redundant"
+-- | x       => x.real
+
+-- structure Hyperreal' := (real : ℝ) (epsilon : ℝ)
+
+class StandardPart (α : Type*) := (real : α → ℝ)
+
+notation "st" => real -- alias st standard = real part of a hyperreal akin to `Re` in complex numbers
+notation "standard" => real --  noncomputable def standard := real -- alias
+axiom st_extension : ∀ r : ℝ, real (hyper r) = r
+axiom extension_st : ∀ r : ℝ, hyper (real r) = r -- todo: as lemma
+@[simp]
+axiom pure_epsilon : real epsilon = 0  -- redundant but can't hurt
+lemma pure_epsilon': real epsilon = 0  := by exact pure_epsilon -- simp [real] or pure_epsilon
+#reduce real epsilon -- 0.0
+-- noncomputable MTFK!!
+-- #eval real epsilon -- 0.0
+
+-- Add a "real" method to Hyperreal for accessing the standard part
+-- @[inline] def Hyperreal.real (x : R*) : ℝ := real x -- already defined
+-- #eval epsilon.real -- 0.0
+
+lemma st_extension' (r : ℝ) : real (r : R*) = r := st_extension r -- via coercion
+
 axiom st_reals : ∀ r : ℝ, real (hyper r) = r
 
 
@@ -238,10 +259,44 @@ lemma zero_is_infinitesimal : infinitesimal (0 : R*) := by
 -- Notation for near (≈)
 -- notation x " ≈ " y => (near x y)
 -- #print notation =  => 50, use that same precedence
-infix:50 " ≈ " => near
+-- BUILTIN infix:50 " == " => BEq
+-- BUILTIN infix:50 " ≈ " => Equiv : near
 infix:50 " ∻ " => cofinite -- ∺ within same galaxy 🌌
 
+instance : HasEquiv R* where Equiv x y := near x y
 
+-- def infinitesimal (x : R*) : Prop := ∀ r : ℝ, r > 0 → |x| < hyper r
+lemma infinitesimal_abs (x : R*) : infinitesimal x = infinitesimal (-x) := by
+  simp [infinitesimal, infinitesimal, abs_neg]
+
+lemma infinitesimal_epsilon : infinitesimal epsilon := by
+  have epsilon_abs : |epsilon| = epsilon  := abs_of_pos epsilon_pos
+  rw [infinitesimal, epsilon_abs]
+  exact epsilon_infinitesimal
+
+lemma zero_near_epsilon : (0 : R*) ≈ epsilon := by
+  show infinitesimal (0 - epsilon)
+  simp only [zero_sub]
+  show infinitesimal (-epsilon)
+  rw [infinitesimal_abs]
+  simp
+  show infinitesimal (epsilon)
+  exact infinitesimal_epsilon
+
+lemma zero_is_infinitesimal' : infinitesimal (0 : R*) := by
+  intro r hr
+  -- By definition, "infinitesimal (0 : R*)" means ∀ r>0, |0| < hyper r
+  simp only [infinitesimal, abs_zero]
+  -- Show 0 < hyper r
+  rw [← hyper_zero]      -- replace 0 with hyper 0
+  exact (ordered_field_extension 0 r).mpr hr
+
+lemma zero_near_zero : (0 : R*) ≈ 0 := by
+  show infinitesimal (0 - 0)
+  simp only [sub_self]
+  exact zero_is_infinitesimal'
+
+-- example : zero ≈ epsilon := by simp
 -- Coercion from R to R* works
 example (r : ℝ) (x : R*) : r + x = hyper r + x := rfl
 example (r : ℝ) : r = hyper r := rfl
@@ -257,8 +312,11 @@ lemma st_is_inverse (x : R*) (h : x ∈ R_subset) : hyper (real x) = x := by
   rw [h1]
   exact hr
 
-lemma st_is_inverse_back (x : R) : real (hyper x) = x := st_extension x
+-- lemma st_is_inverse_back (x : 𝔽) : real (hyper x) = x := st_extension x
+@[simp]
+lemma st_hyper_is_id (x : R) : real (hyper x) = x := st_extension x
 
+@[simp]
 lemma st_is_inverse' (x : R*) (h : x = hyper r) : hyper (real x) = x := by
   obtain ⟨r, hr⟩ := h -- x = hyper r for some r ∈ ℝ
   have h: real (hyper r) = r := st_extension r
@@ -267,7 +325,7 @@ lemma st_is_inverse' (x : R*) (h : x = hyper r) : hyper (real x) = x := by
 noncomputable def R_subtype_equiv : ℝ ≃ R_subtype := {
   toFun := λ r => ⟨hyper r, ⟨r, rfl⟩⟩,
   invFun := λ s => real s.val,
-  left_inv := λ r => by simp only; exact st_is_inverse_back (r),
+  left_inv := λ r => by simp only; exact st_hyper_is_id (r),
   right_inv := λ ⟨x, ⟨r, hr⟩⟩ => by
     apply Subtype.ext
     simp [st_is_inverse]
@@ -291,26 +349,27 @@ noncomputable def R_subset_equivalent : ℝ ≃ R_subset := {
 instance : Coe R+ ℝ := ⟨Subtype.val⟩ -- coercion from R+ to ℝ
 instance : Coe R_subtype ℝ* := ⟨Subtype.val⟩ -- coercion from R to R*  ( R ≃ ℝ )
 
+
+lemma hyper_keeps_sign (r : ℝ) : r > 0 ↔ hyper r > hyper 0 := by
+  exact ordered_field_extension' r 0
+
+
+-- macro "later" : tactic => `(tactic| exact sorry)
+macro "later" : tactic => `(tactic| (skip;sorry))
+-- macro "later" : tactic => `(tactic| (sorry; fail "Proof deferred with 'later'"))
+
 -- theorem epsilon_not_in_R : epsilon ∉ R_subset := by
 lemma proper_extension : epsilon ∉ R_subset := by
   intro h
   obtain ⟨r0, hr⟩ := h  -- Assume ε = hyper r for some r ∈ ℝ
-  -- axiom infinitesimal_pos : 0 < epsilon ∧ ∀ r : ℝ, epsilon < hyper r
-  have k : epsilon < hyper r0 := infinitesimal_pos.2 r0
-  rw [hr] at k
-  exact lt_irrefl _ k -- Contradiction ¬a < a
-
-notation a "≃ₜ" b => Nonempty (a ≃ b) -- Topological Equivalence
-
-noncomputable def real_homeo : ℝ ≃ₜ R :=
-{ toFun := hyper,
-  invFun := real, -- assuming `real` is well-defined
-  left_inv := st_extension, -- real(hyper r) = r
-  right_inv := λ x, by
-    { rcases x with ⟨r, hr⟩,
-      exact Subtype.ext (st_extension r) },
-  continuous_toFun := sorry, -- Follows from standard topology properties
-  continuous_invFun := sorry } -- Needs proof from `real`
+  later
+  -- rfl
+  -- skip
+  -- admit
+  -- sorry
+  -- have k : epsilon < hyper r0 := epsilon_infinitesimal r0
+  -- rw [hr] at k
+  -- exact lt_irrefl _ k -- Contradiction ¬a < a
 
 
 -- ⪦ ⫉ ⪽ ⪿ ⫁ ⫇
@@ -341,6 +400,11 @@ theorem R_as_subset : ℝ ⫇ R* := by
   let c := R_subset
   have h1 : Nonempty (ℝ ≃ c) := ⟨R_subset_equivalent⟩
   exact ⟨c, h1⟩
+
+def simplify (x : R*) : R* := x -- identity function HERE, for compatibility with HyperList proofs …
+
+theorem unique_real_infinite_close (x : R*) : finite x → ∃! r : ℝ, x ≈ hyper r :=
+  sorry
 
 end HyperKeisler
 end Hypers
