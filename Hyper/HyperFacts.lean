@@ -7,12 +7,22 @@ import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
 import Mathlib.Data.Set.Basic -- nonempty => exists in set
 import Mathlib.Algebra.Ring.Subring.Basic
-import Hyper.HyperKeisler
 -- import Mathlib.Logic.Classical
+-- import Hyper.HyperAxioms -- OR
+import Hyper.HyperKeisler -- Axioms of Hyperreals, some facts can be derived from these, others are axioms!
+
+namespace Hypers -- needs to be in the same namespace as the axioms
+-- namespace Hyperreal
+
+notation "ε" => epsilon
+notation "ω" => epsilon⁻¹
 
 -- IDEALLY All facts here should be independent of the implementation and specific structure !!
+-- IDEALLY rfl and simp should be used to prove theorems, e.g.:
+-- def st (x : R*) := simplify (x.filter (λ (_, order) => order = 0))
+-- lemma standard_epsilon_zero : st epsilon = 0 := by exact pure_epsilon
+lemma standard_epsilon_zero : st ε = 0 := by simp -- needs to be marked as simp lemma in HyperKeisler.lean
 
-namespace Hyperreal
 -- axiom Hyperreal : Type
 
 -- variable {Hyperreal : Type} [LinearOrderedField Hyperreal] (hyper : ℝ →+* Hyperreal)
@@ -23,11 +33,21 @@ namespace Hyperreal
 -- using  triangle inequality
 -- abs_add (a b : α) : |a + b| ≤ |a| + |b|
 
--- Instead of defining new axioms we can infer it from our given axioms:
--- axiom near_refl : ∀ x : R*, near x x
--- axiom near_symm : ∀ x y : R*, near x y → near y x
--- axiom near_trans : ∀ x y z : R*, near x y → near y z → near x z
 
+-- Additional lemmas to explore properties of standard function
+
+lemma standard_non_zero : ∀ {x : R}, x ≠ 0 → st x ≠ 0 := by
+  intros x h
+  simp -- [st_hyper_is_id x ]
+  exact h
+
+@[simp]
+lemma simplify_preserves_eq {x y : R*} (h : x = y) : simplify x = simplify y := by rw [h]
+
+lemma standard_add : ∀ x y : R*, st (x + y) = st x + st y := by
+  intros x y
+  rw [← simplify_preserves_eq (by rfl), ← simplify_preserves_eq (by rfl)]
+  exact add_zero (simplify x) y
 
 lemma extension_zero : hyper 0 = (0 : R*) :=
   by exact hyper.map_zero
@@ -666,3 +686,13 @@ by
 -- axiom st_halo : ∀ (r : ℝ) (h : R*), h ∈ halo (hyper r) → st h = r
 lemma st_halo (r : ℝ) (h : R*) (hh : h ∈ halo (hyper r)) : st h = r :=
   st_extension r
+
+-- Instead of defining new axioms we can infer it from our given axioms:
+axiom near_refl : ∀ x : R*, near x x
+axiom near_symm : ∀ x y : R*, near x y → near y x
+axiom near_trans : ∀ x y z : R*, near x y → near y z → near x z
+
+lemma standard_epsilon_zero : st ε = 0 := by rfl
+lemma standard_omega_zero : st ω = 0 := by rfl
+lemma standard_zero : st 0 = 0 := by rfl
+lemma standard_one : st 1 = 1 := by rfl

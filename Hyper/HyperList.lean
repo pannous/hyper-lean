@@ -236,8 +236,17 @@ scoped notation:max "∜" a => a^(1/4)
 #eval 1 + 2ω + ε + ε⁻¹ - (1 + ω - 2ε + 2/ε) -- should cancel out to 3ε
 #eval ε + 3 - 4ω + 2ε²
 
-#eval ((1,0) : R*) -- todo HERE not coerced / simplified to 1 see HyperCheck.lean
-#eval ([(1,0)] : R*)
+
+def standard (x : R*) := simplify (x.filter (λ (_, order) => order = 0))
+notation "st" => standard
+notation "real" => standard
+lemma standard_epsilon_zero : st ε = 0 := by rfl
+lemma standard_omega_zero : st ω = 0 := by rfl
+lemma standard_zero : st 0 = 0 := by rfl
+lemma standard_one : st 1 = 1 := by rfl
+
+-- #eval ((1,0) : R*) -- todo HERE not coerced / simplified to 1 see HyperCheck.lean
+-- #eval ([(1,0)] : R*)
 
 -- only works for 𝔽 == ℝ !!
 -- instance : HPow R R* R* where
@@ -271,8 +280,9 @@ instance : Equivalence HyperEq := {
 }
 
 
--- @[simp]
+@[simp]
 lemma simplify_preserves_eq {x y : R*} (h : x = y) : simplify x = simplify y := by rw [h]
+
 
 -- ⚠️ we FORCE equality even if x and y were originally different!?! inconsistency? IDK ⚠️
 axiom eq_of_simplify_eq (x y : R*) : simplify x = simplify y → x = y
@@ -293,8 +303,8 @@ instance : BEq (List (ℕ × ℕ)) where beq x y := (simplify (x:R*)) = (simplif
 
 
 -- standard ≈ equality
--- instance : HasEquiv R* where Equiv := HyperEq
 instance : HasEquiv R* where Equiv x y := simplify x == simplify y
+-- instance : HasEquiv R* where Equiv := HyperEq
 infix:50 " ≅ " => HyperEq  -- NOT NEEDED, we have the standard ≈ ≠ ~ !!!
 
 #eval ([(0,0)] : R*) ≈ (0: R*) -- true now FALSE AGAIN?????
@@ -562,5 +572,9 @@ instance : Field R* := {
   mul_inv_cancel := by sorry,
   add_zero := by sorry
 }
+
+
+
+
 end HyperLists
 end Hypers
