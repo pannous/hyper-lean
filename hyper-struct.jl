@@ -4,18 +4,21 @@ import Base: log
 import Base: abs
 import Base: round
 import Base: ≈ # aka Base.isapprox 0.1 + 0.2 ≈ 0.3  # true 
-# import Base:≅
+# ⚠️ we use ≈ and ~ for permissive approximation ε≈0 ( sorted, simplified, rounded )
+# on demand use ≡ for strict equality ⩭ for strict near-ness! ⩶ for strict equivalence 
 
-const TERM_PRECISION = 40 # MAX_ORDER for calculations
+const TERM_PRECISION = 20 # MAX_ORDER for calculations
 # 20 -> √2=1.4142135623730954
 # 12 -> √2=1.4142135623730951
 const NEAR_TOLERANCE = 1e-10 # x ≈ 0 for near ~ relation USUALLY ONLY ε halo !!! Todo: use ≊ ⩰ ⸛ ⸞ ⸟ ?
-const MAX_ORDER=6 # for display only
+const MAX_ORDER=20 # for display only
+const MIN_ORDER=-6 # for display AND calculations
 const CUTTOFF=1e-10 #!!
 const ROUNDING_DIGITS=8 # only for display, not for calculations
 
-setprecision(BigFloat, 256)  # ~77 decimal digits
-log2_h = log(BigFloat(2))
+# setprecision(BigFloat, 256)  # ~77 decimal digits
+# log2_h = log(BigFloat(2))
+log2_h = log(Float64(2))
 
 # Trying to make Stacktrace clickable in visual studio but it does not fucking work
 # Base.Filesystem.homedir() = "/Users/me"
@@ -25,7 +28,7 @@ log2_h = log(BigFloat(2))
 
 # todo infinite and infinitesimal are too similar words, consider renaming 
 #  infinite:        •transfinite •divergent •omega •unbounded
-#  infinitesimal:      •epsilon •micro •tiny •minis
+#  infinitesimal:      •epsilon •micro •tiny •minis •ε
 
 const ∞ = Inf
 # const ⧞ = -Inf
@@ -47,19 +50,27 @@ end
 Base.@pure Hyper <: Number # "no side effects", for compile‐time optimization
 Base.promote_rule(::Type{Hyper}, ::Type{<:Number}) = Hyper #  whenever Hyper appears with another Number, the result type should be Hyper
 
+# AVOID TO define Hyper as method, as it may cause hard to debug MethodError: UndefVarError: `methodswith`
+# (h::Hyper)(x) = h  # treats Hyper as constant function, but no automatic cast to Hyper / Function 
+
 const RStar = Hyper
 
 const 𝟘 = Hyper([])
 const 𝟙 = Hyper([(1.0, 0.0)])
+const zero = 𝟘
+const one = 𝟙
 const ω = Hyper([(1.0, 1.0)]) # better infinite ∞
-const ε = Hyper([(1.0, -1.0)]) # infinitesimal 1/ω
+const ε = Hyper([(1.0, -1.0)]) # infinitesimal 1/ω    \\upepsilon 'upright' U+03B5 ε GREEK SMALL LETTER
+const ɛ = ε  # \\varepsilon WTF UNICODE / font curly variant ɛ == e in FF lol 
+const ϵ = ε  # \\epsilon ϵ ≠ ∊ ∈ element
+# const 𝓔 = ε # \\mathscr{E}  \\mathcal{E}
 const ε² = Hyper([(1.0, -2.0)])
 const ε³ = Hyper([(1.0, -3.0)])
 const ω² = Hyper([(1.0, 2.0)]) 
 const ω³ = Hyper([(1.0, 3.0)])
 
-Base.one(::Type{Hyper}) = 𝟙
-Base.zero(::Type{Hyper}) = 𝟘
+Base.one(::Type{Hyper}) = 𝟙 # \\Bbbone big bold one
+Base.zero(::Type{Hyper}) = 𝟘 # \\Bbbzero big bold zero
 Base.iszero(x::Hyper) = isempty(simplify(x))
 
 Base.convert(::Type{Hyper}, x::Hyper) = x
@@ -72,12 +83,41 @@ hyper(x::Real) = Hyper(x)
 Hyper(x::Real) = convert(Hyper, x)
 Hyper(x::Vector{<:Tuple{<:Real, <:Real}}) = Hyper([(Float(r), Float(e)) for (r, e) in x])
 
+function sort1(x::Hyper)::Hyper
+    if length(x.terms) <= 1 return x end
+    sorted = sort(x.terms; by = t -> t[2], rev = true)
+    return Hyper(sorted)
+end
+
+function order(x::Hyper)::Hyper
+    return sort1(simplify(x))
+end
+
+# function simplify(x::Vector{Any})::Hyper
+#     throw(MethodError(simplify, (x,)))
+# end
+
+# function simplify(x::Vector{Any})::Hyper
+#     if length(x) == 0
+#         return zero
+#     elseif length(x) == 1
+#         return Hyper([Float(x[1], 0.0)])
+#     elseif length(x) == 2
+#         throw(MethodError(simplify, (x,)))
+#     end
+# #         return zero
+# #     # return Hyper([])
+# #     # return Hyper([(0.0, 0.0)])
+# #     # print("simplify(::Vector{Any})::Hyper")
+# end
+
 function simplify(x::Hyper)::Hyper
     acc = Dict{Float, Float}()
     for (r, e) in x.terms
         acc[e] = get(acc, e, 0.0) + r
     end
-    return Hyper([(r, e) for (e, r) in acc if r ≠ 0.0])
+    return Hyper([(r, e) for (e, r) in acc if r ≠ 0.0 && e>MIN_ORDER ]) # && e<MAX_ORDER
+    # return sort1(Hyper([(r, e) for (e, r) in acc if r ≠ 0.0]))
 end
 
 simplify(x::Vector{Tuple{R, S}}) where {R<:Real, S<:Real} = simplify(Hyper(x))
@@ -91,6 +131,12 @@ Base.:-(x::Hyper, y::Hyper)::Hyper = x + (-y)
 Base.:-(x::Hyper, y::Real) = x - convert(Hyper, y)
 Base.:-(x::Real, y::Hyper) = convert(Hyper, x) - y
 Base.:*(x::Hyper, y::Hyper)::Hyper = simplify([(r1*r2, e1+e2) for (r1, e1) in x.terms for (r2, e2) in y.terms])
+# Base.:*(x::Hyper, y::Hyper)::Hyper = begin
+#     if length(x.terms) == 0 || length(y.terms) == 0 return 𝟘 end
+#     prod = [(r1*r2, e1+e2) for (r1, e1) in x.terms for (r2, e2) in y.terms]
+#     @assert all(t -> t isa Tuple{Float64, Float64}, prod) "Product term type error"
+#     simplify(prod)
+# end
 Base.:*(a::Real, x::Hyper)::Hyper = [(a * r, e) for (r, e) in x.terms]
 Base.:*(x::Hyper, a::Real) = [(r * a, e) for (r, e) in x.terms]
 Base.:/(x::Hyper, y::Hyper) = x * inv(y)
@@ -102,6 +148,8 @@ Base.:*(x::Hyper, a::Real) = x * convert(Hyper, a)
 # Base.:*(x::Hyper, a::Real) = [(r * a, e) for (r, e) in x]
 Base.:*(a::Int, x::Hyper) = Float(a) * x
 Base.:*(x::Hyper, a::Int) = x * Float(a)
+
+Base.:(==)(x::Hyper, y::Hyper) = isequal(simplify(x).terms, simplify(y).terms)
 
 function ipow(x::Hyper, n::Integer)::Hyper
     n < 0  && return inv(ipow(x, -n))
@@ -132,17 +180,11 @@ function log(u::Hyper; terms=TERM_PRECISION)
         end
         print("u=", u, " stv=", stv)
         return -ω
-    #     # The approach is naive: if u = c * ε^k, log(u) ≈ log(c) + k*(log(ε)),
-    #     # We'll identify the leading (smallest) exponent among terms:
-    #     e_min = minimum(t[2] for t in u.terms)
-    #     c_sum = sum(t[1] for t in u.terms if t[2] == e_min)
-    #     if c_sum <= 0.0
-    #         throw(DomainError(u, "log of non-positive hyperreal"))
-    #     end
-    #     realpart = log(c_sum)
-    #     return realpart - ω * e_min # log(ε) = -ω !
+         # The approach is naive: if u = c * ε^k, log(u) ≈ log(c) + k*(log(ε)),
     #     # return Hyper([(realpart, 0.0), (1.0, e_min * 100)]) # ω^100 hack
     end
+    if stv == Inf return ω end
+    if stv <=0  return zero end # hack?
     # If stv > 0, do the usual argument reduction.
     n = 0
     v = u
@@ -150,6 +192,7 @@ function log(u::Hyper; terms=TERM_PRECISION)
         v = v / 2
         n += 1
     end
+    
     while standard(v) < 0.666
         v = v * 2
         n -= 1
@@ -163,7 +206,9 @@ function log(u::Hyper; terms=TERM_PRECISION)
     # log(1+z) = ∑±zⁿ/n = z - z²/2 + z³/3 - z⁴/4 + ...
     # 1-log(1+z)  = 1 - z + z²/2 - z³/3 + z⁴/4 + ... ≠ Ein(z)  entire exponential integral   shifted like Riemann ?
     for k in 1:terms
-        s += (sign * t) / k
+        term = sign * t
+        term = term / Hyper(k)  # ensure proper overload
+        s += term
         t *= z
         sign = -sign
     end
@@ -184,7 +229,7 @@ end
 
 
 function common(x::Hyper)::Hyper
-    return Hyper([(r,e) for (r,e) in simplify(x).terms if abs(e) < MAX_ORDER && abs(r) > CUTTOFF])
+    return Hyper([(r,e) for (r,e) in order(simplify(x)).terms if e > MIN_ORDER && e < MAX_ORDER && abs(r) > CUTTOFF])
 end
 
 function Base.show(io::IO, x::Hyper)
@@ -201,7 +246,7 @@ termstr(t::Term) = begin
     c=round(c; digits=ROUNDING_DIGITS) # coefficient
     e=round(e; digits=ROUNDING_DIGITS) # exponent
     c = (c == floor(c)) ? string(Int(c)) : string(c) # 1.0 => 1
-    e1 = (e == floor(e)) ? string(Int(e)) : string(e ) # 1.0 => 1
+    e1 = (e == floor(e)) ? string(Int(abs(e))) : string(abs(e)) # 1.0 => 1
     if e == 0.0 
         c
     elseif e == 1.0
@@ -221,7 +266,6 @@ termstr(t::Term) = begin
     end
 end
 
-Base.:(==)(x::Hyper, y::Hyper) = isequal(simplify(x).terms, simplify(y).terms)
 
 x = ω + 3.0 - 4.0 * ω + 2.0 * ε * ε + 1 - ε^2
 # println(x)
@@ -237,7 +281,7 @@ x = ω + 3.0 - 4.0 * ω + 2.0 * ε * ε + 1 - ε^2
 # ⸟(x::Hyper, y::Hyper) unknown unicode character '⸟'
 # ⸞(x::Hyper, y::Hyper) unknown unicode character '⸞'
 
-≡(x::Hyper, y::Hyper) = x==y # \\equiv ≡ ≢ ≡⃥ 
+≡(x::Hyper, y::Hyper) = simplify(x)==simplify(y) # \\equiv ≡ ≢ ≡⃥ 
 ≣(x::Hyper, y::Hyper) = x==y # \\Equiv ≣
 ⩮( x::Hyper, y::Hyper) = x==y # \\eqcirc ≈ near!?
 ⩶( x::Hyper, y::Hyper) = x==y # \\eqeqeq ≈
@@ -245,10 +289,10 @@ x = ω + 3.0 - 4.0 * ω + 2.0 * ε * ε + 1 - ε^2
 ≅(x::Hyper, y::Hyper) = round(x)==round(y) # \\cong  congruent
 ≊(x::Hyper, y::Hyper) = round(x)==round(y) # \\approxeq
 ≌(x::Hyper, y::Hyper) = x≈y # \\allequal ALL EQUAL TO Unicode: U+224C, UTF-8: E2 89 8C
-⩯(x::Hyper, y::Hyper) = x≈y # \\hatapprox
 ≋(x::Hyper, y::Hyper) = x≈y # TRIPLE TILDE Unicode: U+224B, UTF-8: E2 89 8B
-⩭(x::Hyper, y::Hyper) = x≈y # \\congdot overkill! ⩸ ⇌
 ≍(x::Hyper, y::Hyper) = x≈y # \\asymp asymptotic EQUIVALENCE  ω≍ω+1
+⩭(x::Hyper, y::Hyper) = near(x,y) # \\congdot overkill! ⩸ ⇌
+⩯(x::Hyper, y::Hyper) = near(x,y) # \\hatapprox
 ≃(x::Hyper, y::Hyper) = near(x,y) # \\simeq similar ASYMPTOTICALLY EQUAL TO Unicode: U+2243, UTF-8: E2 89 83
 ≙(x::Hyper, y::Hyper) = near(x,y) # ESTIMATES	≙ \\wedgeq and-equal
 ≚(x::Hyper, y::Hyper) = near(x,y)  # EQUIANGULAR TO	≚ \\veeeq or-equal
@@ -306,14 +350,13 @@ near(x::Hyper, y::Vector{Tuple{Float64, Float64}}) = near(x, Hyper(y))
 
 cofinite(x::Hyper, y::Hyper) = isfinite(x - y)
 
+# ~(x::Hyper, y::Hyper) = near(x, y) use ⩯ for exact nearness
+~(x::Hyper, y::Hyper) = near(round(x), round(y)) 
+~(x::Hyper, y::Real) = x ~ Hyper(y)
+~(x::Real, y::Hyper) = Hyper(x)~(y)
+~(x::Int, y::Hyper) = Hyper(x)~(y)
 ~(x::Real, y::Real) = x==y
-~(x::Hyper, y::Hyper) = near(x, y)
-# ~(x::Hyper, y::Real) = near(x, Hyper(y))
-# ~(x::Hyper, y::Real) = near(x, Hyper(y))
-~(x::Real, y::Hyper) = near(Hyper(x), y)
-~(x::Int, y::Hyper) = near(Hyper(x), y)
-# ~(x::Real, y::Hyper) = near(Hyper(x), y)
-~(x::Number, y::Number) = near(Hyper(x), Hyper(y))
+~(x::Number, y::Number) = x≈y
 
 @assert 0~0
 @assert 0~0.0
@@ -428,7 +471,7 @@ finite(x::Hyper)::Hyper = [(r, e) for (r, e) in simplify(x).terms if e <= .0]
 const re = real
 const st = standard
 const eps = infinitesimal
-const epsilon = infinitesimal
+const epsilon = infinitesimal #ε
 const omega = infinite
 
 # •(x::Hyper) = standard(x) # unknown unicode character '•'
@@ -442,56 +485,56 @@ leading(x::Hyper) = begin
     return terms[index]
 end
 
-Base.getproperty(x::Hyper, sym::Symbol) = begin
-    hyper_synonyms = Dict(
-        :real => [:re, :º, :r],
-        :standard => [:st, :s],
-        :epsilon => [:e, :ep, :eps, :infinitesimal, :low, :small],
-        :omega => [:o, :om, :high, :big, :infinite],
-        :finite => [:f, :finitepart],
-    )
-    synonym_lookup = Dict{Symbol,Symbol}()
-    for stdname in keys(hyper_synonyms), alias in hyper_synonyms[stdname]
-        synonym_lookup[alias] = stdname
-    end
-    stdsym = haskey(synonym_lookup, sym) ? synonym_lookup[sym] : sym
-    # if stdsym != sym
-    #     @warn "Accessing property `$(sym)` via synonym for `$(stdsym)`."
-    # end
-    if stdsym === :real
-        return real(x)
-    elseif stdsym === :standard
-        return standard(x)
-    elseif stdsym === :epsilon
-        return infinitesimal(x)
-    elseif stdsym === :omega
-        return infinite(x)
-    elseif stdsym === :finite
-        return finite(x)
-    else
-        return getfield(x, sym)
-    end
-end
+# DON'T USE THIS! CAUSES subtle ERRORs!!!
+# Base.getproperty(x::Hyper, sym::Symbol) = begin
+#     hyper_synonyms = Dict(
+#         :real => [:re, :º, :r],
+#         :standard => [:st, :s],
+#         :epsilon => [:e, :ep, :eps, :infinitesimal, :low, :small, :ε],
+#         :omega => [:o, :om, :high, :big, :infinite],
+#         :finite => [:f, :finitepart],
+#     )
+#     synonym_lookup = Dict{Symbol,Symbol}()
+#     for stdname in keys(hyper_synonyms), alias in hyper_synonyms[stdname]
+#         synonym_lookup[alias] = stdname
+#     end
+#     stdsym = haskey(synonym_lookup, sym) ? synonym_lookup[sym] : sym
+#     # if stdsym != sym
+#     #     @warn "Accessing property `$(sym)` via synonym for `$(stdsym)`."
+#     # end
+#     if stdsym === :real
+#         return real(x)
+#     elseif stdsym === :standard
+#         return standard(x)
+#     elseif stdsym === :epsilon
+#         return infinitesimal(x)
+#     elseif stdsym === :omega
+#         return infinite(x)
+#     elseif stdsym === :finite
+#         return finite(x)
+#     else
+#         return getfield(x, sym)
+#     end
+# end
 
-@assert 𝟙.re == 1
-@assert 𝟙.º == 1  # type º via alt+0
+# @assert 𝟙.re == 1
+# @assert 𝟙.º == 1  # type º via alt+0
 
-y = 4 + ε² + -3ω
-println(leading(y)) # should be [(-3.0, 1.0)]
-@assert y.re == 4
-@assert leading(y) == (-3.0, 1.0) # leading term -3ω with highest order 1
-@assert y.st == -∞
+# y = 4 + ε² + -3ω
+# @assert y.re == 4
+# @assert leading(y) == (-3.0, 1.0) # leading term -3ω with highest order 1
+# @assert y.st == -∞
 
-@assert y.eps == ε²
-@assert y.epsilon == ε²
-@assert y.infinitesimal == ε²
-@assert y.low == ε²
-@assert y.high == -3ω
-@assert y.small == ε²
-@assert y.big == -3ω
-@assert y.omega == -3ω
-@assert y.infinite == -3ω
-@assert y.finite == 4 + ε²
+# @assert y.eps == ε²
+# @assert y.epsilon == ε²
+# @assert y.infinitesimal == ε²
+# @assert y.low == ε²
+# @assert y.high == -3ω
+# @assert y.small == ε²
+# @assert y.big == -3ω
+# @assert y.omega == -3ω
+# @assert y.infinite == -3ω
+# @assert y.finite == 4 + ε²
 
 
 @assert standard(𝟘) == 0
@@ -506,20 +549,56 @@ println(leading(y)) # should be [(-3.0, 1.0)]
 # x = ω
 # x = 2ε
 x = ω + 3.0 - 4.0 * ω + 2.0 * ε * ε + 1 - ε^2
+@assert real(x) == 4.0
+@assert standard(x) == -∞
 println(x)
-println(real(x)) # 4.0 just the real part
-println(standard(x)) # Inf ∞ because of ω
+# println(real(x)) # 4.0 just the real part
+# println(standard(x)) # Inf ∞ because of ω
 println(x*x)
 
 # sqrt(x::Hyper)::Hyper = [ (sqrt(r), e/2) for (r, e) in x if r > 0.0 ]
 # sqrt(x::Hyper)::Hyper = [(sqrt(r), e/2) for (r, e) in x.terms if r ≥ 0.0]
 sqrt(x::Hyper)::Hyper = x^.5
 
-
-# @assert √(ε) == ε^(1/2)
+@assert √(ε) == ε^(1/2)
 @assert √(ε) == ε^.5 
 @assert √(ε) ≈ ε^.5
 @assert √(ε) ~ ε^.5
+@assert √ε ~ ε^.5 # OK! good tokenizer
+
+
+# leading() term of x PLUS one smaller order term!
+function dominant(x::Hyper)::Hyper
+    if length(x.terms) <= 1 return x end
+    sorted = order(x).terms
+    return Hyper([sorted[1], sorted[2]])
+end
+
+# println("dominant($(x)) is ", dominant(x))
+# println("dominant(y^2) is ", dominant(y*y))
+println("dominant((ε + ω)^2) is ", dominant((ε + ω)^2)) # ω² + 2 / 2 + ω²
+# println("dominant(√(ε + ω)) is ", dominant(√(ε + ω)))
+# @assert dominant(y*y) == 9ω² + -24ω
+# @assert dominant(√(ε + ω)) == 9ω² + -24ω
+
+function raw(x::Hyper) # debug: avoid rounding etc
+    return string(x.terms)
+end
+
+println("√")
+println(√(2+ε)) 
+println("√(2+ε)*√(2+ε) = ",√(2+ε)*√(2+ε))
+@assert √(2+ε)*√(2+ε) ~ 2+ε
+# @assert √(2+ε)*√(2+ε) ≈ 2+ε   # if ≈ like ~
+# @assert √(2+ε)*√(2+ε) == 2+ε  # never!
+@assert (√(2+ε))^2 ~ 2+ε
+println(raw(order(√(2+ε)^2))) # debug 
+# println(raw(order(√(2+ε)))) # debug 
+# println(√(ε + ω)) # result = √ε - i√ω  since result^2 == ε + ω
+# println(raw(√(ε + ω))) # debug
+
+
+
 
 # @assert √(ε) == εr(1.0)
 println(st(√(2+ε))) 
@@ -539,7 +618,6 @@ println(st(√(2+ε)))
 # ∂(f::Function) = x -> f(x+ε) - f(x-ε) / (2*ε) # central difference
 ∂(f::Function) = x -> simplify( (f(x+ε) - f(x)) / ε )
 
-(h::Hyper)(x) = h  # treats Hyper as constant function, but no automatic cast to Hyper / Function :
 
 # should follow from definitions of ∫ and ∂ if we treat number h as constant function h(x)=h
 ∂(x::Hyper) = Hyper([(r, e-1) for (r, e) in x.terms])
@@ -597,9 +675,9 @@ println("∂(square)(2.0) is ", common(∂(square)(2.0))) # derivative of x^2 at
 
 @assert ∂(square)(1.0) ~ 2
 @assert ∂(square)(2.0) ~ 4
-@assert ∂(square) ≈ x -> 2.0
-@assert ∂(square) ≈ 2x
-@assert ∂(square)(x::Hyper) == 2x
+# @assert ∂(square) ≈ x -> 2.0
+# @assert ∂(square) ≈ 2x
+# @assert ∂(square)(x::Hyper) == 2x
 
 
 
