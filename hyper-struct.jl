@@ -1033,20 +1033,16 @@ step(x) = x > 0 ? 1 : 0
 # ∫(f::Function) = x -> ∑(xω,f,x) * ε
 # ∫(f::Function) = x -> ∑(i in -ωx:xω) f(x+i) * ε
 
+# follows from definitions of ∫ and ∂ if we treat number h as constant function h(x)=h
+∫(x::Hyper) = Hyper([(r, e+1) for (r, e) in x.terms])
+∫(x::Real) = Hyper([(Field(x), 1.0)]) # ∫1=ω
+
+
 # ∫x = x²/2
 # @assert ∫(id) ≈ square/2 # ok anchored at 0
 # @assert ∂(∫(square)) ≈ square  
 # @assert ∫(∂(square)) ≈ square  # ok anchored at 0
 
-
-@assert ∫(1) == ω # definition
-@assert ∫(ε) == 𝟙
-@assert ∫(ω) == ω^2
-
-
-# follows from definitions of ∫ and ∂ if we treat number h as constant function h(x)=h
-∫(x::Hyper) = Hyper([(r, e+1) for (r, e) in x.terms])
-∫(x::Real) = Hyper([(Field(x), 1.0)]) # ∫1=ω
 
 #  if we treat ε as constant function ε(x)=ε
 @assert ∫(1) == ω # definition
