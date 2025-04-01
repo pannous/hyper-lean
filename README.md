@@ -939,3 +939,7 @@ Line Integrals along smooth curve
 DIFFERENTIAL EQUATIONS (existence and uniqueness of solutions)
 
 LOGIC AND SUPERSTRUCTURES
+
+# Random notes
+√(ε + ω) ≈ ∑ωⁿ/2ⁿn! ~ … + 0.020833̅ω^3 + 0.125ω² + 0.5ω + 1   
+Maclaurin expansion coefficient of e^{x/2} ??
