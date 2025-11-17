@@ -1,0 +1,1 @@
+lake env lean validate.lean 2>&1

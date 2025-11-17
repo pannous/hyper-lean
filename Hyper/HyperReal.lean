@@ -52,6 +52,21 @@ def sort (h : Hyper) : Hyper :=
 def order (h : Hyper) : Hyper :=
   sort (simplify h)
 
+-- Helper functions (defined early for use in other functions)
+def real (h : Hyper) : Float :=
+  let simplified := simplify h
+  match simplified.terms.find? (fun (_, e) => e == 0.0) with
+  | some (r, _) => r
+  | none => 0.0
+
+def isFinite (h : Hyper) : Bool :=
+  let simplified := simplify h
+  simplified.terms.all (fun (_, e) => e <= 0.0)
+
+def isInfinite (h : Hyper) : Bool :=
+  let simplified := simplify h
+  simplified.terms.any (fun (_, e) => e > 0.0)
+
 -- Addition
 def add (x y : Hyper) : Hyper :=
   simplify ⟨x.terms ++ y.terms⟩
@@ -120,6 +135,9 @@ partial def ipow (x : Hyper) (n : Int) : Hyper :=
 instance : HPow Hyper Int Hyper where
   hPow := ipow
 
+instance : HPow Hyper Nat Hyper where
+  hPow x n := ipow x (Int.ofNat n)
+
 -- Exponential function: exp(x) = Σ xⁿ/n!
 partial def exp (h : Hyper) : Hyper :=
   let rec expHelper (n : Nat) (sum : Hyper) (term : Hyper) : Hyper :=
@@ -130,36 +148,63 @@ partial def exp (h : Hyper) : Hyper :=
   expHelper 0 one one
 
 -- Logarithm with argument reduction
-def log (u : Hyper) : Hyper :=
-  sorry  -- Will implement after exp works
+-- Based on Julia implementation lines 262-312
+partial def log (u : Hyper) : Hyper :=
+  let LOG2 := fromFloat 0.693147  -- ln(2)
+  let stv := real u
+  if stv <= 0.0 then zero  -- hack for now
+  else
+    -- Argument reduction: scale to [0.666, 1.5]
+    let rec reduce (v : Hyper) (n : Int) : Hyper × Int :=
+      if real v > 1.5 then reduce (v / fromFloat 2.0) (n + 1)
+      else if real v < 0.666 then reduce (v * fromFloat 2.0) (n - 1)
+      else (v, n)
+    let (v, n) := reduce u 0
+    -- Taylor series for log(1+z) where z = v - 1
+    let z := v - one
+    let rec logHelper (k : Nat) (s : Hyper) (t : Hyper) (sign : Float) : Hyper :=
+      if k >= TERM_PRECISION then s
+      else
+        let term := (fromFloat sign * t) / fromNat (k + 1)
+        logHelper (k + 1) (s + term) (t * z) (-sign)
+    let s := logHelper 0 zero z 1.0
+    let nFloat : Float := if n >= 0 then n.natAbs.toFloat else -(n.natAbs.toFloat)
+    (fromFloat nFloat * LOG2) + s
 
--- Sine using Taylor series
+-- Helper: factorial function
+partial def factorial (n : Nat) : Nat :=
+  if n == 0 then 1
+  else n * factorial (n - 1)
+
+-- Sine using Taylor series: sin(x) = Σ(-1)ⁿ x^(2n+1)/(2n+1)!
+partial def sinHelper (x : Hyper) (n : Nat) (sum : Hyper) : Hyper :=
+  if n >= 10 then sum
+  else
+    let sign := if n % 2 == 0 then 1.0 else -1.0
+    let power := ipow x (2 * n + 1)
+    let fact := factorial (2 * n + 1)
+    let term := (fromFloat sign * power) / fromNat fact
+    sinHelper x (n + 1) (sum + term)
+
 partial def sin (x : Hyper) : Hyper :=
-  let rec sinHelper (n : Nat) (sum : Hyper) : Hyper :=
-    if n >= 10 then sum
-    else
-      let sign := if n % 2 == 0 then 1.0 else -1.0
-      let power := ipow x (2 * n + 1)
-      let factorial := (List.range (2 * n + 2)).foldl (· * ·) 1
-      let term := (fromFloat sign * power) / fromNat factorial
-      sinHelper (n + 1) (sum + term)
-  sinHelper 0 zero
+  sinHelper x 0 zero
 
--- Cosine using Taylor series
+-- Cosine using Taylor series: cos(x) = Σ(-1)ⁿ x^(2n)/(2n)!
+partial def cosHelper (x : Hyper) (n : Nat) (sum : Hyper) : Hyper :=
+  if n >= 10 then sum
+  else
+    let sign := if n % 2 == 0 then 1.0 else -1.0
+    let power := ipow x (2 * n)
+    let fact := factorial (2 * n)
+    let term := (fromFloat sign * power) / fromNat fact
+    cosHelper x (n + 1) (sum + term)
+
 partial def cos (x : Hyper) : Hyper :=
-  let rec cosHelper (n : Nat) (sum : Hyper) : Hyper :=
-    if n >= 10 then sum
-    else
-      let sign := if n % 2 == 0 then 1.0 else -1.0
-      let power := ipow x (2 * n)
-      let factorial := (List.range (2 * n + 1)).foldl (· * ·) 1
-      let term := (fromFloat sign * power) / fromNat factorial
-      cosHelper (n + 1) (sum + term)
-  cosHelper 0 zero
+  cosHelper x 0 zero
 
--- Square root
-def sqrt (x : Hyper) : Hyper :=
-  sorry  -- x^0.5, will need exp/log
+-- Square root: x^0.5 = exp(0.5 * log(x))
+partial def sqrt (x : Hyper) : Hyper :=
+  exp ((fromFloat 0.5) * log x)
 
 -- Derivative: ∂f/∂x ≈ (f(x+ε) - f(x-ε)) / (2ε)
 def derivative (f : Hyper → Hyper) (x : Hyper) : Hyper :=
@@ -167,26 +212,28 @@ def derivative (f : Hyper → Hyper) (x : Hyper) : Hyper :=
 
 notation "∂" => derivative
 
--- Integration (simplified version)
-def integrate (f : Hyper → Hyper) (x : Hyper) : Hyper :=
-  sorry  -- Will implement
+-- Helper: lower order by removing e=0 terms
+def lower (h : Hyper) : Hyper :=
+  ⟨h.terms.filter (fun (_, e) => e > 0.0) |>.map (fun (r, e) => (r, e - 1.0))⟩
+
+-- Integration using Riemann sum
+-- Based on Julia implementation lines 860-874
+partial def integrate (f : Hyper → Hyper) (x : Hyper) : Hyper :=
+  if real x == 0.0 then zero
+  else
+    let rec intHelper (i : Nat) (sum : Hyper) (dx : Hyper) : Hyper :=
+      if i >= INTEGRATION_TERMS then sum
+      else
+        let val := f (fromNat i * dx)
+        let newSum := if isInfinite val then
+          sum + (if real x > 0.0 then lower val else neg (lower val))
+        else
+          sum + val * dx
+        intHelper (i + 1) newSum dx
+    let dx := x / fromNat INTEGRATION_TERMS
+    intHelper 0 zero dx
 
 notation "∫" => integrate
-
--- Helper functions
-def real (h : Hyper) : Float :=
-  let simplified := simplify h
-  match simplified.terms.find? (fun (_, e) => e == 0.0) with
-  | some (r, _) => r
-  | none => 0.0
-
-def isFinite (h : Hyper) : Bool :=
-  let simplified := simplify h
-  simplified.terms.all (fun (_, e) => e <= 0.0)
-
-def isInfinite (h : Hyper) : Bool :=
-  let simplified := simplify h
-  simplified.terms.any (fun (_, e) => e > 0.0)
 
 -- Tests
 #eval zero
