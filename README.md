@@ -1,4 +1,4 @@
-# Hyperreal numbers ε*ω = 1
+# Hyperreal numbers ε * ω = 1
 
 [Hyperreal numbers Wiki](https://en.wikipedia.org/wiki/Hyperreal_number)
 
@@ -12,10 +12,9 @@ ln ~/Documents/notes/hyperreals.md ~/dev/apps/wasp/wiki/hyperreals.md
 ln ~/Documents/notes/hyperreals.md ~/dev/script/lean4/hyper/Readme.md 
  -->
   
-In mathematics, the system of hyperreal numbers is a way of treating infinite and infinitesimal (infinitely small but non-zero) quantities. The hyperreals, or nonstandard reals, *R, are an extension of the real numbers R with algebraic spanning elements ω ≈ ∞ and ε ≈ 1/∞.  
+In mathematics, the system of hyperreal numbers is a way of treating infinite and infinitesimal (infinitely small but non-zero) quantities. The hyperreals, or nonstandard reals ℝ⋆ are an extension of the real numbers ℝ with algebraic spanning elements ω ≈ ∞ and ε ≈ 1/∞.  
 
-In 1960 Abraham Robinson (1918–1974) solved the three hundred year old problem of giving a rigorous development of the
-calculus based on infinitesimals.
+In 1960 Abraham Robinson (1918–1974) solved the three hundred year old problem of giving a rigorous development of the calculus based on infinitesimals.
 
 The simple set of axioms for the hyperreal number system given here (and in Elementary Calculus) make it possible to present infinitesimal calculus at the college freshman level, avoiding concepts from mathematical logic. (It is shown in Chapter 15 of [hkeisler] that these axioms are equivalent to Robinson’s approach.)
 
@@ -40,36 +39,65 @@ These two symbols can be linked via canonical gauging:
 1/0 = ∞  # not ω!    
 ω/∞ =〚1〛?
 
-⚠️ r*ω ≠ ω for 1≠r in ℝ ;unlike classical infinity notation where ∞=r·∞ ∀r>0 in ℝ  
+⚠️ r * ω ≠ ω for 1≠r in ℝ ;unlike classical infinity notation where ∞=r·∞ ∀r>0 in ℝ  
 In fact ∞ is not a number but may be the equivalence class ∞=〚ω〛 or ∞=〚ωᵚ〛wrt '≈' see below
 
 We are mostly interested in applicative usage of Hyperreal numbers, defined axiomatically similar to the simple field extension of ℂ=ℝ(ⅈ)=ℝ+ⅈℝ or Dedekind–Peano axioms for Natural numbers.  
   
 ℝ⋆ = ℝ(ε, ω)  # ordered field extension  
-ℝ⋆ = R∗ = *R notation, last one easiest to type
+ℝ⋆ = R∗ = *R notation*, last one easiest to type
 ℝ⋆ ≈ "algebraic-span / algebraic-closure(ℝ,ε)" # see term axioms # ω not needed because ω=1/ε
 ℝ⋆ ≅ vectorial-span(1,ε,ω,ε²,ω²,…)   # 1/ε not needed because ω=1/ε
 
 Definition 1.1. An element x∊R∗ is
-• finite if |x|<r for some real r;
-• infinite if |x|>r for all real r.
-• infinitesimal if |x|<r for all positive real r;
+• finite if |x| < r for some real r
+• infinite if |x|>r for all real r
+• infinitesimal if |x| < r for all positive real r
 
 Notice that a positive infinitesimal is hyperreal but not real, and that the
 only real infinitesimal is 0.
 
-𝕀 		infinitesimal small nonstandard numbers 《ε》 span including ε*ε … order -∞ or 1/∞   
-𝕀⁻¹ 	infinitesimal small nonstandard numbers ℝ·ε  = {a*ε a∊ℝ} outer span order -1    
-𝕀⁻² 	infinitesimal small nonstandard numbers ℝ·ε² = {a*ε²a∊ℝ} outer span order -2  
-𝔽		finite standard ℝ and nonstandard ℝ+𝕀 numbers <ℝ,ε>  {x: |x|<r for some r in ℝ}  
-𝕐 	unlimited infinite nonstandard numbers 《ω》 order ∞   
-𝕐¹ 	unlimited infinite nonstandard numbers ℝ·ω  = {a*ω  a∊ℝ} order 1  
-𝕐² 	unlimited infinite nonstandard numbers ℝ·ω² = {a*ω² a∊ℝ} order 2  
-  
+𝕀 infinitesimal small nonstandard numbers 《ε》 span including ε*ε … order -∞ or 1/∞   
+𝕀⁻¹ infinitesimal small nonstandard numbers ℝ·ε = {a*ε a∊ℝ} outer span order -1    
+𝕀⁻² infinitesimal small nonstandard numbers ℝ·ε² = {a*ε² a∊ℝ} outer span order -2  
+𝔽 finite standard ℝ and nonstandard ℝ+𝕀 numbers <ℝ,ε>  {x: |x| < r for some r in ℝ}  
+𝕐 unlimited infinite nonstandard numbers 《ω》 order ∞   
+𝕐¹ unlimited infinite nonstandard numbers ℝ·ω = {a*ω a∊ℝ} order 1  
+𝕐² unlimited infinite nonstandard numbers ℝ·ω² = {a * ω² a∊ℝ} order 2
+
 ℝ⋆ ≅ ℝ×𝕀×𝕐  
   
 Pure reals in ℝ⋆ are sometimes called 'appreciable' but should just be called 'real'.  
-  
+
+# Dual numbers
+As shown below, using hyperreals allows any function to be differentiated in a very simple way, the derivative of the step function is ω at 0 which is our algebraic dirac delta.
+Hyperreals convey information of higher derivatives, so the derivative of a ω 'jump' is a ω² 'shock' (jerk) ω³ 'snap' …
+Sometimes we are not interested in higher order derivatives and are satisfied with first order nonstandard analysis. In this case we can introduce an 
+## extra axiom ε² = 0
+These special hyperreals are called "dual numbers".
+
+https://en.wikipedia.org/wiki/Dual_number
+
+This simplification yields "Smooth infinitesimal analysis". Terence Tao has referred to this concept under the name "cheap nonstandard analysis. “Calculus Made Easy” is a book on infinitesimal calculus originally published in 1910 which is now fully vindicated!
+
+⚠️ since we have 1/ε = ω and 0 < ε < R  our theory slightly diverges from Dual numbers, 
+instead may call them Dial numbers 𝔻 and adding i² = -1 iDial numbers 𝕀𝔻.
+
+These "Dial numbers" do need an extra field in the class definition, 
+one for each basis element (1,ε,ω) and they could thus be called Trial numbers (for 3).
+Over the complex field (i²=-1) one would have six entries 
+𝕊 := « 1, ε, ω, 𝕚, ε𝕚, ω𝕚 » Sick numbers (special supernumbers).
+They are not superfluous, but could be tremendously useful, e.g. ω as dirac delta.
+What about the spurious 𝕚ε * 𝕚ω = -1 , are they superfluous? This needs fruitful investigation!
+
+## ω² = ∞
+From ε² = 0 and ω:=1/ε and 1/∞:=0 follows ω² = ∞
+
+A generalisation different to hyperreals are Grassmann numbers or supernumbers. Now widely used as a foundation for superspace, on which supersymmetry is constructed. 
+https://en.wikipedia.org/wiki/Grassmann_number
+
+The fermionic direction earns this name from the fact that fermions obey the Pauli exclusion principle: under the exchange of coordinates, the quantum mechanical wave function changes sign, and thus vanishes if two coordinates are brought together; this physical idea is captured by the algebraic relation ε² = 0
+
 # Todo standardize notation
 for easier typing these classes can be written as <I> <<I>> <Y> <<Y>> …  
 	Elements of 𝕀=<ε> are often denoted as δ  
@@ -109,7 +137,7 @@ x≈y <=> x-y≈0
 The dot / halo around a point x is the set of all nonstandard numbers near x  
 halo(x) =〚x≈y for y in ℝ⋆〛  
 Equivalently it's the span of all infinitesimals around x  
-halo(x) = x+𝕀 = {x+a*ε for a in ℝ}  
+halo(x) = x+𝕀 = {x + a * ε for a in ℝ}  
 halo(x) = x+𝕀 = {x + e for e in 𝕀}  
 
 ε-disc(x) < halo(x)
@@ -192,7 +220,7 @@ In particular, for every nonstandard n, the reciprocal n1 is a strictly positive
 
 # integral ε = 1 or 2:
 ∫ε = 2/1 # that is:  
-∫(0,ω)(ε)  = 1   # ω*ε = 1
+∫(0,ω)(ε)  = 1   # ω * ε = 1
 ∫(-ω,ω)(ε) = 2/1 # infinite line AND/OR  
 ∫(-∞,∞)(ε) = ƒ   # -''-  can't be because 2ω=ω+ω and linear ∫
 ∫(-ε,ε)(ω) = 2/1 # spike  
@@ -230,7 +258,7 @@ Length(line)=2ω or ∞ ?
 
 # theoretical questions:
 Is it possible to gauge / define the following:  
-ε*∞ = ∞ ?  
+ε * ∞ = ∞ ?  
 ∞/ω = ∞ ?  
 ⚠️ how are countable and continuous cardinals relateable to hyperreal ordinals?  
 Cardinals ‖ℕ‖ = ‖ℚ‖ means they are in the same class, but for hyperreals can we distinguish:  
@@ -435,7 +463,7 @@ indeed we just need proper definitions for
 likewise  
 1/3 = 0.333… + ε ?  
 but  
-3*1/3 = 1 = 0.9̂ + 3ε ≠ 0.9̂ + ε  
+3 * 1/3 = 1 = 0.9̂ + 3ε ≠ 0.9̂ + ε  
 so  
 1/3 = 0.333… + ε/3 ?  
   
@@ -472,14 +500,19 @@ inner and outer 'zone' (rest border of higher orders).
 … todo
 
 # power
+
 to define hˣ for arbitrary real numbers we can use exp and log
 hˣ = exp(x·log(h))  
-we need h²≈h*h as expected
+we need h² ≈ h * h as expected
+
+This works in the julia implementation https://github.com/pannous/hyper-lean/blob/main/hyper.jl
 
 # exponentiation
-exp(h::Hyper) =  ∑(0,∞) hⁿ/n!  
-log(h::Hyper) = ∫(1,h) 1/x dx    # or if we don't have integral yet:
-log(h::Hyper) = ∑(1,h) (1-x)/x  
+
+exp(h::Hyper) = ∑(0,∞) hⁿ/n!  
+log(h::Hyper) = ∫(1,h) 1/x dx # or if we don't have integral yet:
+log(h::Hyper) = ∑(1,h) (1-x)/x
+
   
 ## Crazy closure:
 Is it under some cirumstances possible to 'connect' ±∞ in such a way ω + ∞ = -∞ ?  
@@ -563,7 +596,7 @@ b + c is limited (possibly infinitesimal) H +ε  and H +bare unlimited
 • Opposites:  
 -ε  is infinitesimal -b is appreciable -H is unlimited  
 • Products:  
-ε*δ and ε*b are infinitesimal b*c is appreciable b*H and H*K are unlimited  
+ε * δ and ε * b are infinitesimal b * c is appreciable b * H and H * K are unlimited  
   
   
 ∫(0,ω)ε dx = 1/epsilon * epsilon - 0* epsilon = 1 # unabhängig von Eichung  
@@ -572,108 +605,7 @@ b + c is limited (possibly infinitesimal) H +ε  and H +bare unlimited
 
 n! = ∫tⁿ/eᵗ = Γ(n+1) = ∮1/τi·tⁿeᵗ
 
-# Riemann conjecture
-
-[Riemann hypothesis](https://en.wikipedia.org/wiki/Riemann_hypothesis)
-Riemann hypothesis is the conjecture that the Riemann zeta function has its zeros only at the negative even integers and
-complex numbers with real part 1/2. Many consider it to be the most important unsolved problem in pure mathematics.
-
-Riemann [zeta function](https://en.wikipedia.org/wiki/Riemann_zeta_function) analytical continuation
-
-ζ(s):=∑1/nˢ s∊ℂ, real(s)>1 
-ζ(s):=∑1/nˢ = ∏1/(1-p⁻ˢ) p prime
-ζ(s):= 1/Γ(s) ∫(0,∞) tˢ⁻¹/(eᵗ-1) dt = ℂ(ζ̂(s-1))
-ζ̂(x):= ∫tˣ/(eᵗ-1) / ∫tˣ⋅eᵗ    t over ℝ⁺ # shifted by 1
-ζ̂(x) = ∫tˣ/x!(eᵗ-1) 
-ζ̂(x) = ζ(x+1) = ∑n/nˣ⁺² = ∏p/(p-p⁻ˣ)   ratio of primes and their inverse difference
-
-Instead of ζ̂ being just shifted, we need ζ̂ to be ω preserving, so that
-∑1 = ∑𝑖∈ℕ(1) ∝ ω - ½    = ζ̂(-1)
-∑n = ∑𝑖∈ℕ(𝑖) ∝ ωˣ - 1/12 = ζ̂(-2)
-
-Then
-ζ(s) = ℂ(ζ̂(s-1)) complex part of shifted ω-zeta
-⚠️ Not the standard part, because st(ω) = ∞   
-
-
-shifted inverse zeta function
-ζꜞ(y):= ∏(p-1/pʸ)/p
-ζꜞ(y):= ∫tʸ⋅eᵗ / ∫tʸ/(eᵗ-1) dℝ⁺
-
-sign flipped shifted inverse zeta function
-ζ̄(y):= ∏(p-pʸ)/p
-
-ζ(s)=e(∑P(ks)/k)   P prime zeta P(s):=∑1/pˢ
-
-Γ(z):=∫(0,∞) tᶻ⁻¹⋅eᵗ dt # Γ(n)= (n-1)! = Γ̂(n-1)
-Γ̂(x):=∫(0,∞) tˣ⋅eᵗ dt # Γ̂(n)=n!     # shifted by 1
-Γ̂(x) = Γ(x+1) = x*Γ(x)
-x! := Γ̂(x) generalized faculty over x∊ℂ
-# trivial zeros
-
-ζ(s) = 0 when s is one of −2, −4, −6, .... These are called its trivial zeros
-ζ̂(x) = 0 when x is one of -3, -5, -7 …
-
-# non-trivial zeros (conjecture)
-
-ζ(s) = 0 => s = 1/2 + ⅈ·t
-ζ̂(x) = 0 => x =-1/2 + ⅈ·t
-
-# some values￼
-
-ζ̂(7) = ζ(8) = ∑1/n⁸ = π⁸/9450
-ζ̂(6) = ζ(7) = ∑1/n⁷ ≈ 1.008349277381923 = π⁷/x x=2995.28476444…
-ζ̂(5) = ζ(6) = ∑1/n⁶ = π⁶/945
-ζ̂(4) = ζ(5) = ∑1/n⁵ ≈ 1.03692775514337 = π⁵/x  x=295.121509929…
-ζ̂(3) = ζ(4) = ∑1/n⁴ ≈ π⁴/90 = τ⁴/1440
-ζ̂(2) = ζ(3) = ∑1/n³ ≈ 1.202056903159594 = π³/x  x=25.79435016661…
-ζ̂(1) = ζ(2) = ∑1/n² = π²/6  = τ²/24
-ζ̂(0) = ζ(1) = ∑1/n  = ω
-ζ̂(-1)= ζ(0) = -1/2  = "∑1" (real part of some a₀⋅ω - 1/2 ?)
-ζ̂(-2)= ζ(-1)= -1/12 = "∑n" (real part of some a₁⋅ω - 1/12 ?)
-ζ̂(-3)= ζ(-2)= 0            (real part of some a₂⋅ω - 0 + b⋅ε ? )
-ζ̂(-4)= ζ(-3)= 1/120 = -B₄/4
-ζ̂(-5)= ζ(-4)= 0
-ζ̂(-6)= ζ(-5)= 1/(42⋅6)  = -B₆/6
-
-ζ̂(½) ≈ 2.612375348685488343348567567924 (??)
-
-ζ̄(n)=ω  n∊2ℕ+1
-
-# poles
-
-ζ(1) = ∞
-ζ̂(0) = ∞
-
-ζ(1-x) = τ⁻ˣ·2·cos(τ·x/4)·Γ(x)·ζ(x)
-
-# Volume of ball
-
-V(Bₙ)=√πⁿ/ζ̂(n/2)  n∊ℕ
-
-# Derivative
-
-ζ′(s) = -∑ln(n)/nˢ  ( simple term wise ∂ₛ of ζ(s):=∑1/nˢ )
-
-ζ′(0) = −∑ln(n) = ln(1/√2π)  =>   ∞!=√2π
-
-ζ′(1) = -γ where γ is the Euler-Mascheroni constant
-
-# Supercomplex ≠ Hypercomplex
-
-Supercomplex inspired by Superreal numbers over complex field ℂ
-≠ Hypercomplex quaternions octonions
-Same field extension as above, just over field ℂ(ε)
-Despite of it's name, Supercomplex numbers make many calculations super easy.
-
-Against the Riemann hypothesis:
-• some Epstein zeta functions do not satisfy the Riemann hypothesis even though they have an infinite number of zeros on
-the critical line.
-• analytic number theory has had many conjectures supported by substantial numerical evidence that turned out to be
-false. ( Skewes number first exception ≈ 10^316 !)
-• behavior is often influenced by very slowly increasing functions such as log log T, that tend to infinity, but do so
-so slowly that this cannot be detected by computation. Such functions occur in the theory of the zeta function
-controlling the behavior of its zeros;
+# [[Riemann]] conjecture
 
 # Gauge Theory
 
@@ -719,20 +651,20 @@ isfies the axioms.
 galaxy(x) = {y∈R∗ : x−y is finite}
 galaxy(x) == {x+y, where y is finite}
 galaxy(0) = 𝔽 = "The Finites"
-Theorem 1.3. galaxy(0) = 𝔽 is subring of R∗  (|x+y|<r+s, |x−y|<r+s, |xy|<rs)
+Theorem 1.3. galaxy(0) = 𝔽 is subring of R∗  (|x+y| < r+s, |x−y| < r+s, |xy| < rs)
 Corollary 1.4. Any two galaxies are either equal or disjoint.
 
 monad(0)=halo(0) = {y∈R∗ : x−y is infinitesimal}
 monad(0) == {x+y, where y is infinitesimal}
 Theorem 1.5
 a) halo(0) = 𝕀 is subring of R∗
-b) 𝕀 is an ideal in 𝔽 = ℝ+𝕀 :  ε*r in monad(0) for r in ℝ
+b) 𝕀 is an ideal in 𝔽 = ℝ+𝕀 :  ε * r in monad(0) for r in ℝ
 (a) Sums, diﬀerences, and products of infinitesimals are infinitesimal.
 (b) The product of an infinitesimal and a finite element is infinitesimal.
 
 Proof
-Let b be finite, say |b|<t, 1≤t∈R. Then for any positive real r we have
-|ε|<r/t,|εb|<(r/t)t= r. Therefore εb is infinitesimal
+Let b be finite, say |b| < t, 1≤t∈R. Then for any positive real r we have
+|ε| < r/t,|εb| < (r/t)t= r. Therefore εb is infinitesimal
 
 Corollary 1.6. Any two monads are equal or disjoint.
 The relation x≈y is an equivalence relation on R∗
@@ -891,7 +823,7 @@ s=∫√(x'(t)²+y'(t)²) dt
 
 # Vectors
 
-Natural extension of ℝ⋆ = R∗ = *R to dimension n => *R^n ℝ⋆ⁿ basis remains the same
+Natural extension of ℝ⋆ = R∗ = * R to dimension n => * R^n ℝ⋆ⁿ basis remains the same
 unit vector A/|A|
 A hyperreal vector A has real length if |A|is real.
 A unit vector is a hyperreal vector of length 1.
@@ -941,5 +873,6 @@ DIFFERENTIAL EQUATIONS (existence and uniqueness of solutions)
 LOGIC AND SUPERSTRUCTURES
 
 # Random notes
+
 √(ε + ω) ≈ ∑ωⁿ/2ⁿn! ~ … + 0.020833̅ω^3 + 0.125ω² + 0.5ω + 1   
 Maclaurin expansion coefficient of e^{x/2} ??

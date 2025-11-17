@@ -1,102 +1,197 @@
--- import Mathlib.Data.Int.AbsoluteValue
--- import Mathlib
+import Lean
 import Mathlib.Data.Real.Basic -- Import basic real number theory in LEAN 4
-import Mathlib.Data.Real.Ereal -- ∞
-import Mathlib.Data.Real.Hyperreal -- defined as hyperfilter germ
+import Mathlib.Data.Finsupp.Basic
+-- import Mathlib.Data.Real.Hyperreal -- defined as hyperfilter germ
 import Init.Data.Nat.Basic
 import Init.Prelude
 import Init.Control.Basic -- Import basic control structures in LEAN 4
-import Hyper.HyperUtil
-import Lean
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+-- import Hyper.HyperUtil
+-- import Mathlib.Data.Real.Ereal -- ∞
 
-#eval Float.sin 0
--- #eval Real.sin 0  -- abstract function!
--- import data.real.basic -- Import basic real number theory in LEAN 3
-
-
-namespace Hypers
-section HyperFun
 
 -- Avoid Real Numbers When Possible:
 -- If the use of real numbers introduces complexity due to issues like non-decidability of equality, consider if your application can tolerate using rational numbers or fixed-point arithmetic, which do not have these issues in Lean.
 
-notation "𝔽" => ℚ -- our field, true alias
--- def 𝔽 := ℚ -- treats it as own Type! needs own instance : …
+namespace Hypers
+section HyperFin
 
--- A grading is a decomposition of an algebraic structure into components indexed by a set (often the non-negative integers). The operations must preserve this decomposition.
-structure HyperFun :=
-  components : ℤ → 𝔽  -- terms for exponents e.g. (3ω⁻¹ + 1 + 3ω²) finite list:
-  order : ℕ -- limit the range of non-zero components e.g. ε^2 + ω^3 => order = 3
+notation "𝔽" => ℚ -- our field (for now), true alias
 
-notation "𝔽*" => HyperFun
-notation "F*" => HyperFun
+-- Similar to hyperfun where Hyperreal numbers are defined as functions
+-- But we restrict ourselves to functions with finance support for easier proofs
 
--- notation "xxx" => Int
+-- structure HyperFun :=
+--   components : ℤ → 𝔽  -- terms for exponents e.g. (3ω⁻¹ + 1 + 3ω²) finite list:
+--   order : ℕ -- limit the range of non-zero components e.g. ε^2 + ω^3 => order = 3
 
-instance : Zero HyperFun where
-  zero := { components := fun _ => 0, order := 0}
-def zero := (0:HyperFun)
+-- def HyperFin : Type := ℝ →₀ 𝔽  -- coefficients via function with finite support  e.g. 3√ω + 1
+-- def HyperFin : Type := ℝ →₀ ℝ  -- coefficients via function with finite support  e.g. 3√ω + π
+-- def HyperFin : Type := ℤ →₀ 𝔽  -- coefficients via function with finite support  e.g. (3ω⁻¹ + 1 + 3ω²)
+def HyperFin : Type := ℤ →₀ ℚ
 
-instance : One HyperFun where -- One.one
-  one := { components := fun x => if |x| > 0 then 0 else 1, order := 0}
-  -- one := { components := fun x => if x = 0 then 1 else 0, order := 0}
-  -- one := { components := 1, order := 0 } -- danger, don't evaluate outside order! fails for one + epsilon
---  one := { components := λ match with . 0 => 1 }
+notation "R*" => HyperFin
+notation "𝔽*" => HyperFin
+notation "F*" => HyperFin
+
+-- set_option diagnostics true
+-- instance [Zero 𝔽] : Zero HyperFin where
+--   zero := 0
+
+-- instance : Zero HyperFin := inferInstance
+-- instance : Zero HyperFin := inferInstanceAs (Zero HyperFin)
+
+-- instance : One HyperFin := inferInstanceAs (One HyperFin)
+
+-- instance : Zero HyperFin where
+--   zero := Finsupp.mk ∅ (fun _ => 0)
+
+-- instance : Zero HyperFin where
+--   zero:= Finsupp.instZero
+
+
+
+-- noncomputable
+-- instance : OfNat HyperFin 0 where
+--   ofNat := Finsupp.single 0 0
+
+
+-- instance : OfNat HyperFin 1 where
+--   ofNat := Finsupp.single 0 1
+
+-- def constFinsupp {𝔽 : Type} [Zero 𝔽] (c : 𝔽) : ℤ →₀ 𝔽 :=
+-- def constFinsupp (c : 𝔽) : ℤ →₀ 𝔽 :=
+-- def constFinsupp (c : ℚ) : ℤ →₀ ℚ :=
+--   if c = 0 then 0 else ⟨{0}, fun x => if x = 0 then c else 0, by simp⟩
+
+def constFinsupp (c : ℚ) : ℤ →₀ ℚ :=
+  if c = 0 then 0 else
+    { support := {0},
+      toFun := fun x => if x = 0 then c else 0,
+      mem_support_toFun :=
+        by
+          intro x
+          simp only [Set.mem_singleton_iff]
+          constructor
+          · intro hx
+            rw [hx]
+            simp [c]  -- `c ≠ 0` is guaranteed
+          · intro hx
+            simp at hx
+            exact hx }
+
+def constFinsupp (c : ℚ) : ℤ →₀ ℚ :=
+  if c = 0 then 0 else
+    { support := {0},
+      toFun := fun x => if x = 0 then c else 0,
+      mem_support_toFun := by
+        intro x
+        simp only [Set.mem_singleton_iff]
+        constructor
+        · intro hx; rw [hx]; simp
+        · intro hx; simp at hx; assumption }
+
+def constFinsupp (c : ℚ) : ℤ →₀ ℚ :=
+  if c = 0 then 0 else
+    ⟨{0}, (fun x => if x = 0 then c else 0),
+     by
+       intro x
+       simp only [Set.mem_singleton_iff]
+       constructor
+       · intro hx; rw [hx]; simp
+       · intro hx; split_ifs at hx with h
+         · exact h.symm
+         · contradiction⟩
+
+
+instance : OfNat HyperFin n where
+  ofNat := constFinsupp (n : ℚ)
+
+instance : OfNat HyperFin n where
+  ofNat := Finsupp.single 0 (OfNat.ofNat n : ℚ)
+
+#print axioms Finsupp.single
+
+-- noncomputable
+instance : OfNat HyperFin n where
+  ofNat := Finsupp.single 0 (n : ℚ)
+  -- ofNat :=  fun x => if x = 0 then n else 0
+
+noncomputable
+instance [Zero 𝔽] : Zero HyperFin where
+  zero := 0 -- Finsupp.zero
+
+noncomputable
+instance [Zero 𝔽] : OfNat HyperFin (Nat.zero) where
+  ofNat := 0
+
+
+instance : OfNat HyperFin 0 where
+  ofNat := Zero.zero
+
+instance : OfNat HyperFin 1 where
+  ofNat := One.one
+
+def zero := (0:HyperFin)
+
+instance : One HyperFin where -- One.one
+  one := fun x => if |x| > 0 then 0 else 1
+  -- one := fun x => if x = 0 then 1 else 0
+  -- one := 1, order := 0 } -- danger, don't evaluate outside order! fails for one + epsilon
+--  one := λ match with . 0 => 1 }
 --                     | 0 => 1
 --                     | _ => 0,⦄
---   one := { components := fun x => match x with | 0 => 1 | _ => 0, order := 0}
--- def one := (1:HyperFun) -- One.one -- stuck!?
-notation "one" => (1:HyperFun)
+--   one := fun x => match x with | 0 => 1 | _ => 0
+-- def one := (1:HyperFin) -- One.one -- stuck!?
+notation "one" => (1:HyperFin)
 
 -- alternative equivalent definition of one
-def one' : HyperFun :=
+def one' : HyperFin :=
   { components := fun x => if x = 0 then 1 else 0, order := 0 }
 
 
-instance : Inhabited HyperFun where
+instance : Inhabited HyperFin where
   default := Zero.zero
 
 
-def epsilon : HyperFun := { components := fun x => if x = -1 then 1 else 0, order := 1}
--- def omega : HyperFun := { components := fun x => if x = 1 then 1 else 0 }
-def omega : HyperFun := { components := fun x => match x with | 1 => 1 | _ => 0, order := 1}
+def epsilon : HyperFin := fun x => if x = -1 then 1 else 0, order := 1}
+-- def omega : HyperFin := fun x => if x = 1 then 1 else 0 }
+def omega : HyperFin := fun x => match x with | 1 => 1 | _ => 0, order := 1}
 -- see which one works better: if or match
 
 scoped notation "ε" => epsilon
 scoped notation "ω" => omega
 
 
--- instance : ToNat HyperFun Zero.zero where
+-- instance : ToNat HyperFin Zero.zero where
 --   toNat := 0
 
-instance : OfNat HyperFun 0 where
+instance : OfNat HyperFin 0 where
   ofNat := Zero.zero
 
-instance : OfNat HyperFun 1 where
+instance : OfNat HyperFin 1 where
   ofNat := One.one
 
-instance : OfNat HyperFun n where
-  ofNat := ⟨ fun x => if x = 0 then n else 0, 0 ⟩
+instance : OfNat HyperFin n where
+  ofNat :=  fun x => if x = 0 then n else 0
 --   ofNat := ⟨ fun x => n * (x == 0), 0 ⟩
-  -- ofNat := { components := fun x => if x = 0 then n else 0, order := 0}
+  -- ofNat := fun x => if x = 0 then n else 0
 
 #eval List.range 10  -- generates [0, 1, 2, ..., 9]
 #eval (List.range 10).maximum.get!
--- Function to find the highest exponent with a non-zero coefficient within the range [-order, order]
+-- Finction to find the highest exponent with a non-zero coefficient within the range [-order, order]
 
 
 -- coercion from reals etc to hyperreals
 -- instance : Coe ℝ 𝔽* where
-  -- coe r := { components := fun x => if x = 0 then (r:𝔽) else 0, order := 0}
+  -- coe r := fun x => if x = 0 then (r:𝔽) else 0
 
 instance : Coe ℚ 𝔽* where
-  coe q := { components := fun x => if x = 0 then q else 0, order := 0}
+  coe q := fun x => if x = 0 then q else 0
 
 instance : Coe ℕ 𝔽* where
-  coe (n:ℕ) : HyperFun := { components := fun x => if x = 0 then n else 0, order := 0}
+  coe (n:ℕ) : HyperFin := fun x => if x = 0 then n else 0
 
--- instance : FunLike HyperFun ℤ 𝔽 where
+-- instance : FinLike HyperFin ℤ 𝔽 where
 --   coe f := f.components
 --   coe_injective' := λ f g hfg => by sorry
 
@@ -127,7 +222,6 @@ instance : HSMul ℕ (ℤ → 𝔽) (ℤ → 𝔽) where
 -- lemma hsmul_def (q : 𝔽) (f : ℤ → 𝔽) : q • f = fun x => q * f x := rfl
 
 lemma one_mul (f : ℤ → 𝔽) : 1 * f = f := by
-  -- sorry
   simp
   -- apply funext -- (∀ x, f x = g x) → f = g
   -- intro x
@@ -135,40 +229,40 @@ lemma one_mul (f : ℤ → 𝔽) : 1 * f = f := by
 
 -- homogeneous scalar multiplication
 -- homogeneous here means that the order of the function is preserved
-instance : HSMul 𝔽 HyperFun HyperFun where
-  hSMul q f := { components := q * f.components, order := f.order } -- pointfree
-  -- hSMul q f := { components := fun x => q * f.components x, order := f.order } -- explicit
+instance : HSMul 𝔽 HyperFin HyperFin where
+  hSMul q f := q * f.components, order := f.order } -- pointfree
+  -- hSMul q f := fun x => q * f.components x, order := f.order } -- explicit
 
-instance : HSMul ℕ HyperFun HyperFun where
-  hSMul n f := { components := n * f.components, order := f.order }  -- pointfree
-  -- hSMul q f := { components := fun x => q * f.components x, order := f.order }  -- explicit
-
-
-instance : HMul 𝔽 HyperFun HyperFun where
-  hMul q f := { components := q * f.components, order := f.order } -- pointfree
-  -- hMul q f := { components := fun x => q * f.components x, order := f.order } -- explicit
+instance : HSMul ℕ HyperFin HyperFin where
+  hSMul n f := n * f.components, order := f.order }  -- pointfree
+  -- hSMul q f := fun x => q * f.components x, order := f.order }  -- explicit
 
 
-instance : HMul ℕ HyperFun HyperFun where
-  hMul n f := { components := n * f.components, order := f.order }
+instance : HMul 𝔽 HyperFin HyperFin where
+  hMul q f := q * f.components, order := f.order } -- pointfree
+  -- hMul q f := fun x => q * f.components x, order := f.order } -- explicit
+
+
+instance : HMul ℕ HyperFin HyperFin where
+  hMul n f := n * f.components, order := f.order }
 
 -- Add.add
-instance : Add HyperFun where
+instance : Add HyperFin where
   add f g := {
     components := f.components + g.components , -- uses macro_rules `(binop% HAdd.hAdd $x $y)
     -- components := fun x => f.components x + g.components x,
     order := max f.order g.order
     }
 
-instance : HAdd HyperFun HyperFun HyperFun where -- not homogenous since order is not preserved?
+instance : HAdd HyperFin HyperFin HyperFin where -- not homogenous since order is not preserved?
   hAdd := Add.add
 
--- instance : Mul HyperFun where
---   mul f g := { components := fun x => ∑ (i : ℤ) , f.components x * g.components (x - i) }
+-- instance : Mul HyperFin where
+--   mul f g := fun x => ∑ (i : ℤ) , f.components x * g.components (x - i) }
 
 
 -- Mul.mul
-instance : Mul HyperFun where
+instance : Mul HyperFin where
   mul f g := {
     order := f.order + g.order,
     components := fun x =>
@@ -188,17 +282,17 @@ instance : Mul HyperFun where
       -- else ∑ i < 2*order + 1, f.components (i - order) * g.components (x - i + order)
   }
 
-instance : Neg HyperFun where
-  neg f := { components := fun x => - f.components x, order := f.order }
+instance : Neg HyperFin where
+  neg f := fun x => - f.components x, order := f.order }
 
-instance : Sub HyperFun where
+instance : Sub HyperFin where
   sub f g := f + -g
 
-instance : Inv HyperFun where
-  inv f := { components := fun x => 1 / f.components (-x), order := f.order }
+instance : Inv HyperFin where
+  inv f := fun x => 1 / f.components (-x), order := f.order }
 
 -- for Lean.MetaEval for #eval
-instance : Repr HyperFun where
+instance : Repr HyperFin where
   reprPrec f := λ n =>
     Id.run do
       let mut output := ""
@@ -221,17 +315,17 @@ instance : Repr HyperFun where
       pure output
 
 
-def Hyper.hPow (a : HyperFun) (b : ℕ) : HyperFun :=
+def Hyper.hPow (a : HyperFin) (b : ℕ) : HyperFin :=
   match b with
   | 0 => 1
   | n + 1 => a * hPow a (n)
   decreasing_by
     simp_wf
 
-instance : HPow HyperFun ℕ HyperFun where
+instance : HPow HyperFin ℕ HyperFin where
    hPow a b := Hyper.hPow a b
 
-instance : HPow HyperFun ℤ HyperFun where
+instance : HPow HyperFin ℤ HyperFin where
   hPow a b :=
     if b > 0 then
       Hyper.hPow a b.natAbs
@@ -240,12 +334,12 @@ instance : HPow HyperFun ℤ HyperFun where
     else
       Hyper.hPow a⁻¹ b.natAbs
 
-instance : Div HyperFun where
+instance : Div HyperFin where
   div x y := x * y⁻¹ -- via inverse
 
 
-@[ext] -- apply HyperFun.ext_all equivalent to "ext x"
-theorem HyperFun.ext_all {f g : HyperFun}
+@[ext] -- apply HyperFin.ext_all equivalent to "ext x"
+theorem HyperFin.ext_all {f g : HyperFin}
 (component_goal : ∀ x, f.components x = g.components x) (order_goal : f.order = g.order) : f = g := by
   cases f;
   cases g;
@@ -254,7 +348,7 @@ theorem HyperFun.ext_all {f g : HyperFun}
   -- order_goal implicit !?!
 
 @[ext]
-theorem HyperFun.ext {f g : HyperFun} -- POINT FREE version of HyperFun.ext_all
+theorem HyperFin.ext {f g : HyperFin} -- POINT FREE version of HyperFin.ext_all
   (component_goal : f.components = g.components) (order_goal : f.order = g.order) : f = g := by
   cases f;
   cases g;
@@ -262,8 +356,8 @@ theorem HyperFun.ext {f g : HyperFun} -- POINT FREE version of HyperFun.ext_all
 
 
 -- @[ext]
--- theorem HyperFun.ext2 (h : ∀ {f g : HyperFun}, f.components = g.components ∧ f.order = g.order → f = g)
---   {f g : HyperFun} : f = g := by
+-- theorem HyperFin.ext2 (h : ∀ {f g : HyperFin}, f.components = g.components ∧ f.order = g.order → f = g)
+--   {f g : HyperFin} : f = g := by
 --   cases f
 --   cases g
 --   congr
@@ -275,8 +369,8 @@ theorem HyperFun.ext {f g : HyperFun} -- POINT FREE version of HyperFun.ext_all
 
 
 -- -- @[ext]
--- theorem HyperFun.ext3 :
---   ∀ {f g : HyperFun},
+-- theorem HyperFin.ext3 :
+--   ∀ {f g : HyperFin},
 --   (f.components = g.components) ∧ (f.order = g.order) → f = g := by
 --   intros f g h
 --   cases f
@@ -287,69 +381,69 @@ theorem HyperFun.ext {f g : HyperFun} -- POINT FREE version of HyperFun.ext_all
 --   congr
 --   rw [funext]
 
--- lemma zero_is_zero : (0 : HyperFun) = 0 := rfl
-lemma zero_is_zero : HyperFun.components 0 = 0 := by rfl
+-- lemma zero_is_zero : (0 : HyperFin) = 0 := rfl
+lemma zero_is_zero : HyperFin.components 0 = 0 := by rfl
 
 -- Lemma to prove zero addition property
-lemma zero_add_fun (a : HyperFun) : (0 : HyperFun) + a = a := by
-  apply HyperFun.ext
+lemma zero_add_fun (a : HyperFin) : (0 : HyperFin) + a = a := by
+  apply HyperFin.ext
   { calc -- Proving component-wise equality
-    (0 : HyperFun).components + a.components = 0 + a.components := rfl
+    (0 : HyperFin).components + a.components = 0 + a.components := rfl
     _ = a.components := by funext; simp [zero_add]
   }
   { -- Proving order equality
-  show max (0 : HyperFun).order a.order = a.order
+  show max (0 : HyperFin).order a.order = a.order
   apply max_eq_right; exact zero_le a.order
   }
 
 
 -- Lemma to prove zero addition property
-lemma zero_add_fun_v2 (a : HyperFun) : (0 : HyperFun) + a = a := by
-  apply HyperFun.ext
-  show (0 : HyperFun).components + a.components = a.components
+lemma zero_add_fun_v2 (a : HyperFin) : (0 : HyperFin) + a = a := by
+  apply HyperFin.ext
+  show (0 : HyperFin).components + a.components = a.components
   simp [zero_add]
   rfl
   apply max_eq_right; exact zero_le a.order
 
 
 -- Lemma to prove zero addition property
--- lemma zero_add_fun_v3 (a : HyperFun) : (0 : HyperFun) + a = a := by
---   ext -- but apply HyperFun.ext OK!?
---   show (0 : HyperFun).components + a.components = a.components
+-- lemma zero_add_fun_v3 (a : HyperFin) : (0 : HyperFin) + a = a := by
+--   ext -- but apply HyperFin.ext OK!?
+--   show (0 : HyperFin).components + a.components = a.components
 --   simp [zero_add]
 --   rfl
 --   apply max_eq_right; exact zero_le a.order
 
 
--- Proving 0 + a = a for any HyperFun 'a'
-lemma zero_add_fun_via_all_x (a : HyperFun) : (0 : HyperFun) + a = a := by
-  ext x -- apply HyperFun.ext_all ∀ x
+-- Proving 0 + a = a for any HyperFin 'a'
+lemma zero_add_fun_via_all_x (a : HyperFin) : (0 : HyperFin) + a = a := by
+  ext x -- apply HyperFin.ext_all ∀ x
   { -- Proving component-wise equality
   -- intro x
-  -- show (0 : HyperFun).components x + a.components x = a.components x
+  -- show (0 : HyperFin).components x + a.components x = a.components x
   calc -- ONLY WORKING Example of calc so far!!
-    (0 : HyperFun).components x + a.components x = 0 + a.components x := by rfl
+    (0 : HyperFin).components x + a.components x = 0 + a.components x := by rfl
     _ = a.components x := by rw [zero_add]
   }
   { -- Proving order equality
-  show max (0 : HyperFun).order a.order = a.order
+  show max (0 : HyperFin).order a.order = a.order
   calc
-    max (0 : HyperFun).order a.order = max 0 a.order := by rfl
+    max (0 : HyperFin).order a.order = max 0 a.order := by rfl
     _ = a.order := by apply max_eq_right; exact zero_le a.order
   }
 
 
-lemma one_hsmul (a : HyperFun) : ((1:ℕ) • a) = a := by
-  apply HyperFun.ext
+lemma one_hsmul (a : HyperFin) : ((1:ℕ) • a) = a := by
+  apply HyperFin.ext
   {calc -- show ((1:ℕ) • a).components = a.components
     ((1:ℕ) • a).components = 1 * a.components := by simp [HSMul.hSMul]
     _ =  a.components := by rw [one_mul] }
   {show a.order = a.order; simp; }
 
--- instance : One HyperFun where
---   one := { components := fun x => if x = 0 then 1 else 0, order := 0}
+-- instance : One HyperFin where
+--   one := fun x => if x = 0 then 1 else 0
 
--- instance : Add HyperFun where
+-- instance : Add HyperFin where
 --   add f g := {
 --     components := f.components + g.components , -- uses macro_rules `(binop% HAdd.hAdd $x $y)
 --     -- components := fun x => f.components x + g.components x,
@@ -358,17 +452,17 @@ lemma one_hsmul (a : HyperFun) : ((1:ℕ) • a) = a := by
 
 
 -- too many stupid sub-lemma,  how to inline?
-lemma one_of_one: (HyperFun.components one) 0 = 1 := by
+lemma one_of_one: (HyperFin.components one) 0 = 1 := by
   rfl
 
-lemma one_of_one0 (x : ℤ) (h : x = 0) : (HyperFun.components one) x = 1 := by
+lemma one_of_one0 (x : ℤ) (h : x = 0) : (HyperFin.components one) x = 1 := by
    simp [h,one_of_one]
 
--- Lemma to prove that HyperFun.components one x = 0 for any x ≠ 0
-lemma one_of_any (x : ℤ) (h : x ≠ 0) : (HyperFun.components one) x = 0 := by
+-- Lemma to prove that HyperFin.components one x = 0 for any x ≠ 0
+lemma one_of_any (x : ℤ) (h : x ≠ 0) : (HyperFin.components one) x = 0 := by
   calc
-    -- (HyperFun.components one) x = if x = 0 then 1 else 0 := by rfl
-    (HyperFun.components one) x = if |x| > 0 then 0 else 1 := by rfl
+    -- (HyperFin.components one) x = if x = 0 then 1 else 0 := by rfl
+    (HyperFin.components one) x = if |x| > 0 then 0 else 1 := by rfl
     _ = 0 := by simp [h]
 
 
@@ -377,17 +471,17 @@ lemma hyper_one_plusX : one + one = (2:𝔽*) := by
   ext x
   show (one + one).components x = (if x = 0 then 2 else 0)
   calc
-    (one + one).components x = (HyperFun.components one) x + (HyperFun.components one) x := by rfl
+    (one + one).components x = (HyperFin.components one) x + (HyperFin.components one) x := by rfl
       _ = if h: x = 0 then 2 else 0 := by
         split_ifs with h
         { -- case x = 0
         calc
-          HyperFun.components 1 x + HyperFun.components 1 x = 1 + 1 := by rw [one_of_one0 x h]
+          HyperFin.components 1 x + HyperFin.components 1 x = 1 + 1 := by rw [one_of_one0 x h]
           _ = 2 := by rfl
         }
         { -- case x ≠ 0
         calc
-          HyperFun.components 1 x + HyperFun.components 1 x = 0 + 0 := by rw [one_of_any x h]
+          HyperFin.components 1 x + HyperFin.components 1 x = 0 + 0 := by rw [one_of_any x h]
           _ = 0 := by simp
         }
   {show (one + one).order = (2:𝔽*).order; rfl}
@@ -398,9 +492,9 @@ lemma one_equiv_one' : one = one' := by
 /--/
   ext x
   -- Show components are equivalent
-  show (1 : HyperFun).components x = one'.components x
+  show (1 : HyperFin).components x = one'.components x
   calc
-    (1 : HyperFun).components x
+    (1 : HyperFin).components x
         = if |x| > 0 then 0 else 1 := by rfl
     _ = if x = 0 then 1 else 0 := by
       split_ifs
@@ -415,25 +509,25 @@ lemma one_equiv_one' : one = one' := by
         simp [this]
       }
   -- Show orders are equivalent
-  show (1 : HyperFun).order = one'.order
+  show (1 : HyperFin).order = one'.order
   rfl
 -/
 
-lemma one_of_0_is_1: (HyperFun.components one) 0 = 1 := by
+lemma one_of_0_is_1: (HyperFin.components one) 0 = 1 := by
   rfl
 
-lemma one_of_x0_is_1 (x : ℤ) (h : x = 0) : (HyperFun.components one) x = 1 := by
+lemma one_of_x0_is_1 (x : ℤ) (h : x = 0) : (HyperFin.components one) x = 1 := by
   rw [one_equiv_one']
   calc
     one'.components x = if x = 0 then 1 else 0 := by rfl
     _ = 1 := by simp [h]
 
-    -- (HyperFun.components one) x = if |x| > 0 then 0 else 1 := by rfl
+    -- (HyperFin.components one) x = if |x| > 0 then 0 else 1 := by rfl
 
-lemma one_of_x_is_zero (x : ℤ) (h : x ≠ 0) : (HyperFun.components one) x = 0 := by
+lemma one_of_x_is_zero (x : ℤ) (h : x ≠ 0) : (HyperFin.components one) x = 0 := by
   rw [one_equiv_one']
   calc
-    (HyperFun.components one') x = if x = 0 then 1 else 0 := by rfl
+    (HyperFin.components one') x = if x = 0 then 1 else 0 := by rfl
     _ = 0 := by simp [h]
 
 
@@ -525,27 +619,27 @@ lemma not_abs_x_gt_zero_means_x_zero2 (x : ℤ) : ¬(|x| > 0) ↔ x=0  := by
     exact lt_irrefl 0 h
   }
 
-  -- use one := { components := fun x => match x with | 0 => 1 | _ => 0, order := 0}
+  -- use one := fun x => match x with | 0 => 1 | _ => 0
   -- mul f g := {
   --     let order := f.order + g.order
   --     if x > order + order then 0
   --     else ∑ i < 2*order + 1, f.components (i - order) * g.components (x - i + order)
-lemma hyper_one_mul_one (f : HyperFun) : one * one = one := by
+lemma hyper_one_mul_one (f : HyperFin) : one * one = one := by
   ext x
   {
-    show (Mul.mul one one).components x = HyperFun.components 1 x
+    show (Mul.mul one one).components x = HyperFin.components 1 x
     let order := (one * 1).order
     have no_order : order = 0 := by rfl
-    -- show (one * 1).components x = if x > 0 then 0 else HyperFun.components 1 x
+    -- show (one * 1).components x = if x > 0 then 0 else HyperFin.components 1 x
     calc
       (one * 1).components x =
       if |x| > 0 then 0
-        else ∑ i < 2*order + 1, (HyperFun.components 1 (i - order)) * (HyperFun.components 1 (x - i + order)) := by rfl
+        else ∑ i < 2*order + 1, (HyperFin.components 1 (i - order)) * (HyperFin.components 1 (x - i + order)) := by rfl
       _ = if |x| > 0 then 0   else ∑ i < 2*order + 1, ((1:F*).components (i - order)) * ((1:F*).components  (x - i + order)) := by rfl
       _ = if |x| > 0 then 0   else ∑ i < 2*order + 1, ((1:F*).components (i - 0)) * ((1:F*).components  (x - i + 0)) := by rfl
-      _ = if |x| > 0 then 0   else ∑ i in Finset.range (2 * 0 + 1), HyperFun.components 1 (↑i - 0) * HyperFun.components 1 (x - ↑i + 0) := by rfl
-      _ = if |x| > 0 then 0   else ∑ i in Finset.range 1, HyperFun.components 1 (↑i) * HyperFun.components 1 (x - ↑i) := by simp
-      -- _ = if x > 0 then 0   else ∑ i < (2 * 0 + 1), HyperFun.components 1 (↑i - 0) * HyperFun.components 1 (x - ↑i + 0) := by rw [no_order]
+      _ = if |x| > 0 then 0   else ∑ i in Finset.range (2 * 0 + 1), HyperFin.components 1 (↑i - 0) * HyperFin.components 1 (x - ↑i + 0) := by rfl
+      _ = if |x| > 0 then 0   else ∑ i in Finset.range 1, HyperFin.components 1 (↑i) * HyperFin.components 1 (x - ↑i) := by simp
+      -- _ = if x > 0 then 0   else ∑ i < (2 * 0 + 1), HyperFin.components 1 (↑i - 0) * HyperFin.components 1 (x - ↑i + 0) := by rw [no_order]
       _ = if |x| > 0 then 0   else ((1:F*).components 0) * (1:F*).components x := by simp
       -- _ = if |x| > 0 then 0 else (1 : 𝔽*).components 0 * (1 : 𝔽*).components x := by simp [Finset.range, Finset.sum_singleton]
       _ = if h:|x| > 0 then 0 else (1 : 𝔽*).components 0 * (1 : 𝔽*).components 0 := by
@@ -563,23 +657,23 @@ lemma hyper_one_mul_one (f : HyperFun) : one * one = one := by
         --   rw [this]
         --   -- simp
         }
-      _ = if |x| > 0 then 0 else HyperFun.components 1 0 * HyperFun.components 1 0 := by rfl
+      _ = if |x| > 0 then 0 else HyperFin.components 1 0 * HyperFin.components 1 0 := by rfl
       _ = if |x| > 0 then 0 else 1 * 1 := by rw [one_of_0_is_1]
       _ = if |x| > 0 then 0 else 1 := by simp
-      _ = HyperFun.components 1 x := by rw [One.one]
+      _ = HyperFin.components 1 x := by rw [One.one]
    }
   {show (one * one).order = (1:𝔽*).order; rfl}
 
 
 
 
-lemma hyper_one_mulx (f : HyperFun) : 1 * f = f := by
+lemma hyper_one_mulx (f : HyperFin) : 1 * f = f := by
   ext x
   {
     show (1 * f).components x= f.components x
     calc
     (1 * f).components x = (one * f).components x:= by rfl
-    -- use one := { components := fun x => match x with | 0 => 1 | _ => 0, order := 1}
+    -- use one := fun x => match x with | 0 => 1 | _ => 0, order := 1}
   -- mul f g := {
   --     let order := f.order + g.order
   --     if x > order + order then 0
@@ -603,16 +697,16 @@ lemma hyper_one_mulx (f : HyperFun) : 1 * f = f := by
   -- {show 1 * f.components x = f.components x; rw [one_mul]; }
   -- {show 1 * f.order = f.order; rw [Nat.mul_one]; }
 
-lemma add_zero (f : HyperFun) : f + 0 = f := by
+lemma add_zero (f : HyperFin) : f + 0 = f := by
   ext
   {show f.components + 0.components = f.components; rw [List.add_zero]; }
   {show max f.order 0.order = f.order; rw [Nat.max_eq_left]; }
 
 
-lemma add_assoc (f g h : HyperFun) : (f + g) + h = f + (g + h) := by
+lemma add_assoc (f g h : HyperFin) : (f + g) + h = f + (g + h) := by
     ext
     -- simp [Add.add]
-    -- intro x -- ∀ (x : ℤ),  needed when using apply HyperFun.ext, but NOT with ext keyword!?
+    -- intro x -- ∀ (x : ℤ),  needed when using apply HyperFin.ext, but NOT with ext keyword!?
     {show
       (f.components + g.components) + h.components =
        f.components + (g.components + h.components); rw [add_assoc]; rfl}
@@ -625,8 +719,8 @@ lemma add_assoc (f g h : HyperFun) : (f + g) + h = f + (g + h) := by
 #eval 3²    -- 9
 #eval 4.0⁻²   -- 0 assuming 1/16 is rounded down to 0
 
-#eval (0:HyperFun)
-#eval (1:HyperFun)
+#eval (0:HyperFin)
+#eval (1:HyperFin)
 #eval ε
 #eval ε⁻¹
 #eval ε⁻²
@@ -654,20 +748,20 @@ lemma add_assoc (f g h : HyperFun) : (f + g) + h = f + (g + h) := by
 -- instance : BEq (ℤ → Rat) where
 --   beq f g := List.all (fun x => f x == g x) (List.range 201).map (fun x => x - 100)
 
-def boundedEq (f g : HyperFun) : Prop :=
+def boundedEq (f g : HyperFin) : Prop :=
   ∀ x : ℤ, |x| ≤ f.order → f.components x = g.components x
 
 
 -- Provide an instance of Decidable for boundedEq
-instance boundedEqDecidable (f g : HyperFun) : Decidable (boundedEq f g) :=
+instance boundedEqDecidable (f g : HyperFin) : Decidable (boundedEq f g) :=
   sorry
 
-instance : BEq HyperFun where
+instance : BEq HyperFin where
   beq f g := f.order = g.order && decide (boundedEq f g)
   --decide (∀ x : ℤ, |x| ≤ f.order → f.components x == g.components x)
 
 
-def maxNonZeroExponent (f : HyperFun) : ℤ :=
+def maxNonZeroExponent (f : HyperFin) : ℤ :=
   -- if f==zero then -1000 else
   let size : Nat := 2 * f.order + 1
   let offsets := List.range size
@@ -675,7 +769,7 @@ def maxNonZeroExponent (f : HyperFun) : ℤ :=
   let found := offsets.map (λ x => if f.components (x - f.order) ≠ 0 then x - f.order else -1000)
   found.maximum.get!
 
--- instance : LT HyperFun where
+-- instance : LT HyperFin where
 --   lt f g := maxNonZeroExponent f < maxNonZeroExponent g
 --   ∨ maxNonZeroExponent f = maxNonZeroExponent g ∧ f.components (maxNonZeroExponent f) < g.components (maxNonZeroExponent g)
 
@@ -690,25 +784,25 @@ def maxNonZeroExponent (f : HyperFun) : ℤ :=
 -- instance genericPairsDecidableRel: DecidableRel (LT.lt : T × S → T × S → Prop) := …
 
 
-def hyperFunToTuple (f : HyperFun) : ℤ × ℚ :=
+def hyperFinToTuple (f : HyperFin) : ℤ × ℚ :=
     (maxNonZeroExponent f, f.components (maxNonZeroExponent f))
 
-#eval hyperFunToTuple (1:HyperFun)
-#eval hyperFunToTuple (0:HyperFun)
-#eval hyperFunToTuple epsilon
+#eval hyperFinToTuple (1:HyperFin)
+#eval hyperFinToTuple (0:HyperFin)
+#eval hyperFinToTuple epsilon
 
-instance : LT HyperFun where
-  lt f g := hyperFunToTuple f < hyperFunToTuple g
+instance : LT HyperFin where
+  lt f g := hyperFinToTuple f < hyperFinToTuple g
 
 
--- Prove that the LT relation for HyperFun is equivalent to LT for ℤ × ℚ
-theorem hyperFun_lt_iff_tuple_lt (f g : HyperFun) :
-  f < g ↔ hyperFunToTuple f < hyperFunToTuple g := by sorry
+-- Prove that the LT relation for HyperFin is equivalent to LT for ℤ × ℚ
+theorem hyperFin_lt_iff_tuple_lt (f g : HyperFin) :
+  f < g ↔ hyperFinToTuple f < hyperFinToTuple g := by sorry
 
-instance : DecidableRel (LT.lt : HyperFun → HyperFun → Prop) :=
+instance : DecidableRel (LT.lt : HyperFin → HyperFin → Prop) :=
 fun f g =>
-  let fTuple := hyperFunToTuple f
-  let gTuple := hyperFunToTuple g
+  let fTuple := hyperFinToTuple f
+  let gTuple := hyperFinToTuple g
   have hDec : Decidable (fTuple < gTuple) := genericPairsDecidableRel fTuple gTuple
   match hDec with
   | isTrue hTuple =>
@@ -739,12 +833,12 @@ def hyperDerivative0 (f : 𝔽* → 𝔽* ) : 𝔽*  :=
 def hyperDerivative (f : 𝔽* → 𝔽* ) : 𝔽* → 𝔽*  :=
   fun x => f (x + ε) - f (x) / ε
 
-def hyperDerivativeOfConst (f : HyperFun) : HyperFun :=
+def hyperDerivativeOfConst (f : HyperFin) : HyperFin :=
 { components := fun x => f.components (x + 1) - f.components x, order := f.order - 1 }
 
 notation "∂" => hyperDerivative
 -- #eval ∂ Real.sin 0
 
 end HyperDerivatives
-end HyperFun
+end HyperFin
 end Hypers
