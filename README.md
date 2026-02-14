@@ -605,6 +605,8 @@ b + c is limited (possibly infinitesimal) H +ε  and H +bare unlimited
 
 n! = ∫tⁿ/eᵗ = Γ(n+1) = ∮1/τi·tⁿeᵗ
 
+see
+
 # [[Riemann]] conjecture
 
 # Gauge Theory

@@ -1,6 +1,6 @@
 -- import data.real.basic -- Import basic real number theory in LEAN 3
 import Mathlib.Data.Real.Basic -- Import basic real number theory in LEAN 4
-import Mathlib.Data.Real.Ereal -- ∞
+import Mathlib.Data.EReal.Basic -- ∞ (moved from Mathlib.Data.Real.Ereal)
 import Mathlib.Data.Real.Hyperreal -- defined as hyperfilter germ
 import Init.Data.Nat.Basic
 import Init.Prelude
@@ -50,7 +50,7 @@ structure HyperGeneral :=
 
 
 def getComponent (components : List ℝ) (index : ℕ) : Option ℝ :=
-  components.get? index
+  components[index]?
 -- infix:50 "!["  => λ (l : List ℝ) (i : ℕ) => getComponent l i
 -- postfix:50 "]"  => λ (i : ℕ) => i
 -- #eval [1, 2, 3] ![ 1 ] -- 2
@@ -70,24 +70,24 @@ notation "ℝ⋆" => Hyper  -- type \ R \ star <tab> for ℝ⋆
 
 
 
-instance : One Hyper where one := ⟨1, 0, 0, 0⟩
+instance : One Hyper where one := ⟨1, 0, 0, false⟩
 
 -- Zero.zero
-instance : Zero Hyper where zero := ⟨0, 0, 0, 0⟩
+instance : Zero Hyper where zero := ⟨0, 0, 0, false⟩
 
 
 -- def zero := Zero.zero -- Hyper := ⟨0, 0, 0⟩ -- Hyper.0
 -- def one : Hyper := ⟨1, 0, 0⟩
 -- def ε : Hyper := ⟨0, 1, 0⟩
 -- def ω : Hyper := ⟨0, 0, 1⟩
-def epsilon : Hyper := ⟨0, 1, 0, 0⟩
-def omega : Hyper := ⟨0, 0, 1, 0⟩
+def epsilon : Hyper := ⟨0, 1, 0, false⟩
+def omega : Hyper := ⟨0, 0, 1, false⟩
 
-def Infinity :    Hyper := ⟨0, 0, 1, 1⟩ -- ω² ≈ ∞
-def Infinisimal : Hyper := ⟨0, 1, 0, 1⟩ -- ε²
-def NotANumber :  Hyper := ⟨1, 0, 0, 1⟩ -- NaN
-def Minus_Infinity : Hyper := ⟨0, 0, -1, 1⟩ -- -ω² ≈ -∞
-def Negative_Infinity : Hyper := ⟨0, 0, -1, 1⟩ -- -ω² ≈ -∞
+def Infinity :    Hyper := ⟨0, 0, 1, true⟩ -- ω² ≈ ∞
+def Infinisimal : Hyper := ⟨0, 1, 0, true⟩ -- ε²
+def NotANumber :  Hyper := ⟨1, 0, 0, true⟩ -- NaN
+def Minus_Infinity : Hyper := ⟨0, 0, -1, true⟩ -- -ω² ≈ -∞
+def Negative_Infinity : Hyper := ⟨0, 0, -1, true⟩ -- -ω² ≈ -∞
 -- def NotANumber : Hyper := ⟨*, 0, 0, 1⟩ -- NaN -- including 0,0,0,1 !
 
 -- def Enfinisimal : Hyper := ⟨0, 1, 0, 1⟩ -- ε²
@@ -124,10 +124,10 @@ instance : Coe ℤ Prop where
 
 -- coercion from reals to hyperreals
 instance : Coe ℝ ℝ⋆ where
-  coe r := Hyper.mk r 0 0 0
+  coe r := Hyper.mk r 0 0 false
 
 instance : Coe ℤ ℝ⋆ where
-  coe r := Hyper.mk r 0 0 0
+  coe r := Hyper.mk r 0 0 false
 
 
 -- instance : Coe ℝ Bool where
@@ -138,7 +138,7 @@ instance : Coe ℤ ℝ⋆ where
   -- coe n := Nat.cast n --n.toReal
 instance : Coe ℕ ℝ⋆ where
   -- coe (n:ℕ) : Hyper := ⟨ (OfNat.ofNat Real n) 0 0 ⟩
-  coe (n:ℕ) : Hyper := ⟨ (n:ℝ), 0, 0, 0⟩
+  coe (n:ℕ) : Hyper := ⟨ (n:ℝ), 0, 0, false⟩
   -- coe (n:ℕ) : Hyper := ⟨ n, 0, 0 ⟩
   -- coe r := Hyper.mk (Real.ofNat r) 0 0
   -- coe r := Hyper.mk (r:ℝ) 0 0
@@ -239,7 +239,7 @@ instance : OfNat Hyper 1 where
   ofNat := One.one
 
 instance : OfNat Hyper x where
-  ofNat := Hyper.mk (x : ℝ) 0 0 0
+  ofNat := Hyper.mk (x : ℝ) 0 0 false
 
 
 -- Assuming we are working under specific conditions where equality is decidable,
@@ -773,7 +773,7 @@ instance : Field Hyper := {
   mul_zero:= hyper_mul_zero,
   add_assoc := hyper_add_assoc,
   add_zero := hyper_add_zero,
-  add_left_neg:= hyper_add_left_neg,
+  neg_add_cancel:= hyper_add_left_neg,
   add_comm:= hyper_add_comm,
   mul_assoc:= hyper_mul_assoc,
   mul_inv_cancel:= hyper_inv_cancel, -- violated by ϵ*ϵ=0 since ϵ=ϵ⋅ϵ⋅ϵ−1=0⋅ϵ−1=0 but ϵ≠0
@@ -816,12 +816,14 @@ lemma epsilon_times_omega_is_one : ε * ω = 1 := by
   { show 0 * 0 + 1 * 1 + 0 * 0 = 1; ring }
   { show 0 * 0 + 1 * 0 = 0; ring }
   { show 0 * 1 + 0 * 0 = 0; ring }
+  { rfl }
 
 lemma omega_times_epsilon_is_one : ω * ε  = 1 := by
   apply Hyper.ext
   { show 0 * 0 + 0 * 0 + 1 * 1  = 1; ring }
   { show 0 * 1 + 0 * 0 = 0; ring }
   { show 0 * 0 + 1 * 0 = 0; ring }
+  { rfl }
 
 -- this makes the 'field' NOT a ring under multiplication
 lemma epsilon_times_epsilon_is_ZERO : ε * ε = 0 := by
@@ -829,6 +831,7 @@ lemma epsilon_times_epsilon_is_ZERO : ε * ε = 0 := by
   { show 0 * 0 + 1 * 0 + 0 * 1  = 0; ring }
   { show 0 * 1 + 1 * 0 = 0; ring }
   { show 0 * 0 + 0 * 0 = 0; ring }
+  { rfl }
 
 
 lemma omega_times_omega_is_ZERO : ω * ω  = 0 := by
@@ -836,6 +839,7 @@ lemma omega_times_omega_is_ZERO : ω * ω  = 0 := by
   { show 0 * 0 + 0 * 1 + 1 * 0  = 0; ring }
   { show 0 * 0 + 0 * 0 = 0; ring }
   { show 0 * 1 + 1 * 0 = 0; ring }
+  { rfl }
 
 lemma product_zero_means_arg_is_zero (a b : Hyper) (h : a * b = 0) :  a = 0 ∨ b = 0 := by
   exact mul_eq_zero.mp h  -- USE EXISTING FIELD THEORY for our Hyper! 😺
