@@ -12,7 +12,7 @@ def INTEGRATION_TERMS : Nat := 10000
 -- Example: 3ω² + 1 + 2ε = [(3.0, 2.0), (1.0, 0.0), (2.0, -1.0)]
 structure Hyper where
   terms : List (Float × Float)
-  deriving Repr
+  deriving Repr, BEq
 
 -- Basic constants
 def zero : Hyper := ⟨[]⟩
@@ -137,6 +137,13 @@ instance : HPow Hyper Int Hyper where
 
 instance : HPow Hyper Nat Hyper where
   hPow x n := ipow x (Int.ofNat n)
+
+-- Equality
+instance : BEq Hyper where
+  beq x y := simplify x == simplify y
+
+def Hyper.eq (x y : Hyper) : Bool :=
+  simplify x == simplify y
 
 -- Exponential function: exp(x) = Σ xⁿ/n!
 partial def exp (h : Hyper) : Hyper :=

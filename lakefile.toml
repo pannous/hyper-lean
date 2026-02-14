@@ -12,6 +12,8 @@ roots = ["Hyper"]
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
+git = "https://github.com/leanprover-community/mathlib4"
+rev = "stable"
 
 [[lean_lib]]
 name = "Hyper"
