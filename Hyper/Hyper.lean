@@ -217,8 +217,8 @@ instance : Repr Hyper where
   reprPrec h := λ n => Std.Format.text s!"⟨{h.real_part}, {h.epsilon_part}, {h.infinite_part}, {h.exceptional}⟩"
   -- reprPrec h := λ n => Std.Format.bracket "⟨" (repr h.real_part ++ ", " ++ repr h.epsilon_part ++ ", " ++ repr h.infinite_part ) "⟩"
 
-#eval Hyper.mk 1 2 3 0
-#eval Hyper.mk 1 2 3 0 + Hyper.mk 1 2 3 0
+#eval Hyper.mk 1 2 3 false
+#eval Hyper.mk 1 2 3 false + Hyper.mk 1 2 3 false
 -- #eval Hyper.mk 1 2 3 0 * Hyper.mk 1 2 3 0
 
 
@@ -626,9 +626,9 @@ lemma exists_pair_ne : ∃ (a b : Hyper), a ≠ b := by
     intro h
     have h1 : (0:Hyper).real_part = (1:Hyper).real_part := by
       rw [h]
-    simp [Zero.zero, One.one] at h1
-    have : 0 = 1 := h1
-    exact absurd this (ne_of_lt (by norm_num)) -- (by decide)
+    show False
+    have : (0:ℝ) = (1:ℝ) := h1
+    exact absurd this (ne_of_lt (by norm_num))
   exact h
 
 -- THIS CANNOT BE DONE currently because of the complicated way the inverse is defined
@@ -740,14 +740,10 @@ lemma hyper_right_distrib (a b c : Hyper) : (a + b) * c = a * c + b * c := by
 lemma zero_ne_one (h : (0:Hyper) = 1) : False := by
   have h1 : (0:Hyper).real_part = (1:Hyper).real_part := by
     rw [h]
-  simp [Zero.zero, One.one] at h1
-  -- The above simplification leads to 0 = 1 in real numbers, which is a contradiction
-  -- rw [hyper_real_part_zero_is_zero, hyper_real_part_one_is_one] at h1
-  -- contradiction
-  have : 0 = 1 := h1
-  -- have : (0:ℝ) = (1:ℝ) := h1
+  show False
+  have : (0:ℝ) = (1:ℝ) := h1
   -- This is a clear contradiction as 0.0 ≠ 1.0
-  exact absurd this (ne_of_lt (by norm_num)) -- (by decide)
+  exact absurd this (ne_of_lt (by norm_num))
 
 -- axiom AxiomName : Type -> Prop
 -- axiom hyperfield : Field Hyper
@@ -785,6 +781,13 @@ instance : Field Hyper := {
   nsmul:= HSMul.hSMul,
   qsmul:= HSMul.hSMul,
   nnqsmul:= HSMul.hSMul, -- (· • ·)
+  nsmul_zero := sorry,
+  nsmul_succ := sorry,
+  zsmul_zero' := sorry,
+  zsmul_succ' := sorry,
+  zsmul_neg' := sorry,
+  nnqsmul_def := sorry,
+  qsmul_def := sorry,
   exists_pair_ne:=⟨ 0 , 1 , zero_ne_one ⟩,
 }
   /--
