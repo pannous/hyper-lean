@@ -150,14 +150,10 @@ instance : Field R* := {
     rfl,
   add_zero := by
     intros a
-    have h: (0:R*) = ⟨ [] ⟩ := sorry
-    have h1: a.components ++ [] = a.components := List.append_nil a.components
-    rw [h, h1]
-    rfl
+    sorry
   add_comm := by
     intros a b
-    rw [List.append_comm]
-    rfl,
+    sorry,
   -- add_left_neg := by
   --   intros a
   --   simp only [List.map_map]
@@ -165,28 +161,22 @@ instance : Field R* := {
   --   sorry,
   mul_assoc := by
     intros a b c
-    rw [List.product_assoc]
-    rfl,
+    sorry,
   one_mul := by
     intros a
-    rw [List.product_one_left]
-    rfl,
+    sorry,
   mul_one := by
     intros a
-    rw [List.product_one_right]
-    rfl,
+    sorry,
   left_distrib := by
     intros a b c
-    simp only [List.product_distrib_left]
-    rfl,
+    sorry,
   right_distrib := by
     intros a b c
-    simp only [List.product_distrib_right]
-    rfl,
+    sorry,
   mul_comm := by
     intros a b
-    rw [List.product_comm]
-    rfl,
+    sorry,
   mul_inv_cancel := by
     intros a ha
     -- Need to define a simplification that cancels inverses in our structure.
