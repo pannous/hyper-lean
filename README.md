@@ -232,18 +232,21 @@ In particular, for every nonstandard n, the reciprocal n1 is a strictly positive
 # integral ε = 1 or 2:
 ∫ε = 2/1 # that is:    
 ∫(0,ω)(ε)  = 1   # ω ∗ ε = 1  
-∫(-ω,ω)(ε) = 2/1 # infinite line AND/OR    
-∫(-∞,∞)(ε) = ƒ   # -''-  can't be because 2ω=ω+ω and linear ∫  
-∫(-ε,ε)(ω) = 2/1 # spike    
+∫(-ω,ω)(ε) = 2/1 # infinite line 
+<!-- ∫(-∞,∞)(ε) = 2?  # can't be because 2ω=ω+ω and linear ∫  ? -->
+∫(-ε,ε)(ω) = 2/1 # spike vs heaviside step H below     
 ∫(0,ε)(ω) =    1 # =› dirac delta δ  
 ∫1 = ω over ℝ for interval (-∞,∞)     
-∫1 = √ω for interval [0,1] ?    
+∫1 = 1 for interval [0,1] 
+
+What is that 2/1? It's just 2 but hinting at future probabilistic spaces where the integral over the 'whole space' should be 'sum to 1' => ∫ε = 1 (over Ω for later defined sigma algebras)
 
 Similar to π vs τ we have ∫1 = 2ω over (-∞,∞) vs (0,∞) =› ω   
 Similar to π vs τ we have ∫ε = 2  over (-∞,∞) vs (0,∞) =› 1  
 We use ⨍ or ƒ as integral over positives ∫(0,∞) as opposed to finite part integral  
 ƒ1 = ω    
 ∫1 = 2ω  
+
 
 ⚠️ εᵚ for each σ-algebra Ω such that ∫εᵚ=1 over uncountable Ω and ∑εᵚ=1 for countables  
 ⚠️ If the context is clear we emit εᵚ and just write ε  
@@ -312,7 +315,7 @@ Definition without variable 𝑖
 
 Unit Omega   # treat it externally! give automatic arithmetics see Unitful in Julia    
 Unit Epsilon # treat it externally too?    
-# 1 km + 1 s DimensionError ill defined but 1 + ε exactly what we want
+1 km + 1 s DimensionError ill defined but 1 + ε exactly what we want
 
 class HyperReal is Number {    
 	# class ℝ⋆     
