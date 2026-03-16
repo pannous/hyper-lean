@@ -10,7 +10,7 @@ diff ~/Documents/notes/hyperreals.md ~/dev/script/lean4/hyper/Readme.md
 ⚠️ if not in sync, re-link hard:  
 ln ~/Documents/notes/hyperreals.md ~/dev/apps/wasp/wiki/hyperreals.md   
 ln ~/Documents/notes/hyperreals.md ~/dev/script/lean4/hyper/Readme.md   
- --›  
+ -->
 
  Today Kids in school learn to pragmatically use the special 'imaginary' number i. Hopefully soon they will learn to use the 'quant' ε similarly.  
 
@@ -25,13 +25,13 @@ The simple set of axioms for the hyperreal number system given here (and in Elem
 Also for us ε is not an arbitrary infinitesimally small number but a fixed chosen one, similar to i:  
 
 The canonical infinitesimal ε has the property of being bigger than 0 and smaller than all positive standard numbers:    
-0 ‹ ε ‹ r ∀r∊ℝ⁺    
+0 < ε < r ∀r∊ℝ⁺    
 
 Any infinitesimal a∗ε has the property of being bigger than 0 and smaller than all positive standard numbers:    
-0 ‹ a∗ε ‹ r ∀a,r∊ℝ⁺  
+0 < a∗ε < r ∀a,r∊ℝ⁺  
 
 The canonical infinite ω has the property of being bigger than all standard numbers:    
-r ‹ ω   ∀r∊ℝ    
+r < ω   ∀r∊ℝ    
 
 These two symbols can be linked via canonical gauging:    
 
@@ -55,9 +55,9 @@ We are mostly interested in applicative usage of Hyperreal numbers, defined axio
 ℝ⋆ ≅ vectorial-span(1,ε,ω,ε²,ω²,…)   # 1/ε not needed because ω=1/ε  
 
 Definition 1.1. An element x∊R∗ is  
-• finite if |x| ‹ r for some real r  
+• finite if |x| < r for some real r  
 • infinite if |x|›r for all real r  
-• infinitesimal if |x| ‹ r for all positive real r  
+• infinitesimal if |x| < r for all positive real r  
 
 Notice that a positive infinitesimal is hyperreal but not real, and that the  
 only real infinitesimal is 0.  
@@ -65,7 +65,7 @@ only real infinitesimal is 0.
 𝕀 infinitesimal small nonstandard numbers 《ε》 span including ε∗ε … order -∞ or 1/∞     
 𝕀⁻¹ infinitesimal small nonstandard numbers ℝ·ε = {a∗ε a∊ℝ} outer span order -1      
 𝕀⁻² infinitesimal small nonstandard numbers ℝ·ε² = {a∗ε² a∊ℝ} outer span order -2    
-𝔽 finite standard ℝ and nonstandard ℝ+𝕀 numbers ‹ℝ,ε›  {x: |x| ‹ r for some r in ℝ}    
+𝔽 finite standard ℝ and nonstandard ℝ+𝕀 numbers ‹ℝ,ε›  {x: |x| < r for some r in ℝ}    
 	𝕐 unlimited infinite nonstandard numbers 《ω》 order ∞     
 𝕐¹ unlimited infinite nonstandard numbers ℝ·ω = {a∗ω a∊ℝ} order 1    
 𝕐² unlimited infinite nonstandard numbers ℝ·ω² = {a ∗ ω² a∊ℝ} order 2  
@@ -89,7 +89,7 @@ https://en.wikipedia.org/wiki/Dual_number
 
 This simplification yields "Smooth infinitesimal analysis". Terence Tao has referred to this concept under the name "cheap nonstandard analysis. “Calculus Made Easy” is a book on infinitesimal calculus originally published in 1910 which is now fully vindicated!  
 
-⚠️ since we have 1/ε = ω and 0 ‹ ε ‹ R  our theory slightly diverges from Dual numbers,   
+⚠️ since we have 1/ε = ω and 0 < ε < R  our theory slightly diverges from Dual numbers,   
 instead may call them Dial numbers 𝔻 and adding i² = -1 iDial numbers 𝕀𝔻.  
 
 These "Dial numbers" do need an extra field in the class definition,   
@@ -118,8 +118,8 @@ for easier typing these classes can be written as ‹I› ‹‹I›› ‹Y› 
 
 ## ωⁿ
 
-ωⁿ › r∗ω for r in ℝ, n›1    
-εⁿ ‹ r∗ε for r in ℝ⁺ n›1  
+ωⁿ > r∗ω for r in ℝ, n›1    
+εⁿ < r∗ε for r in ℝ⁺ n›1  
 
 Unlike the constructive definition of ⋆ℝ (as sequence classes) we would like to differentiate between different orders:    
 ℝ order 0    
@@ -151,7 +151,7 @@ Equivalently it's the span of all infinitesimals around x
 halo(x) = x+𝕀 = {x + a ∗ ε for a in ℝ}    
 halo(x) = x+𝕀 = {x + e for e in 𝕀}    
 
-ε-disc(x) ‹ halo(x)  
+ε-disc(x) < halo(x)  
 
 # real part
 Similar to complex numbers we are often just interested in the real part of hyperreal numbers.    
@@ -192,7 +192,7 @@ The real/standard function is order-preserving though not isotonic; i.e.
 x ⫹ y    
 x ≦ y     
 x ≤ y =› st(x) ≤ st(y) but    
-x ‹ y ≠› st(x) ‹ st(y)     
+x < y ≠› st(x) < st(y)     
 st(x+y)=st(x)+st(y) if x,y finite    
 st(x∗y)=st(x)∗st(y)    
 st(1/x)=1/st(x) if x finite and not infinitesimal    
@@ -206,9 +206,9 @@ x ⪞ y see ⩺ or ⥸
 
 
 
-Any real number x which satisfies |x| ‹ k for some standard k is called limited |x| ‹‹ ∞ and     
+Any real number x which satisfies |x| < k for some standard k is called limited |x| ‹‹ ∞ and     
 any real number which is not limited is called unlimited.     
-Any real number x which satisfies |x| ‹ 1/k for all standard k ≠ 0 is called infinitesimal (denoted x ≂ 0)    
+Any real number x which satisfies |x| < 1/k for all standard k ≠ 0 is called infinitesimal (denoted x ≂ 0)    
 In particular, for every nonstandard n, the reciprocal n1 is a strictly positive infinitesimal. Given x; y 2 R, we write:    
 • x ≂ y ‹=› x - y is infinitesimal or 0    
 	• x ≈ y ‹=› x - y is infinitesimal (but not 0?)    
@@ -217,8 +217,8 @@ In particular, for every nonstandard n, the reciprocal n1 is a strictly positive
 •	x ≂̸ y     
 •	x ≇ y    
 •	x « y "usually much bigger, here: more than infinitesimally bigger"    
-• x ‹‹ y ‹=› x ‹ y and x ≄ y    
-	• x ⪝ y ‹=› x ‹ y or x ~ y    
+• x ‹‹ y ‹=› x < y and x ≄ y    
+	• x ⪝ y ‹=› x < y or x ~ y    
 	⩯ ⩮ ⩦ ⥱ ⥵ ⩰ ⩱ ⩲ ⩳    
 
 
@@ -340,12 +340,12 @@ class HyperReal is Number {
 	    a.omega==b.omega     
 
 	𝑎›𝑏 :=     
-	    a.omega==b.omega==0 and a.real==b.real==0 and a.epsilon › b.epsilon or    
+	    a.omega==b.omega==0 and a.real==b.real==0 and a.epsilon > b.epsilon or    
 	    a.omega==b.omega==0 and a.real›b.real or    
 	    a.omega›b.omega     
 
 	𝑎‹𝑏 :=     
-	    a.omega==b.omega==0 and a.real==b.real==0 and a.epsilon › b.epsilon or    
+	    a.omega==b.omega==0 and a.real==b.real==0 and a.epsilon > b.epsilon or    
 	    a.omega==b.omega==0 and a.real›b.real or    
 	    a.omega›b.omega     
 
@@ -363,8 +363,8 @@ simplify(hyper y) =
 
 
 		standard(hyper y) =     
-	if y.omega › 0 : +∞     
-	elif y.omega ‹ 0 : -∞     
+	if y.omega > 0 : +∞     
+	elif y.omega < 0 : -∞     
 	else : y.real  # ignore epsilon   
 	# todo: add ε ω as two special values / flags in wasp number representation f64 see Inf, NaN …  
 
@@ -664,7 +664,7 @@ isfies the axioms.
 galaxy(x) = {y∈R∗ : x−y is finite}  
 galaxy(x) == {x+y, where y is finite}  
 galaxy(0) = 𝔽 = "The Finites"  
-Theorem 1.3. galaxy(0) = 𝔽 is subring of R∗  (|x+y| ‹ r+s, |x−y| ‹ r+s, |xy| ‹ rs)  
+Theorem 1.3. galaxy(0) = 𝔽 is subring of R∗  (|x+y| < r+s, |x−y| < r+s, |xy| < rs)  
 Corollary 1.4. Any two galaxies are either equal or disjoint.  
 
 monad(0)=halo(0) = {y∈R∗ : x−y is infinitesimal}  
@@ -676,8 +676,8 @@ b) 𝕀 is an ideal in 𝔽 = ℝ+𝕀 :  ε ∗ r in monad(0) for r in ℝ
 (b) The product of an infinitesimal and a finite element is infinitesimal.  
 
 Proof  
-Let b be finite, say |b| ‹ t, 1≤t∈R. Then for any positive real r we have  
-|ε| ‹ r/t,|εb| ‹ (r/t)t= r. Therefore εb is infinitesimal  
+Let b be finite, say |b| < t, 1≤t∈R. Then for any positive real r we have  
+|ε| < r/t,|εb| < (r/t)t= r. Therefore εb is infinitesimal  
 
 Corollary 1.6. Any two monads are equal or disjoint.  
 The relation x≈y is an equivalence relation on R∗  
@@ -814,8 +814,8 @@ S∗(dx) = ∑ f(x) dx as extension to partition of [a,b]
 S(△x) = ∑f(x)△x = f(x0=a)△x+ f(a+△x)△x+···+ f(a+△x·(n−1))△x+ f(xn)(b−xn) wlog evenly  
 ∫f(x) dx = st ( ∑ f(x) dx )  for dx in Hyperreals  
 Looks like cheating because S(△x) has hidden variable n depending on △x BUT  
-Since the finite Riemann sum is defined for all real △x › 0,  
-the infinite Riemann sum is defined for all hyperreal dx › 0.  
+Since the finite Riemann sum is defined for all real △x > 0,  
+the infinite Riemann sum is defined for all hyperreal dx > 0.  
 
 ∫f := ∑f(.)ε wlog (Theorem 4.7)  set of all antiderivatives of f "indefinite integral"  
 ⚠️ ε is not purely a 'multiplier' as it appears in f(nε) thus ∫fε=∫x,2ε !!! ⚠️  
