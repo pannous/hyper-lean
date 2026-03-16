@@ -18,6 +18,7 @@ section HyperGenerals
 
 -- Avoid Real Numbers When Possible:
 -- If the use of real numbers introduces complexity due to issues like non-decidability of equality, consider if your application can tolerate using rational numbers or fixed-point arithmetic, which do not have these issues in Lean.
+-- notation "𝔽" => Float -- our field, true alias
 notation "𝔽" => ℚ -- our field, true alias
 -- def 𝔽 := ℚ -- treats it as own Type!!
 -- variable {𝔽 : Type*} [field 𝔽] -- “Let 𝔽 be a field.”
@@ -113,13 +114,13 @@ instance : SMul ℤ R* where
   smul n x := ⟨x.components.map (λ ⟨r, e⟩ => (n * r, e))⟩
 
 #eval  ω * ε -- [(1, 0)] OK
-#eval  2*ω * ε -- [(1, 0)] OK
+#eval  2*ω * ε -- [(2, 0)] OK
 
 -- 1 + 2ω + 1 + 2ω  ≈ ([1,0],[2,1],[1,0],[2,1]]) => ([2,0],[4,1)) ≈ 2 + 4ω
 def simplify (a:R*) : R* :=
   ⟨a.components.foldl (λ acc x => acc ++ [x]) []⟩
 
-#eval simplify (1:𝔽*) + ω + 1 + ε -- 2 + 4ω
+#eval simplify (1:𝔽*) + ω + 1 + 1/ε -- 2 + 4ω
 -- #eval simplify (1:𝔽*) + 2*ω + 1 + 2*ω -- 2 + 4ω
 
 instance : Field R* := {

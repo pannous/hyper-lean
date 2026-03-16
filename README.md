@@ -11,6 +11,8 @@ diff ~/Documents/notes/hyperreals.md ~/dev/script/lean4/hyper/Readme.md
 ln ~/Documents/notes/hyperreals.md ~/dev/apps/wasp/wiki/hyperreals.md 
 ln ~/Documents/notes/hyperreals.md ~/dev/script/lean4/hyper/Readme.md 
  -->
+
+Today Kids in school learn to pragmatically use the special 'imaginary' number i. Hopefully soon they will learn to use the 'quant' ε similarly.
   
 In mathematics, the system of hyperreal numbers is a way of treating infinite and infinitesimal (infinitely small but non-zero) quantities. The hyperreals, or nonstandard reals ℝ⋆ are an extension of the real numbers ℝ with algebraic spanning elements ω ≈ ∞ and ε ≈ 1/∞.  
 
