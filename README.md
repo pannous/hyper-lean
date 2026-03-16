@@ -41,8 +41,11 @@ These two symbols can be linked via canonical gauging:
 1/0 = ∞  # not ω!    
 ω/∞ =〚1〛?
 
-⚠️ r ∗ ω ≠ ω for 1≠r in ℝ ;unlike classical infinity notation where ∞=r·∞ ∀r>0 in ℝ  
 In fact ∞ is not a number but may be the equivalence class ∞=〚ω〛 or ∞=〚ωᵚ〛wrt '≈' see below
+
+Have you ever been bothered that "infinity plus one equals infinity"? This is no longer the case for Hyper Reals:
+
+⚠️ r ∗ ω ≠ ω for 1≠r in ℝ ;unlike classical infinity notation where ∞=r·∞ ∀r>0 in ℝ  
 
 We are mostly interested in applicative usage of Hyperreal numbers, defined axiomatically similar to the simple field extension of ℂ=ℝ(ⅈ)=ℝ+ⅈℝ or Dedekind–Peano axioms for Natural numbers.  
   
