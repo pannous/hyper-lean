@@ -10,7 +10,7 @@ diff ~/Documents/notes/hyperreals.md ~/dev/script/lean4/hyper/Readme.md
 ⚠️ if not in sync, re-link hard:  
 ln ~/Documents/notes/hyperreals.md ~/dev/apps/wasp/wiki/hyperreals.md   
 ln ~/Documents/notes/hyperreals.md ~/dev/script/lean4/hyper/Readme.md   
- -->  
+ --›  
 
  Today Kids in school learn to pragmatically use the special 'imaginary' number i. Hopefully soon they will learn to use the 'quant' ε similarly.  
 
@@ -20,18 +20,18 @@ In 1960 Abraham Robinson (1918–1974) solved the three hundred year old problem
 
 The simple set of axioms for the hyperreal number system given here (and in Elementary Calculus) make it possible to present infinitesimal calculus at the college freshman level, avoiding concepts from mathematical logic. (It is shown in Chapter 15 of [hkeisler] that these axioms are equivalent to Robinson’s approach.)  
 
-(The following axioms are slightly different to Keislers, in that R∗ being an ordered field extension of R follows from the basic axioms: R∗ with the relation <∗ and the functions +,−,·,⁻¹ is an extension of R which satisfies the Trichotomy Law. (Proposition 1.18 in HKeisler))  
+(The following axioms are slightly different to Keislers, in that R∗ being an ordered field extension of R follows from the basic axioms: R∗ with the relation ‹∗ and the functions +,−,·,⁻¹ is an extension of R which satisfies the Trichotomy Law. (Proposition 1.18 in HKeisler))  
 
 Also for us ε is not an arbitrary infinitesimally small number but a fixed chosen one, similar to i:  
 
 The canonical infinitesimal ε has the property of being bigger than 0 and smaller than all positive standard numbers:    
-0 < ε < r ∀r∊ℝ⁺    
+0 ‹ ε ‹ r ∀r∊ℝ⁺    
 
 Any infinitesimal a∗ε has the property of being bigger than 0 and smaller than all positive standard numbers:    
-0 < a∗ε < r ∀a,r∊ℝ⁺  
+0 ‹ a∗ε ‹ r ∀a,r∊ℝ⁺  
 
 The canonical infinite ω has the property of being bigger than all standard numbers:    
-r < ω   ∀r∊ℝ    
+r ‹ ω   ∀r∊ℝ    
 
 These two symbols can be linked via canonical gauging:    
 
@@ -45,7 +45,7 @@ In fact ∞ is not a number but may be the equivalence class ∞=〚ω〛 or ∞
 
 Have you ever been bothered that "infinity plus one equals infinity"? This is no longer the case for Hyper Reals:  
 
-⚠️ r ∗ ω ≠ ω for 1≠r in ℝ ;unlike classical infinity notation where ∞=r·∞ ∀r>0 in ℝ    
+⚠️ r ∗ ω ≠ ω for 1≠r in ℝ ;unlike classical infinity notation where ∞=r·∞ ∀r›0 in ℝ    
 
 We are mostly interested in applicative usage of Hyperreal numbers, defined axiomatically similar to the simple field extension of ℂ=ℝ(ⅈ)=ℝ+ⅈℝ or Dedekind–Peano axioms for Natural numbers.    
 
@@ -55,9 +55,9 @@ We are mostly interested in applicative usage of Hyperreal numbers, defined axio
 ℝ⋆ ≅ vectorial-span(1,ε,ω,ε²,ω²,…)   # 1/ε not needed because ω=1/ε  
 
 Definition 1.1. An element x∊R∗ is  
-• finite if |x| < r for some real r  
-• infinite if |x|>r for all real r  
-• infinitesimal if |x| < r for all positive real r  
+• finite if |x| ‹ r for some real r  
+• infinite if |x|›r for all real r  
+• infinitesimal if |x| ‹ r for all positive real r  
 
 Notice that a positive infinitesimal is hyperreal but not real, and that the  
 only real infinitesimal is 0.  
@@ -65,7 +65,7 @@ only real infinitesimal is 0.
 𝕀 infinitesimal small nonstandard numbers 《ε》 span including ε∗ε … order -∞ or 1/∞     
 𝕀⁻¹ infinitesimal small nonstandard numbers ℝ·ε = {a∗ε a∊ℝ} outer span order -1      
 𝕀⁻² infinitesimal small nonstandard numbers ℝ·ε² = {a∗ε² a∊ℝ} outer span order -2    
-𝔽 finite standard ℝ and nonstandard ℝ+𝕀 numbers <ℝ,ε>  {x: |x| < r for some r in ℝ}    
+𝔽 finite standard ℝ and nonstandard ℝ+𝕀 numbers ‹ℝ,ε›  {x: |x| ‹ r for some r in ℝ}    
 	𝕐 unlimited infinite nonstandard numbers 《ω》 order ∞     
 𝕐¹ unlimited infinite nonstandard numbers ℝ·ω = {a∗ω a∊ℝ} order 1    
 𝕐² unlimited infinite nonstandard numbers ℝ·ω² = {a ∗ ω² a∊ℝ} order 2  
@@ -89,7 +89,7 @@ https://en.wikipedia.org/wiki/Dual_number
 
 This simplification yields "Smooth infinitesimal analysis". Terence Tao has referred to this concept under the name "cheap nonstandard analysis. “Calculus Made Easy” is a book on infinitesimal calculus originally published in 1910 which is now fully vindicated!  
 
-⚠️ since we have 1/ε = ω and 0 < ε < R  our theory slightly diverges from Dual numbers,   
+⚠️ since we have 1/ε = ω and 0 ‹ ε ‹ R  our theory slightly diverges from Dual numbers,   
 instead may call them Dial numbers 𝔻 and adding i² = -1 iDial numbers 𝕀𝔻.  
 
 These "Dial numbers" do need an extra field in the class definition,   
@@ -110,22 +110,22 @@ https://en.wikipedia.org/wiki/Grassmann_number
 The fermionic direction earns this name from the fact that fermions obey the Pauli exclusion principle: under the exchange of coordinates, the quantum mechanical wave function changes sign, and thus vanishes if two coordinates are brought together; this physical idea is captured by the algebraic relation ε² = 0  
 
 # Todo standardize notation
-for easier typing these classes can be written as <I> <<I>> <Y> <<Y>> …    
-	Elements of 𝕀=<ε> are often denoted as δ    
-	Elements of 𝕐=<ω> re often denoted as H, K    
+for easier typing these classes can be written as ‹I› ‹‹I›› ‹Y› ‹‹Y›› …    
+	Elements of 𝕀=‹ε› are often denoted as δ    
+	Elements of 𝕐=‹ω› re often denoted as H, K    
 
 		# Orders  
 
 ## ωⁿ
 
-ωⁿ > r∗ω for r in ℝ, n>1    
-εⁿ < r∗ε for r in ℝ⁺ n>1  
+ωⁿ › r∗ω for r in ℝ, n›1    
+εⁿ ‹ r∗ε for r in ℝ⁺ n›1  
 
 Unlike the constructive definition of ⋆ℝ (as sequence classes) we would like to differentiate between different orders:    
 ℝ order 0    
 
-𝕁 = <ω>ℝ = {a∗ω a∊ℝ} order 1 infinites  
-	𝕀 = <ε>ℝ = {a∗ε a∊ℝ} order -1 infinitesimals  
+𝕁 = ‹ω›ℝ = {a∗ω a∊ℝ} order 1 infinites  
+	𝕀 = ‹ε›ℝ = {a∗ε a∊ℝ} order -1 infinitesimals  
 
 	Generalisations or alternative constructions of Hyperreal numbers can be found in    
 https://en.wikipedia.org/wiki/Hyperreal_number    
@@ -137,12 +137,12 @@ In fact if we were forced to 'anchor' our axioms with concrete constructions, we
 
 # approximates
 We have a canonical similarity operator ≈ as:  
-x≈ε <=> x=a·ε for some a in ℝ⁺      
-	x≈0 <=> x=0 or x≈±ε      
-	x≈y <=> x-y≈0      
+x≈ε ‹=› x=a·ε for some a in ℝ⁺      
+	x≈0 ‹=› x=0 or x≈±ε      
+	x≈y ‹=› x-y≈0      
 
-	⚠️ one MAY define '~' so that x~ε => x~0 !    
-⚠️ some authors define ~ very differently as x~y <> x-y limited "of the same order"    
+	⚠️ one MAY define '~' so that x~ε =› x~0 !    
+⚠️ some authors define ~ very differently as x~y ‹› x-y limited "of the same order"    
 
 # dot ≈ halo ≈ monad
 The dot / halo around a point x is the set of all nonstandard numbers near x    
@@ -151,7 +151,7 @@ Equivalently it's the span of all infinitesimals around x
 halo(x) = x+𝕀 = {x + a ∗ ε for a in ℝ}    
 halo(x) = x+𝕀 = {x + e for e in 𝕀}    
 
-ε-disc(x) < halo(x)  
+ε-disc(x) ‹ halo(x)  
 
 # real part
 Similar to complex numbers we are often just interested in the real part of hyperreal numbers.    
@@ -165,14 +165,14 @@ Infinite part 	as Inf(x) or Omega(x) or x.omega ω(x)
 Infinitesimal   as Eps(x) or x.epsilon or ε(x) not to confused with ε·x    
 
 For finite hyperreals we can define the "standard part" function which is identical to the real part:    
-x=a+∑bᶥεᶥ a,b in ℝ => st(x)=a    
+x=a+∑bᶥεᶥ a,b in ℝ =› st(x)=a    
 
 The set of all hyperreal numbers with standard part x, "close to x" is called monad, or halo of x.    
 
 Instead of leaving st(ω) undefined, we set    
 st(ω) = ∞  thus    
-st(x) = ∞  if Omega(x)>0    
-st(x) = -∞ if Omega(x)<0    
+st(x) = ∞  if Omega(x)›0    
+st(x) = -∞ if Omega(x)‹0    
 
 Here real(x) ≠ st(x) !    
 
@@ -182,7 +182,7 @@ x = x̌ + ω(x) + ε(x)
 In some implementations one may set ε(x)=0 if ω(x)≠0 that is infinite parts make infinitesimal parts insignificant    
 But in some scenarios it may be beneficial to keep track of ε parts even if the expression "blows up".    
 
-x∊ℝ⋆ is called real if Real(x)=x <=> Omega(x)=0 and Epsilon(x)=0    
+x∊ℝ⋆ is called real if Real(x)=x ‹=› Omega(x)=0 and Epsilon(x)=0    
 	x∊ℝ⋆ is called finite if Omega(x)=0    
 x∊ℝ⋆ is called infinitesimal if Omega(x)=0 and Real(x)=0 ('truely' if Epsilon(x)≠0)    
 x∊ℝ⋆ is called hyperinteger if Real(x)∊ℤ ('truely' if Real(x)≠x otherwise just integer within ℝ⋆)    
@@ -191,8 +191,8 @@ x∊ℝ⋆ is called hyperinteger if Real(x)∊ℤ ('truely' if Real(x)≠x othe
 The real/standard function is order-preserving though not isotonic; i.e.     
 x ⫹ y    
 x ≦ y     
-x ≤ y => st(x) ≤ st(y) but    
-x < y ≠> st(x) < st(y)     
+x ≤ y =› st(x) ≤ st(y) but    
+x ‹ y ≠› st(x) ‹ st(y)     
 st(x+y)=st(x)+st(y) if x,y finite    
 st(x∗y)=st(x)∗st(y)    
 st(1/x)=1/st(x) if x finite and not infinitesimal    
@@ -206,19 +206,19 @@ x ⪞ y see ⩺ or ⥸
 
 
 
-Any real number x which satisfies |x| < k for some standard k is called limited |x| << ∞ and     
+Any real number x which satisfies |x| ‹ k for some standard k is called limited |x| ‹‹ ∞ and     
 any real number which is not limited is called unlimited.     
-Any real number x which satisfies |x| < 1/k for all standard k ≠ 0 is called infinitesimal (denoted x ≂ 0)    
+Any real number x which satisfies |x| ‹ 1/k for all standard k ≠ 0 is called infinitesimal (denoted x ≂ 0)    
 In particular, for every nonstandard n, the reciprocal n1 is a strictly positive infinitesimal. Given x; y 2 R, we write:    
-• x ≂ y <=> x - y is infinitesimal or 0    
-	• x ≈ y <=> x - y is infinitesimal (but not 0?)    
+• x ≂ y ‹=› x - y is infinitesimal or 0    
+	• x ≈ y ‹=› x - y is infinitesimal (but not 0?)    
 	• x ~ y proportionality x ∝ y !    
 •	x ≄ y     
 •	x ≂̸ y     
 •	x ≇ y    
 •	x « y "usually much bigger, here: more than infinitesimally bigger"    
-• x << y <=> x < y and x ≄ y    
-	• x ⪝ y <=> x < y or x ~ y    
+• x ‹‹ y ‹=› x ‹ y and x ≄ y    
+	• x ⪝ y ‹=› x ‹ y or x ~ y    
 	⩯ ⩮ ⩦ ⥱ ⥵ ⩰ ⩱ ⩲ ⩳    
 
 
@@ -235,12 +235,12 @@ In particular, for every nonstandard n, the reciprocal n1 is a strictly positive
 ∫(-ω,ω)(ε) = 2/1 # infinite line AND/OR    
 ∫(-∞,∞)(ε) = ƒ   # -''-  can't be because 2ω=ω+ω and linear ∫  
 ∫(-ε,ε)(ω) = 2/1 # spike    
-∫(0,ε)(ω) =    1 # => dirac delta δ  
+∫(0,ε)(ω) =    1 # =› dirac delta δ  
 ∫1 = ω over ℝ for interval (-∞,∞)     
 ∫1 = √ω for interval [0,1] ?    
 
-Similar to π vs τ we have ∫1 = 2ω over (-∞,∞) vs (0,∞) => ω   
-Similar to π vs τ we have ∫ε = 2  over (-∞,∞) vs (0,∞) => 1  
+Similar to π vs τ we have ∫1 = 2ω over (-∞,∞) vs (0,∞) =› ω   
+Similar to π vs τ we have ∫ε = 2  over (-∞,∞) vs (0,∞) =› 1  
 We use ⨍ or ƒ as integral over positives ∫(0,∞) as opposed to finite part integral  
 ƒ1 = ω    
 ∫1 = 2ω  
@@ -281,8 +281,8 @@ Cardinals ‖ℕ‖ = ‖ℚ‖ means they are in the same class, but for hyperr
 ⚠️ could a simplified theory reconsile some of the following: ?    
 ∑ℕ(ε̄) = 1 vs ∫ℝ(ε) = 2/1 clearly needs two different ε vs ε̄?    
 ∫ℝ(ε)=∑ℕ(ε̄)=1 via ∫[a,b]f(x):=st(Riemann ∑(f,a,b,Δx)) ?    
-∑ℤ(ε) = 1-ε <>  
-∑ℕ(ε) = 1/2 (-½ε) <>    
+∑ℤ(ε) = 1-ε ‹›  
+∑ℕ(ε) = 1/2 (-½ε) ‹›    
 ∑1/n = ω = ζ̂(0) = ζ(1)   
 ∑1 = ∑𝑖∈ℕ(1) = ω - ½  = ζ̂(-1) = "∑1" = "∑ℕ"   # see Riemann zeta  
 ∑n = ∑𝑖∈ℕ(𝑖) ∝ ωˣ - 1/12     exponent ˣ?  
@@ -290,20 +290,20 @@ Cardinals ‖ℕ‖ = ‖ℚ‖ means they are in the same class, but for hyperr
 ∑ ℚ(√ε)=1    
 ∑ 𝑖∈ℚ(1) = ω²    
 ∑ 𝑖∈ℚ(𝑖) ∝ ωʸ    
-∏ 𝑖∈ℕ>1 i = ωˣ    
-∏ 𝑖∊ℚ>1 i ∝ ωʸ    
+∏ 𝑖∈ℕ›1 i = ωˣ    
+∏ 𝑖∊ℚ›1 i ∝ ωʸ    
 ∏ i∊ℚ(0,1) i ≂ ε    
-∏ 𝑖∈ℝ>1 i ∝ ωˣ ?    
+∏ 𝑖∈ℝ›1 i ∝ ωˣ ?    
 
 Definition without variable 𝑖    
 ∑ℕ₊=ω/2    
 ∑ℚ ∝ ωˣ    
 ∑ℝ=ƒ  ↯ can't take countable sum of uncountable set  
-∏ ℝ>1 ∝ ωˣ   ↯ can't take countable product of uncountable set  
+∏ ℝ›1 ∝ ωˣ   ↯ can't take countable product of uncountable set  
 ∏(0,1) ≂ εˣ     
 
 #𝕀 infinitesimal numbers    
-𝕀 = span field <ε, ω>    
+𝕀 = span field ‹ε, ω›    
 	ℝ∗    
 ℝ⋆ = ℝ(ε, ω)  # ordered field extension    
 ℝ⋆ = ℝ(ε)     # because ω := 1/ε     
@@ -339,15 +339,15 @@ class HyperReal is Number {
 	    a.omega==b.omega==0 and a.real==b.real or    
 	    a.omega==b.omega     
 
-	𝑎>𝑏 :=     
-	    a.omega==b.omega==0 and a.real==b.real==0 and a.epsilon > b.epsilon or    
-	    a.omega==b.omega==0 and a.real>b.real or    
-	    a.omega>b.omega     
+	𝑎›𝑏 :=     
+	    a.omega==b.omega==0 and a.real==b.real==0 and a.epsilon › b.epsilon or    
+	    a.omega==b.omega==0 and a.real›b.real or    
+	    a.omega›b.omega     
 
-	𝑎<𝑏 :=     
-	    a.omega==b.omega==0 and a.real==b.real==0 and a.epsilon > b.epsilon or    
-	    a.omega==b.omega==0 and a.real>b.real or    
-	    a.omega>b.omega     
+	𝑎‹𝑏 :=     
+	    a.omega==b.omega==0 and a.real==b.real==0 and a.epsilon › b.epsilon or    
+	    a.omega==b.omega==0 and a.real›b.real or    
+	    a.omega›b.omega     
 
 	  }    
 
@@ -363,8 +363,8 @@ simplify(hyper y) =
 
 
 		standard(hyper y) =     
-	if y.omega > 0 : +∞     
-	elif y.omega < 0 : -∞     
+	if y.omega › 0 : +∞     
+	elif y.omega ‹ 0 : -∞     
 	else : y.real  # ignore epsilon   
 	# todo: add ε ω as two special values / flags in wasp number representation f64 see Inf, NaN …  
 
@@ -395,7 +395,7 @@ real derivative (f) = st(∂f)
 
 ### derivatives of spike/step function
 ∂(x==0)(0) = ω # derivative of spike function  # ∂(x==0)(y) = 0 for y≠0    
-∂(x>0)(ε)  = ω # derivative of step function   # ∂(x>0 )(y) = 0 for y≠ε    
+∂(x›0)(ε)  = ω # derivative of step function   # ∂(x›0 )(y) = 0 for y≠ε    
 
 ∂(x==0) = ω at 0  
 ∂(x==0 and ω)(0) = ω² # second order spike    
@@ -417,7 +417,7 @@ These are no longer neccessary when any density function can be directly express
 F=∫p   ( meaning F(x)=P([-∞,x])=∫(-∞,x)p(y)dy just as in case of steady functions before )    
 
 
-π(x)=a <> p(x)=a·ω => F(x)= a + P([-∞,x[)    
+π(x)=a ‹› p(x)=a·ω =› F(x)= a + P([-∞,x[)    
 
 # algebraic δ
 The δ dirac delta "function/distribution"   
@@ -430,7 +430,7 @@ where ω₀(x):= ω iff x≈0 # support in the halo of 0!
 
 This new definition can be proven to be equivalent to another algebraic definition of the  
 Dirac Delta as Derivative of Heaviside Step Function  
-H(x) := x >= 0      # True ≈ 1  
+H(x) := x ›= 0      # True ≈ 1  
 δ(x) := dH(x)/dx  
 
 # As an extension we may call
@@ -452,9 +452,9 @@ P(x=y)=εᵚ
 
 # Limes
 "replace limes with algebraic expressions!"    
-e = lim(n=>∞) (1+1/n)^n    
+e = lim(n=›∞) (1+1/n)^n    
 e = (1+1/ω)^ω = (1+ε)^ω    
-e^ω = [1,2,…,ω] least common multiplier e = lim(n->∞) [1,2,…,n]¹ʼⁿ    
+e^ω = [1,2,…,ω] least common multiplier e = lim(n-›∞) [1,2,…,n]¹ʼⁿ    
 
 sign x = tanh ω·x !    
 
@@ -479,7 +479,7 @@ so
 1/3 = 0.333… + ε/3 ?    
 
 0.9̅ can be thought of as closure or limit, thus 0.9̅=1 becomes plausible    
-0.9̂ can be thought of as open restraint,   thus 0.9̂<1 becomes plausible    
+0.9̂ can be thought of as open restraint,   thus 0.9̂‹1 becomes plausible    
 
 ∑𝑖∈ℕ 9/10^𝑖 does not have a supremum and thus does not make sense in nonstandard analysis.    
 
@@ -529,7 +529,7 @@ log(h::Hyper) = ∑(1,h) (1-x)/x
 Is it under some cirumstances possible to 'connect' ±∞ in such a way ω + ∞ = -∞ ?    
 
 # L'Hôpital rule
-f(x+ε) ≈ g(x+ε) ≈ 0 or ±∞ and g'(x)≠0 =>    
+f(x+ε) ≈ g(x+ε) ≈ 0 or ±∞ and g'(x)≠0 =›    
 f/g=f'/g' at x    
 
 ## example
@@ -584,7 +584,7 @@ F. / ' F. /
 Two stochastic processes ;  W T ! R are called nearly equivalent if and only if E ŒF./ ' E ŒF./ for all limited  
 continuous functionals F on ƒ [ ƒ.  
 
-Let ε >> 0 in F. S. Herzberg page 13 seems like a nonsensical assumption!?    
+Let ε ›› 0 in F. S. Herzberg page 13 seems like a nonsensical assumption!?    
 
 
 https://katalogplus.sub.uni-hamburg.de/vufind/Record/1657811964?rank=3    
@@ -664,7 +664,7 @@ isfies the axioms.
 galaxy(x) = {y∈R∗ : x−y is finite}  
 galaxy(x) == {x+y, where y is finite}  
 galaxy(0) = 𝔽 = "The Finites"  
-Theorem 1.3. galaxy(0) = 𝔽 is subring of R∗  (|x+y| < r+s, |x−y| < r+s, |xy| < rs)  
+Theorem 1.3. galaxy(0) = 𝔽 is subring of R∗  (|x+y| ‹ r+s, |x−y| ‹ r+s, |xy| ‹ rs)  
 Corollary 1.4. Any two galaxies are either equal or disjoint.  
 
 monad(0)=halo(0) = {y∈R∗ : x−y is infinitesimal}  
@@ -676,8 +676,8 @@ b) 𝕀 is an ideal in 𝔽 = ℝ+𝕀 :  ε ∗ r in monad(0) for r in ℝ
 (b) The product of an infinitesimal and a finite element is infinitesimal.  
 
 Proof  
-Let b be finite, say |b| < t, 1≤t∈R. Then for any positive real r we have  
-|ε| < r/t,|εb| < (r/t)t= r. Therefore εb is infinitesimal  
+Let b be finite, say |b| ‹ t, 1≤t∈R. Then for any positive real r we have  
+|ε| ‹ r/t,|εb| ‹ (r/t)t= r. Therefore εb is infinitesimal  
 
 Corollary 1.6. Any two monads are equal or disjoint.  
 The relation x≈y is an equivalence relation on R∗  
@@ -777,7 +777,7 @@ Corollary 1.17. Let f be a real function of n variables and let c1,... ,cn
 be real constants. If f(c1,... ,cn) is defined then f∗(c1,... ,cn) = f(c1,... ,cn)  
 
 Proposition 1.18. Assume Axioms A, C, D, E, and also that R∗ with the  
-relation <∗ and the functions +,− ,· ,−1 is an extension of R which satisfies  
+relation ‹∗ and the functions +,− ,· ,−1 is an extension of R which satisfies  
 the Trichotomy Law. Then R∗ is an ordered field, so Axiom B holds.  
 
 # Limes via ≈
@@ -795,7 +795,7 @@ on Y if whenever c∈Y, x≈c, and x∈Y∗, we have f(x) ≈f(c).
 … GOES ON TO PROOF ALL standard Facts of Elementary Analysis via Hyperreals  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
-Like y=ln(x) x=e(y) => dx/dy=x dy/dx=1/x  
+Like y=ln(x) x=e(y) =› dx/dy=x dy/dx=1/x  
 
 # infinite partial sum
 
@@ -814,8 +814,8 @@ S∗(dx) = ∑ f(x) dx as extension to partition of [a,b]
 S(△x) = ∑f(x)△x = f(x0=a)△x+ f(a+△x)△x+···+ f(a+△x·(n−1))△x+ f(xn)(b−xn) wlog evenly  
 ∫f(x) dx = st ( ∑ f(x) dx )  for dx in Hyperreals  
 Looks like cheating because S(△x) has hidden variable n depending on △x BUT  
-Since the finite Riemann sum is defined for all real △x > 0,  
-the infinite Riemann sum is defined for all hyperreal dx > 0.  
+Since the finite Riemann sum is defined for all real △x › 0,  
+the infinite Riemann sum is defined for all hyperreal dx › 0.  
 
 ∫f := ∑f(.)ε wlog (Theorem 4.7)  set of all antiderivatives of f "indefinite integral"  
 ⚠️ ε is not purely a 'multiplier' as it appears in f(nε) thus ∫fε=∫x,2ε !!! ⚠️  
@@ -836,7 +836,7 @@ s=∫√(x'(t)²+y'(t)²) dt
 
 # Vectors
 
-Natural extension of ℝ⋆ = R∗ = ∗ R to dimension n => ∗ R^n ℝ⋆ⁿ basis remains the same  
+Natural extension of ℝ⋆ = R∗ = ∗ R to dimension n =› ∗ R^n ℝ⋆ⁿ basis remains the same  
 unit vector A/|A|  
 A hyperreal vector A has real length if |A|is real.  
 A unit vector is a hyperreal vector of length 1.  
