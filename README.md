@@ -1,4 +1,4 @@
-# Hyperreal numbers ε * ω = 1
+# Hyperreal numbers ε ∗ ω = 1
 
 [Hyperreal numbers Wiki](https://en.wikipedia.org/wiki/Hyperreal_number)
 
@@ -27,8 +27,8 @@ Also for us ε is not an arbitrary infinitesimally small number but a fixed chos
 The canonical infinitesimal ε has the property of being bigger than 0 and smaller than all positive standard numbers:  
 0 < ε < r ∀r∊ℝ⁺  
 
-Any infinitesimal a*ε has the property of being bigger than 0 and smaller than all positive standard numbers:  
-0 < a*ε < r ∀a,r∊ℝ⁺
+Any infinitesimal a∗ε has the property of being bigger than 0 and smaller than all positive standard numbers:  
+0 < a∗ε < r ∀a,r∊ℝ⁺
 
 The canonical infinite ω has the property of being bigger than all standard numbers:  
 r < ω   ∀r∊ℝ  
@@ -41,13 +41,13 @@ These two symbols can be linked via canonical gauging:
 1/0 = ∞  # not ω!    
 ω/∞ =〚1〛?
 
-⚠️ r * ω ≠ ω for 1≠r in ℝ ;unlike classical infinity notation where ∞=r·∞ ∀r>0 in ℝ  
+⚠️ r ∗ ω ≠ ω for 1≠r in ℝ ;unlike classical infinity notation where ∞=r·∞ ∀r>0 in ℝ  
 In fact ∞ is not a number but may be the equivalence class ∞=〚ω〛 or ∞=〚ωᵚ〛wrt '≈' see below
 
 We are mostly interested in applicative usage of Hyperreal numbers, defined axiomatically similar to the simple field extension of ℂ=ℝ(ⅈ)=ℝ+ⅈℝ or Dedekind–Peano axioms for Natural numbers.  
   
 ℝ⋆ = ℝ(ε, ω)  # ordered field extension  
-ℝ⋆ = R∗ = *R notation*, last one easiest to type
+ℝ⋆ = R∗ = ∗R notation∗, last one easiest to type
 ℝ⋆ ≈ "algebraic-span / algebraic-closure(ℝ,ε)" # see term axioms # ω not needed because ω=1/ε
 ℝ⋆ ≅ vectorial-span(1,ε,ω,ε²,ω²,…)   # 1/ε not needed because ω=1/ε
 
@@ -59,13 +59,13 @@ Definition 1.1. An element x∊R∗ is
 Notice that a positive infinitesimal is hyperreal but not real, and that the
 only real infinitesimal is 0.
 
-𝕀 infinitesimal small nonstandard numbers 《ε》 span including ε*ε … order -∞ or 1/∞   
-𝕀⁻¹ infinitesimal small nonstandard numbers ℝ·ε = {a*ε a∊ℝ} outer span order -1    
-𝕀⁻² infinitesimal small nonstandard numbers ℝ·ε² = {a*ε² a∊ℝ} outer span order -2  
+𝕀 infinitesimal small nonstandard numbers 《ε》 span including ε∗ε … order -∞ or 1/∞   
+𝕀⁻¹ infinitesimal small nonstandard numbers ℝ·ε = {a∗ε a∊ℝ} outer span order -1    
+𝕀⁻² infinitesimal small nonstandard numbers ℝ·ε² = {a∗ε² a∊ℝ} outer span order -2  
 𝔽 finite standard ℝ and nonstandard ℝ+𝕀 numbers <ℝ,ε>  {x: |x| < r for some r in ℝ}  
 𝕐 unlimited infinite nonstandard numbers 《ω》 order ∞   
-𝕐¹ unlimited infinite nonstandard numbers ℝ·ω = {a*ω a∊ℝ} order 1  
-𝕐² unlimited infinite nonstandard numbers ℝ·ω² = {a * ω² a∊ℝ} order 2
+𝕐¹ unlimited infinite nonstandard numbers ℝ·ω = {a∗ω a∊ℝ} order 1  
+𝕐² unlimited infinite nonstandard numbers ℝ·ω² = {a ∗ ω² a∊ℝ} order 2
 
 ℝ⋆ ≅ ℝ×𝕀×𝕐  
   
@@ -90,7 +90,7 @@ one for each basis element (1,ε,ω) and they could thus be called Trial numbers
 Over the complex field (i²=-1) one would have six entries 
 𝕊 := « 1, ε, ω, 𝕚, ε𝕚, ω𝕚 » Sick numbers (special supernumbers).
 They are not superfluous, but could be tremendously useful, e.g. ω as dirac delta.
-What about the spurious 𝕚ε * 𝕚ω = -1 , are they superfluous? This needs fruitful investigation!
+What about the spurious 𝕚ε ∗ 𝕚ω = -1 , are they superfluous? This needs fruitful investigation!
 
 ## ω² = ∞
 From ε² = 0 and ω:=1/ε and 1/∞:=0 follows ω² = ∞
@@ -109,14 +109,14 @@ for easier typing these classes can be written as <I> <<I>> <Y> <<Y>> …
 
 ## ωⁿ
 
-ωⁿ > r*ω for r in ℝ, n>1  
-εⁿ < r*ε for r in ℝ⁺ n>1
+ωⁿ > r∗ω for r in ℝ, n>1  
+εⁿ < r∗ε for r in ℝ⁺ n>1
 
 Unlike the constructive definition of ⋆ℝ (as sequence classes) we would like to differentiate between different orders:  
 ℝ order 0  
 
-𝕁 = <ω>ℝ = {a*ω a∊ℝ} order 1 infinites
-𝕀 = <ε>ℝ = {a*ε a∊ℝ} order -1 infinitesimals
+𝕁 = <ω>ℝ = {a∗ω a∊ℝ} order 1 infinites
+𝕀 = <ε>ℝ = {a∗ε a∊ℝ} order -1 infinitesimals
 
 Generalisations or alternative constructions of Hyperreal numbers can be found in  
 https://en.wikipedia.org/wiki/Hyperreal_number  
@@ -139,7 +139,7 @@ x≈y <=> x-y≈0
 The dot / halo around a point x is the set of all nonstandard numbers near x  
 halo(x) =〚x≈y for y in ℝ⋆〛  
 Equivalently it's the span of all infinitesimals around x  
-halo(x) = x+𝕀 = {x + a * ε for a in ℝ}  
+halo(x) = x+𝕀 = {x + a ∗ ε for a in ℝ}  
 halo(x) = x+𝕀 = {x + e for e in 𝕀}  
 
 ε-disc(x) < halo(x)
@@ -185,7 +185,7 @@ x ≦ y
 x ≤ y => st(x) ≤ st(y) but  
 x < y ≠> st(x) < st(y)   
 st(x+y)=st(x)+st(y) if x,y finite  
-st(x*y)=st(x)*st(y)  
+st(x∗y)=st(x)∗st(y)  
 st(1/x)=1/st(x) if x finite and not infinitesimal  
   
 St is continuous and even locally constant.  
@@ -214,7 +214,7 @@ In particular, for every nonstandard n, the reciprocal n1 is a strictly positive
   
   
 # gauging
-ε * ω = 1  
+ε ∗ ω = 1  
 |ℕ|=ω=ℕ̅  
 |ℤ|=2ω ⚠️  needs different metric than cardinality where  ‖ℕ‖ = ‖ℤ‖ = ‖ℚ‖
   
@@ -222,7 +222,7 @@ In particular, for every nonstandard n, the reciprocal n1 is a strictly positive
 
 # integral ε = 1 or 2:
 ∫ε = 2/1 # that is:  
-∫(0,ω)(ε)  = 1   # ω * ε = 1
+∫(0,ω)(ε)  = 1   # ω ∗ ε = 1
 ∫(-ω,ω)(ε) = 2/1 # infinite line AND/OR  
 ∫(-∞,∞)(ε) = ƒ   # -''-  can't be because 2ω=ω+ω and linear ∫
 ∫(-ε,ε)(ω) = 2/1 # spike  
@@ -260,7 +260,7 @@ Length(line)=2ω or ∞ ?
 
 # theoretical questions:
 Is it possible to gauge / define the following:  
-ε * ∞ = ∞ ?  
+ε ∗ ∞ = ∞ ?  
 ∞/ω = ∞ ?  
 ⚠️ how are countable and continuous cardinals relateable to hyperreal ordinals?  
 Cardinals ‖ℕ‖ = ‖ℚ‖ means they are in the same class, but for hyperreals can we distinguish:  
@@ -319,8 +319,8 @@ Number epsilon alias ep, eps
 # transfer principle:    
 # first-order statements about ℝ are also valid in ℝ⋆  
   
-	𝑎*𝑏 :=   
-	times(number) = Hyper(this.real*number,this.epsilon, this.omega)  
+	𝑎∗𝑏 :=   
+	times(number) = Hyper(this.real∗number,this.epsilon, this.omega)  
 	plus(number)  = Hyper(this.real+number,this.epsilon, this.omega) # …  
   
   a==b := a.omega==b.omega and a.real==b.real and a.epsilon==b.epsilon   
@@ -359,8 +359,8 @@ standard(hyper y) =
 	else : y.real  # ignore epsilon 
 	# todo: add ε ω as two special values / flags in wasp number representation f64 see Inf, NaN …
   
-times(number x,hyper y) = Hyper(x*y.real,x*y.epsilon, x*y.omega)  
-times(hyper x,hyper y) = Hyper(x.real*y.real,x.real*y.epsilon+y.real*x.epsilon, hyper.omega)  
+times(number x,hyper y) = Hyper(x∗y.real,x∗y.epsilon, x∗y.omega)  
+times(hyper x,hyper y) = Hyper(x.real∗y.real,x.real∗y.epsilon+y.real∗x.epsilon, hyper.omega)  
 times(hyper x,ε) = Hyper(0, x.real, 0)  
 times(hyper x,ε) = Hyper(0, x.real, 0)  
   
@@ -465,7 +465,7 @@ indeed we just need proper definitions for
 likewise  
 1/3 = 0.333… + ε ?  
 but  
-3 * 1/3 = 1 = 0.9̂ + 3ε ≠ 0.9̂ + ε  
+3 ∗ 1/3 = 1 = 0.9̂ + 3ε ≠ 0.9̂ + ε  
 so  
 1/3 = 0.333… + ε/3 ?  
   
@@ -505,7 +505,7 @@ inner and outer 'zone' (rest border of higher orders).
 
 to define hˣ for arbitrary real numbers we can use exp and log
 hˣ = exp(x·log(h))  
-we need h² ≈ h * h as expected
+we need h² ≈ h ∗ h as expected
 
 This works in the julia implementation https://github.com/pannous/hyper-lean/blob/main/hyper.jl
 
@@ -598,10 +598,10 @@ b + c is limited (possibly infinitesimal) H +ε  and H +bare unlimited
 • Opposites:  
 -ε  is infinitesimal -b is appreciable -H is unlimited  
 • Products:  
-ε * δ and ε * b are infinitesimal b * c is appreciable b * H and H * K are unlimited  
+ε ∗ δ and ε ∗ b are infinitesimal b ∗ c is appreciable b ∗ H and H ∗ K are unlimited  
   
   
-∫(0,ω)ε dx = 1/epsilon * epsilon - 0* epsilon = 1 # unabhängig von Eichung  
+∫(0,ω)ε dx = 1/epsilon ∗ epsilon - 0∗ epsilon = 1 # unabhängig von Eichung  
 
 # Gamma and Zeta
 
@@ -662,7 +662,7 @@ monad(0)=halo(0) = {y∈R∗ : x−y is infinitesimal}
 monad(0) == {x+y, where y is infinitesimal}
 Theorem 1.5
 a) halo(0) = 𝕀 is subring of R∗
-b) 𝕀 is an ideal in 𝔽 = ℝ+𝕀 :  ε * r in monad(0) for r in ℝ
+b) 𝕀 is an ideal in 𝔽 = ℝ+𝕀 :  ε ∗ r in monad(0) for r in ℝ
 (a) Sums, diﬀerences, and products of infinitesimals are infinitesimal.
 (b) The product of an infinitesimal and a finite element is infinitesimal.
 
@@ -827,7 +827,7 @@ s=∫√(x'(t)²+y'(t)²) dt
 
 # Vectors
 
-Natural extension of ℝ⋆ = R∗ = * R to dimension n => * R^n ℝ⋆ⁿ basis remains the same
+Natural extension of ℝ⋆ = R∗ = ∗ R to dimension n => ∗ R^n ℝ⋆ⁿ basis remains the same
 unit vector A/|A|
 A hyperreal vector A has real length if |A|is real.
 A unit vector is a hyperreal vector of length 1.
