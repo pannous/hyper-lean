@@ -919,7 +919,6 @@ println(∫(sin))
 # println(∫(sin)(π/2)) # -6.12323399573677e-17
 # println(∫(sin)(π))
 
-
 end # if test_symbolics
 
 # ∫a,b(f::Function) = ∑(k in 0,ω) f(a+k*ε*b) * ε
@@ -947,9 +946,6 @@ end # if test_symbolics
 # ∫x = x²/2
 
 #  if we treat ε as constant function ε(x)=ε OR define ∫
-
-
-
 
 println(∫(42ε)) # 42 OK by definition
 
