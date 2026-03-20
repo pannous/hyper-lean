@@ -62,6 +62,12 @@ noncomputable axiom st : HReal → ℝ
 axiom st_embed (r : ℝ) : st (embedℝ r) = r
 @[simp] axiom st_ε : st ε = 0
 
+-- Multiplication monotonicity — follows from IsStrictOrderedRing but the
+-- sorry-backed instance doesn't propagate MulPosStrictMono automatically.
+-- In a full construction (e.g. ultrapower *ℝ) these are plain `instance`s.
+axiom mul_lt_mul_pos_right {a b c : HReal} (h : a < b) (hc : 0 < c) : a * c < b * c
+axiom div_lt_div_pos_right {a b c : HReal} (h : a < b) (hc : 0 < c) : a / c < b / c
+
 /-- ω = ε⁻¹  (the infinite counterpart of ε). -/
 noncomputable def ω : HReal := ε⁻¹
 
@@ -226,18 +232,24 @@ theorem point_prob_2D_pos (R : ℝ) (hR : 0 < R) (z : ℂ) :
   rwa [embedℝ.map_zero] at this
 
 /-- A line segment (L > 0) has *strictly greater* hyperreal probability than a point.
-    Ratio = L·ε/(πR²)  ÷  ε²/(πR²) = L/ε = L·ω → infinite.
-    Key step: ε² < L·ε  because ε < L (from ε_small) and ε > 0. -/
+    Ratio = L·ε/(πR²)  ÷  ε²/(πR²) = L/ε = L·ω → infinite. -/
 theorem line_prob_gt_point_prob (R L : ℝ) (hR : 0 < R) (hL : 0 < L)
     (z : ℂ) (seg : Set ℂ) (hSeg : MeasurableSet seg) :
     (hyperUniform2D R hR).toFun {z} < (hyperUniform2D R hR).toFun seg := by
   rw [hyperUniform2D_singleton, discAtomMass2D,
       hyperUniform2D_lineSeg R L hR (le_of_lt hL) seg hSeg, lineMass]
   -- Goal: ε² / (πR²) < embedℝ L * ε / (πR²)
-  -- i.e., ε² < embedℝ L * ε  (divide both sides by πR² > 0)
-  -- i.e., ε  < embedℝ L      (divide both sides by ε > 0)
-  -- which is exactly ε_small L hL.
-  sorry  -- arithmetic on sorry-backed instances; the chain above is the proof sketch
+  have hc : (0 : ℝ) < Real.pi * R ^ 2 := mul_pos Real.pi_pos (pow_pos hR 2)
+  have hcH : (0 : HReal) < embedℝ (Real.pi * R ^ 2) := by
+    have := embedℝ_strictMono hc; rwa [embedℝ.map_zero] at this
+  -- step 1: divide both sides by πR² > 0
+  apply div_lt_div_pos_right _ hcH
+  -- goal: ε² < embedℝ L * ε
+  -- step 2: factor out ε > 0 on the right: ε*ε < embedℝ L * ε
+  rw [sq]
+  apply mul_lt_mul_pos_right _ ε_pos
+  -- goal: ε < embedℝ L
+  exact ε_small L hL
 
 /-- The ratio of line to point probability is L·ω — genuinely infinite.
     Both have standard part 0, but the line is ω times "heavier". -/
@@ -267,8 +279,9 @@ theorem line_to_point_ratio (R L : ℝ) (hR : 0 < R) (hL : 0 < L) :
 -- All have standard part 0 except the full disc (= 1).
 
 -- ε² < ε:  since 0 < ε < 1 (from ε_small 1), squaring makes it smaller.
--- Proof sketch: ε < embedℝ 1 = 1, so ε*ε < 1*ε = ε.
+-- Proof: ε < 1, multiply both sides by ε > 0, giving ε·ε < 1·ε = ε.
 example : ε ^ 2 < ε := by
   have hε1 : ε < 1 := by simpa using ε_small 1 one_pos
-  -- ε^2 = ε*ε < 1*ε = ε  (multiply ε < 1 by ε > 0 on the right)
-  sorry  -- requires MulLeftStrictMono, which needs non-sorry instances
+  calc ε ^ 2 = ε * ε := sq ε
+    _ < 1 * ε        := mul_lt_mul_pos_right hε1 ε_pos
+    _ = ε            := one_mul ε
