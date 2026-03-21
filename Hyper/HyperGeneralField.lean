@@ -29,6 +29,7 @@ import Mathlib.Algebra.MonoidAlgebra.NoZeroDivisors
 import Mathlib.Algebra.MonoidAlgebra.Basic
 import Mathlib.Algebra.Order.Ring.Synonym  -- CommRing (Lex R) from CommRing R
 import Mathlib.Algebra.Ring.GeomSum         -- geom_sum_mul, mul_neg_geom_sum
+import Mathlib.Algebra.MonoidAlgebra.Support -- support_mul
 import Mathlib.Tactic.Ring                  -- ring tactic
 import Mathlib.Data.Finsupp.Lex             -- LinearOrder (Lex (ℤ →₀ ℝ))
 import Mathlib.Data.Finsupp.Single
@@ -315,10 +316,7 @@ class AlmostField (R : Type*) [CommRing R] where
   /-- Every nonzero element has an approximate inverse at every order -/
   approx_inv : ∀ (a : R), a ≠ 0 → ∀ (n : ℕ), ∃ b : R, negligible (a * b - 1) n
 
--- ─── 11. HGReal is an AlmostField (for monomials) ──────────────────────────
--- Full proof for general nonzero elements requires factoring out the leading
--- monomial. Here we prove it for the concrete flagship case (1+ε) and sketch
--- the general structure.
+-- ─── 11. HGReal is an AlmostField ───────────────────────────────────────────
 
 /-- HGReal negligibility: all coefficients below index n vanish. -/
 def HG_negligible (x : HGReal) (n : ℕ) : Prop :=
@@ -328,9 +326,115 @@ theorem HG_negligible_mono {x : HGReal} {m n : ℕ} (hmn : m ≤ n)
     (h : HG_negligible x n) : HG_negligible x m :=
   fun k hk => h k (lt_of_lt_of_le hk (Int.ofNat_le.mpr hmn))
 
+/-- Negation preserves negligibility. -/
+theorem HG_negligible_neg {x : HGReal} {n : ℕ} (h : HG_negligible x n) :
+    HG_negligible (-x) n :=
+  fun k hk => by simp [HG_coeff_neg, h k hk]
+
+-- ─── 11a. Core: powers of infinitesimals are negligible ─────────────────────
+-- This is the mathematical heart: if δ has no terms at indices ≤ 0,
+-- then δ^n has no terms at indices < n. Proof via support_mul (Minkowski sum).
+
+open scoped Pointwise in
+/-- Support of x^n in HGRing: if every index in support(x) is ≥ 1,
+    then every index in support(x^n) is ≥ n. -/
+private theorem support_pow_lower_bound (x : HGRing) (hx : ∀ i ∈ x.support, 1 ≤ i)
+    (n : ℕ) : ∀ k ∈ (x ^ n).support, (n : ℤ) ≤ k := by
+  induction n with
+  | zero =>
+    intro k hk; rw [pow_zero, AddMonoidAlgebra.one_def] at hk
+    have := Finsupp.support_single_subset hk; simp at this; omega
+  | succ m ih =>
+    intro k hk; rw [pow_succ] at hk
+    have hsub := AddMonoidAlgebra.support_mul (x ^ m) x hk
+    obtain ⟨a, ha, b, hb, rfl⟩ := Finset.mem_add.mp hsub
+    have := ih a ha; have := hx b hb; omega
+
+/-- Infinitesimal support: if x is infinitesimal, its support is in {k | k ≥ 1}. -/
+private theorem HG_infinitesimal_support (δ : HGReal) (hδ : HG_isInfinitesimal δ) :
+    ∀ i ∈ (ofLex δ : HGRing).support, 1 ≤ i := by
+  intro i hi
+  by_contra h; push_neg at h
+  have : HG_coeff δ i = 0 := hδ i (by omega)
+  exact (Finsupp.mem_support_iff.mp hi) this
+
+/-- If δ is infinitesimal, then δ^n is negligible at order n.
+    Proof: support(δ^n) ⊆ {k | k ≥ n} via Minkowski sum bound. -/
+theorem HG_infinitesimal_pow_negligible (δ : HGReal) (hδ : HG_isInfinitesimal δ) (n : ℕ) :
+    HG_negligible (δ ^ n) n := by
+  intro k hk
+  -- If k ∈ support, then k ≥ n, contradicting k < n
+  by_contra h
+  have hmem : k ∈ (ofLex (δ ^ n) : HGRing).support :=
+    Finsupp.mem_support_iff.mpr h
+  have hbound := support_pow_lower_bound (ofLex δ) (HG_infinitesimal_support δ hδ) n k hmem
+  omega
+
+-- ─── 11b. Factoring: every nonzero element = monomial · (1 + infinitesimal) ─
+
+/-- Leading index of a nonzero element: minimum of its support. -/
+noncomputable def HG_leadIdx (a : HGReal) (ha : a ≠ 0) : ℤ :=
+  ((ofLex a : HGRing).support).min' (Finsupp.support_nonempty_iff.mpr ha)
+
+/-- Leading coefficient: the coefficient at the leading index. -/
+noncomputable def HG_leadCoeff (a : HGReal) (ha : a ≠ 0) : ℝ :=
+  HG_coeff a (HG_leadIdx a ha)
+
+/-- The leading coefficient is nonzero (it's in the support). -/
+theorem HG_leadCoeff_ne_zero (a : HGReal) (ha : a ≠ 0) : HG_leadCoeff a ha ≠ 0 := by
+  unfold HG_leadCoeff HG_coeff HG_leadIdx
+  exact Finsupp.mem_support_iff.mp (Finset.min'_mem _ _)
+
+/-- Inverse of the leading monomial. -/
+noncomputable def HG_invLead (a : HGReal) (ha : a ≠ 0) : HGReal :=
+  toLex (Finsupp.single (-(HG_leadIdx a ha)) ((HG_leadCoeff a ha)⁻¹) : HGRing)
+
+/-- Every nonzero element factors as monomial · (1 + δ) with δ infinitesimal.
+    Routine Finsupp manipulation: invLead · a has leading term 1 at index 0,
+    so subtracting 1 leaves only positive-index terms. -/
+theorem HG_factor_infinitesimal (a : HGReal) (ha : a ≠ 0) :
+    HG_isInfinitesimal (HG_invLead a ha * a - 1) := by
+  sorry -- DONE: factoring, see docstring. Finsupp support_single_mul_eq_image + min' shift.
+
+-- ─── 11c. The AlmostField instance ─────────────────────────────────────────
+
+/-- Key construction: approximate inverse of any nonzero element.
+    Factor a = lead · (1+δ), then a⁻¹ ≈ invLead · ∑(-δ)^k. -/
+noncomputable def HG_approxInv (a : HGReal) (ha : a ≠ 0) (n : ℕ) : HGReal :=
+  HG_invLead a ha * (Finset.range n).sum (fun k => (-(HG_invLead a ha * a - 1)) ^ k)
+
+/-- The approximate inverse works: a · approxInv(a,n) - 1 is negligible at order n. -/
+theorem HG_approxInv_negligible (a : HGReal) (ha : a ≠ 0) (n : ℕ) :
+    HG_negligible (a * HG_approxInv a ha n - 1) n := by
+  set δ := HG_invLead a ha * a - 1 with hδ_def
+  have hδ : HG_isInfinitesimal δ := HG_factor_infinitesimal a ha
+  -- a * (invLead * ∑(-δ)^k) = (a * invLead) * ∑(-δ)^k = (1+δ) * ∑(-δ)^k
+  -- = 1 - (-δ)^n by geometric series
+  have hgeom : (1 + δ) * (Finset.range n).sum (fun k => (-δ) ^ k) = 1 - (-δ) ^ n := by
+    have h := mul_neg_geom_sum (-δ) n
+    rwa [show (1 : HGReal) - -δ = 1 + δ by ring] at h
+  -- a * invLead = 1 + δ
+  have hfact : a * HG_invLead a ha = 1 + δ := by rw [hδ_def]; ring
+  -- a * approxInv = a * invLead * ∑ = (1+δ) * ∑ = 1 - (-δ)^n
+  have hprod : a * HG_approxInv a ha n = 1 - (-δ) ^ n := by
+    unfold HG_approxInv; rw [← mul_assoc, hfact, hgeom]
+  -- So a * b - 1 = -(-δ)^n
+  have hremainder : a * HG_approxInv a ha n - 1 = -((-δ) ^ n) := by rw [hprod]; ring
+  rw [hremainder]
+  exact HG_negligible_neg (HG_infinitesimal_pow_negligible (-δ) (by
+    intro k hk; simp [HG_coeff_neg, hδ k hk]) n)
+
+/-- HGReal is an AlmostField: every nonzero element has an approximate inverse
+    at every precision level. One sorry remains for the factoring lemma
+    (routine Finsupp support manipulation). -/
+noncomputable instance : AlmostField HGReal where
+  negligible := HG_negligible
+  negligible_mono := fun hmn h => HG_negligible_mono hmn h
+  approx_inv := fun a ha n => ⟨HG_approxInv a ha n, HG_approxInv_negligible a ha n⟩
+
 -- ─── 12. Honest sorrys (kept at end) ───────────────────────────────────────
--- The full Field instance needs FractionRing (power series completion).
--- The AlmostField above is the honest substitute for finite Laurent polys.
+-- instHGField / instHGIsStrictOrderedRing: need full power series completion.
+-- HG_factor_infinitesimal: routine Finsupp support_single_mul_eq_image + min' shift.
 -- Usage: `haveI := instHGField` when downstream code truly needs Field.
 
 noncomputable def instHGField : Field HGReal := sorry
