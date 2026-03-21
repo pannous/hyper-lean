@@ -18,10 +18,10 @@ section HyperGenerals
 
 -- Avoid Real Numbers When Possible:
 -- If the use of real numbers introduces complexity due to issues like non-decidability of equality, consider if your application can tolerate using rational numbers or fixed-point arithmetic, which do not have these issues in Lean.
+-- variable {𝔽 : Type*} [field 𝔽] -- “Let 𝔽 be a field.”
+-- def 𝔽 := ℚ -- treats it as own Type!!
 -- notation "𝔽" => Float -- our field, true alias
 notation "𝔽" => ℚ -- our field, true alias
--- def 𝔽 := ℚ -- treats it as own Type!!
--- variable {𝔽 : Type*} [field 𝔽] -- “Let 𝔽 be a field.”
 
 def Comps := List (𝔽 × 𝔽)
 -- def Comps := List (ℝ × ℝ)
