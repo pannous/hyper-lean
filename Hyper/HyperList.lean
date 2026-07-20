@@ -932,24 +932,52 @@ lemma smul_succ : ∀ (n : ℕ) (x : R*), (n + 1) • x = x + n • x :=
 
 
 
+-- Named (not inlined) so `nsmul`/`zsmul` below can recurse through the *exact* same
+-- terms used for `add`/`neg` — this is what lets `nsmul_succ`/`zsmul_succ'`/`zsmul_neg'`
+-- close by `rfl` (the default proof Mathlib supplies) instead of needing a real proof:
+-- the recursive equations are written to match those defaults verbatim.
+def fieldAdd (x y : R*) : R* := normalize (x ++ y)
+def fieldNeg (x : R*) : R* := normalize (x.map (λ (r, e) => (-r, e)))
+def fieldMul (x y : R*) : R* :=
+  normalize ((x.product y).map (λ ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2)))
+
+/-- Iterated `fieldAdd`, matching `AddMonoid.nsmul_succ`'s shape (`nsmul (n+1) x = nsmul n x + x`)
+    exactly so its default `rfl` proof applies. -/
+def fieldNsmul : ℕ → R* → R*
+  | 0, _ => 0
+  | n + 1, x => fieldAdd (fieldNsmul n x) x
+
+/-- Matches `SubNegMonoid.zsmul_succ'`/`zsmul_neg'`'s shapes exactly (same reason). -/
+def fieldZsmul : ℤ → R* → R*
+  | Int.ofNat n, x => fieldNsmul n x
+  | Int.negSucc n, x => fieldNeg (fieldNsmul (n + 1) x)
+
+def fieldQsmul (q : ℚ) (x : R*) : R* := fieldMul (embedQ q) x
+def fieldNNQsmul (q : ℚ≥0) (x : R*) : R* := fieldMul (embedQ (q : ℚ)) x
+
 instance : Field R* := {
   zero := zero,
   one := one,
-  add := λ x y => normalize (x ++ y),
-  neg := λ x => normalize (x.map (λ (r, e) => (-r, e))),
+  add := fieldAdd,
+  neg := fieldNeg,
   inv := λ x => x.map (λ (r, e) => (r⁻¹, -e)),
-  mul := λ x y => normalize ((x.product y).map (λ ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2))),
+  mul := fieldMul,
   div := λ x y => x * y⁻¹,
-  npow := λ n x => x.map (λ (r, e) => (r^n, e*n)),
-  nsmul := λ n x => x.map (λ (r, e) => (n * r, e)),
-  qsmul := λ q x => x.map (λ (r, e) => (q * r, e)),
-  nnqsmul := λ q x => x.map (λ (r, e) => (q * r, e)),
-
-  zsmul := λ n x => if n = 0 then [] else x.map (λ (r, e) => (n * r, e)),
-  zsmul_zero' := by
-    intro x
-    simp [HSMul.hSMul, zero]
-    rfl
+  nsmul := fieldNsmul,
+  zsmul := fieldZsmul,
+  qsmul := fieldQsmul,
+  nnqsmul := fieldNNQsmul,
+  -- `qsmul_def : qsmul q x = ↑q * x` and `nnqsmul_def` need `(↑q : R*)` — the
+  -- auto-derived `RatCast R*`/`NNRatCast R*` instances (`Rat.castRec` over
+  -- `IntCast`/`NatCast`, themselves `Int.castDef`/`Nat.unaryCast` over THIS
+  -- instance's own `add`/`neg`/`one`/`zero`) — to agree with `embedQ q`. That's
+  -- a genuine (if believable) fact, not a `rfl`: it needs induction relating
+  -- `Nat.unaryCast`/`Int.castDef` to `fieldNsmul`/`fieldZsmul` on `1`, then one
+  -- more step to `Rat.castRec`. Left open; `fieldQsmul`/`fieldNNQsmul` above are
+  -- still the mathematically correct operations (ring-multiply by the embedded
+  -- rational) regardless of whether this bridging identity is proved.
+  qsmul_def := sorry,
+  nnqsmul_def := sorry,
   sub_eq_add_neg := fun x y => by
     show merge x (List.map (fun p : 𝔽 × 𝔽 => (-p.1, p.2)) y)
       = normalize (merge x (normalize (List.map (fun p : 𝔽 × 𝔽 => (-p.1, p.2)) y)))
@@ -959,8 +987,6 @@ instance : Field R* := {
     apply simplify_eq_of_coeffAt_eq
     intro e
     rw [coeffAt_merge, coeffAt_merge, coeffAt_simplify],
-  zsmul_succ' := sorry, -- by exact zsmul_succ,
-  zsmul_neg' := sorry, -- by exact zsmul_neg',
   zero_add := fun x => by
     show normalize (merge 0 x) = x
     unfold normalize
@@ -1002,12 +1028,6 @@ instance : Field R* := {
     intro e
     rw [coeffAt_merge, coeffAt_simplify, coeffAt_neg_map, coeffAt_nil]
     ring,
-  nsmul_zero:= sorry,
-  nsmul_succ:=sorry,
-  npow_zero:=sorry,
-  npow_succ:=sorry,
-  nnqsmul_def:=sorry,
-  qsmul_def:=sorry,
   add_assoc := fun x y z => by
     show normalize (merge (normalize (merge x y)) z) = normalize (merge x (normalize (merge y z)))
     unfold normalize

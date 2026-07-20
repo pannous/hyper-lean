@@ -2,12 +2,31 @@
 
 ## Result
 
-Started at 36 `sorry`s in `Hyper/HyperList.lean` (24 in the `Field R*` instance,
-12 in helper `smul`/`zsmul` lemmas above it). Closed 12 Field-instance sorries:
-`sub_eq_add_neg`, `zero_add`, `zero_mul`, `mul_zero`, `exists_pair_ne`,
-`inv_zero`, `neg_add_cancel`, `add_assoc`, `add_comm`, `one_mul`, `mul_one`,
-`add_zero`. 24 remain — see below for exactly why each is or isn't closable
-without further, separately-scoped work.
+Started at 36 `sorry`s in `Hyper/HyperList.lean`. Two passes:
+
+**Pass 1** closed 12 Field-instance sorries via the `coeffAt`-uniqueness
+technique below: `sub_eq_add_neg`, `zero_add`, `zero_mul`, `mul_zero`,
+`exists_pair_ne`, `inv_zero`, `neg_add_cancel`, `add_assoc`, `add_comm`,
+`one_mul`, `mul_one`, `add_zero`.
+
+**Pass 2** ("fix npow etc") fixed the actual bug behind 7 more:
+`npow_zero`/`npow_succ`/`nsmul_zero`/`nsmul_succ`/`zsmul_zero'`/`zsmul_succ'`/
+`zsmul_neg'`. `npow`/`nsmul`/`zsmul`/`qsmul`/`nnqsmul` were defined as
+*per-term maps* (`x.map (fun (r,e) => (r^n, e*n))`) instead of *iterated*
+`add`/`mul` — mathematically wrong for any multi-term `x` (confirmed via a
+`native_decide` counterexample: `npow 0` on a 2-term hyperreal didn't compute
+`1`). Fix: extracted `add`/`neg`/`mul` into named top-level defs (`fieldAdd`,
+`fieldNeg`, `fieldMul` — same bodies, just no longer inline lambdas) and
+defined `fieldNsmul`/`fieldZsmul` as genuine structural recursion *through
+those same defs*, so their shape matches Mathlib's default proof obligations
+(`nsmul_succ`, `zsmul_succ'`, `zsmul_neg'` all carry a `by intros; rfl`
+default) exactly — once the recursion is written correctly, those 7 proofs
+are free. `npow` itself turned out to already have a working Mathlib default
+(`npowRecAuto`) once the broken custom `npow` field was simply deleted.
+
+18 sorries remain: `qsmul_def`, `nnqsmul_def` (new, see below), plus
+`left_distrib`/`right_distrib`/`mul_assoc`/`mul_comm`/`mul_inv_cancel`
+(pre-existing, need a convolution lemma — see below).
 
 ## The key unlock
 
@@ -38,17 +57,16 @@ infrastructure is what any future work on `mul`-side laws should reuse.
 
 ## What's left, and why
 
-**`zsmul_succ'`, `zsmul_neg'`, `nsmul_zero`, `nsmul_succ`, `npow_zero`,
-`npow_succ`, `nnqsmul_def`, `qsmul_def`** — not a proof gap, a *definition*
-gap. `npow := fun n x => x.map (fun (r,e) => (r^n, e*n))` is per-term
-exponentiation, not iterated multiplication — mathematically wrong for any
-`x` with more than one term (e.g. `npow 0 [(1,0),(1,1)]` should be `1` but
-computes `[(1,0),(1,0)]`, which doesn't even `simplify`-equal `1`). Verified
-this is a real counterexample, not a proof-technique gap, via `native_decide`.
-Same issue for `nsmul`/`zsmul`/`qsmul`/`nnqsmul` (all per-term maps instead of
-repeated `add`). Closing these needs redefining the operations themselves
-(e.g. via `npowRec`/Mathlib defaults, or proper recursion) — a distinct,
-riskier change than adding proofs, left for a separate pass.
+**`qsmul_def`, `nnqsmul_def`** — `fieldQsmul q x := fieldMul (embedQ q) x` is
+the mathematically correct operation (ring-multiply by the embedded
+rational), but the axiom demands `qsmul q x = (↑q : R*) * x` where `↑q` is
+the *auto-derived* `RatCast R*` instance — which Lean synthesizes on its own
+via `Rat.castRec` over `IntCast`/`NatCast` (`Int.castDef`/`Nat.unaryCast`),
+themselves defined via repeated `1 + 1 + ...` using THIS instance's own
+`add`/`one`. Proving `(↑q : R*) = embedQ q` needs its own induction (relate
+`Nat.unaryCast` to `fieldNsmul _ 1`, then `Int.castDef`, then `Rat.castRec`) —
+a real, separate multi-step proof, not a quick corollary of the npow/nsmul
+fix. Left open; both fields are mathematically sound regardless.
 
 **`left_distrib`, `right_distrib`, `mul_assoc`, `mul_comm`, `mul_inv_cancel`**
 — need an analogous `coeffAt`-of-product characterization. Unlike `add`
@@ -71,4 +89,5 @@ exactly like the closed `add`-side proofs.
 ## Verified
 
 `lake build` succeeds (905 jobs), `Hyper/probes/HyperListBasics.lean` and
-`Hyper/probes/HyperListInstance.lean` both still typecheck clean.
+`Hyper/probes/HyperListInstance.lean` both still typecheck clean, after both
+passes.
