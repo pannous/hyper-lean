@@ -1,6 +1,6 @@
 -- TODO: Use currently best implementation: HyperGenerals
 -- Things that should hold regardless of implementation :
-import Hyper.HyperGeneral
+import Hyper.old.HyperGeneral
 
 -- TODO Write everything that should be true as a theorem, even if it's backed by sorry or axioms 
 

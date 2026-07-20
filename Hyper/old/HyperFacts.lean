@@ -9,7 +9,7 @@ import Mathlib.Data.Set.Basic -- nonempty => exists in set
 import Mathlib.Algebra.Ring.Subring.Basic
 -- import Mathlib.Logic.Classical
 -- import Hyper.HyperAxioms -- OR
-import Hyper.HyperKeisler -- Axioms of Hyperreals, some facts can be derived from these, others are axioms!
+import Hyper.old.HyperKeisler -- Axioms of Hyperreals, some facts can be derived from these, others are axioms!
 
 namespace Hypers -- needs to be in the same namespace as the axioms
 -- namespace Hyperreal

@@ -6,7 +6,7 @@ import Mathlib.Data.Real.Hyperreal -- defined as hyperfilter germ
 import Init.Data.Nat.Basic
 import Init.Prelude
 import Init.Control.Basic -- Import basic control structures in LEAN 4
-import Hyper.HyperUtil
+import Hyper.old.HyperUtil
 import Lean
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 
