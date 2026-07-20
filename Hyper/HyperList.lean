@@ -455,10 +455,20 @@ instance : BEq (List (ℤ × ℤ)) where beq x y := (simplify (x:R*)) = (simplif
 instance : BEq (List (ℕ × ℕ)) where beq x y := (simplify (x:R*)) = (simplify (y:R*))
 
 
--- standard ≈ equality: derived from the Setoid below (core Lean gives `HasEquiv` from any
--- `Setoid` via `Setoid.r`); a second explicit `HasEquiv R*` instance would create a diamond
--- and break `Decidable (x ≈ y)` resolution, so we do NOT declare one here.
-infix:50 " ≅ " => HyperEq  -- NOT NEEDED, we have the standard ≈ ≠ ~ !!!
+-- standard ≈ equality
+-- ⚠️ R* IS `List (𝔽 × 𝔽)` (`HyperList` is a plain `def`, not a wrapper type), and Lean core
+-- registers a global `Setoid (List α)` (`List.isSetoid`, permutation-based) for every list type.
+-- List-literal elaboration reduces the expected type `R*` to `List (𝔽 × 𝔽)` BEFORE typeclass
+-- search runs, so `≈`/`HasEquiv`/`Setoid` get resolved against that reduced type. That means:
+--  (a) an instance for `List.isSetoid` (permutation-based) would win over one we declare for
+--      `R*` unless disabled — its `Decidable` goal then fails since the permutation-`Decidable`
+--      instance lives in `Mathlib.Data.Multiset.Defs`, which we don't import; and
+--  (b) our own instance must ALSO be stated for the reduced type `List (𝔽 × 𝔽)`, not `R*`,
+--      or instance search (keyed on the reduced type) will simply never find it.
+attribute [-instance] List.isSetoid
+
+instance : HasEquiv (List (𝔽 × 𝔽)) where Equiv x y := HyperEq x y
+infix:50 " ≅ " => HyperEq  -- alias, NOT NEEDED now that ≈ works directly
 
 instance HyperSetoid : Setoid R* :=
 { r := HyperEq,
@@ -468,13 +478,11 @@ instance HyperSetoid : Setoid R* :=
     (by intro x y z hxy hyz; unfold HyperEq at hxy hyz ⊢; rw [hxy, hyz])
   ⟩ }
 
-instance decidableHyperEquiv : DecidableRel (α := R*) (· ≈ ·) :=
-  fun x y => decEq (simplify x) (simplify y)
+instance decidableHyperEquiv (x y : List (𝔽 × 𝔽)) : Decidable (x ≈ y) :=
+  decEq (simplify x) (simplify y)
 
 #eval (simplify [(0,0)] == simplify (0 : R*)) -- true (simplify drops zero coefficients)
 #eval ([(0,0)] : R*) = (0: R*) -- always false! (OK, raw lists differ)
-#synth HasEquiv R*
-#synth DecidableRel (α := R*) (· ≈ ·)
 #eval ([(0,0)] : R*) ≈ (0: R*) -- true (≈ compares simplified instances)
 def HyperQuotient := Quotient HyperSetoid
 instance [DecidableEq Comps] : DecidableEq HyperQuotient :=
