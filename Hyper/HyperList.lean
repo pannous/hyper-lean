@@ -344,6 +344,47 @@ lemma lt_of_lead_pair {a b : R*} {r₁ r₂ e₁ e₂ : 𝔽} (hab : a - b = [(r
   rw [hab, leadSign, (simplify_pair h h₁ h₂).1]
   simp [not_lt.mpr hneg.le]
 
+/-- Single-term variant: `a - b` reduces to one nonzero term whose sign decides `a < b`. -/
+lemma lt_of_lead_single {a b : R*} {r e : 𝔽} (hab : a - b = ([(r, e)] : R*)) (hneg : r < 0) :
+    a < b := by
+  show leadSign (a - b) = Ordering.lt
+  rw [hab]
+  simp [leadSign, simplify, mergeAdjacent, not_lt.mpr hneg.le, hneg.ne]
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Concrete order facts (ε, ω). Fully decidable/computable, so `native_decide`
+-- settles them directly; the parametrized facts below (arbitrary r : ℚ) need
+-- the general lemmas above.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+lemma epsilon_pos : (0 : R*) < ε := by native_decide
+lemma omega_pos : (0 : R*) < ω := by native_decide
+lemma epsilon_lt_one : ε < (1 : R*) := by native_decide
+lemma epsilon_sq_lt_epsilon : ε * ε < ε := by native_decide
+lemma epsilon_mul_omega : ε * ω = 1 := by native_decide
+lemma omega_mul_epsilon : ω * ε = 1 := by native_decide
+
+/-- Embed a scalar as a real (order-0) hyperreal. Avoids the ambiguity `binop%` elaboration
+    runs into when coercing a bare `ℚ` on one side of `-`/`<` against an `R*` on the other. -/
+def embedQ (r : 𝔽) : R* := [(r, 0)]
+
+/-- ε is below every positive rational, embedded into R*: the defining infinitesimal property. -/
+lemma epsilon_lt_of_pos (r : ℚ) (hr : 0 < r) : ε < embedQ r := by
+  have hab : ε - embedQ r = ([(-r, 0), (1, -1)] : R*) := by
+    show ε + (-embedQ r) = ([(-r, 0), (1, -1)] : R*)
+    show merge ε (-embedQ r) = ([(-r, 0), (1, -1)] : R*)
+    have h1 : ε ≠ ([] : R*) := by native_decide
+    have h2 : (-embedQ r) ≠ ([] : R*) := by
+      show ([(-r, 0)] : R*) ≠ ([] : R*)
+      simp
+    unfold merge
+    rw [if_neg h1, if_neg h2]
+    show simplify ([(1, -1)] ++ [(-r, 0)]) = ([(-r, 0), (1, -1)] : R*)
+    have := (simplify_pair (r₁ := -r) (r₂ := 1) (e₁ := 0) (e₂ := -1)
+      (by norm_num) (by linarith) (by norm_num)).2
+    simpa using this
+  exact lt_of_lead_pair hab (by norm_num) (by linarith) (by norm_num) (by linarith)
+
 -- #eval ((1,0) : R*) -- todo HERE not coerced / simplified to 1 see HyperCheck.lean
 -- #eval ([(1,0)] : R*)
 
@@ -677,3 +718,4 @@ instance : Field R* := {
 
 end HyperLists
 end Hypers
+
