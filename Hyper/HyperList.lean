@@ -385,6 +385,19 @@ lemma epsilon_lt_of_pos (r : ℚ) (hr : 0 < r) : ε < embedQ r := by
     simpa using this
   exact lt_of_lead_pair hab (by norm_num) (by linarith) (by norm_num) (by linarith)
 
+/-- ε is strictly positive and below every positive rational: the two defining
+    properties of an infinitesimal, both now genuine theorems on R*. -/
+lemma epsilon_infinitesimal (r : ℚ) (hr : 0 < r) : 0 < ε ∧ ε < embedQ r :=
+  ⟨epsilon_pos, epsilon_lt_of_pos r hr⟩
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- GAUGING LAWS: ωⁿ · εⁿ = 1 (n-dimensional atom/count duality, see Readme).
+-- ═══════════════════════════════════════════════════════════════════════════
+
+lemma gauging_1d : ω * ε = 1 := omega_mul_epsilon
+
+lemma gauging_2d : (ω * ω) * (ε * ε) = 1 := by native_decide
+
 -- #eval ((1,0) : R*) -- todo HERE not coerced / simplified to 1 see HyperCheck.lean
 -- #eval ([(1,0)] : R*)
 
