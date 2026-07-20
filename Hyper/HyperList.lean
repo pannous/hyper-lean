@@ -284,6 +284,246 @@ lemma myle_total : ∀ p q : 𝔽 × 𝔽, myle p q || myle q p := by
   · right; exact h
   · left; exact h
 
+-- ═══════════════════════════════════════════════════════════════════════════
+-- CANONICAL FORM UNIQUENESS: `simplify` is fully determined by `coeffAt` — two
+-- lists with the same value at every exponent simplify to the *same* list, not
+-- just an equivalent one. This is the fact that makes the Field-instance ring
+-- laws provable at all: each reduces to (a) `coeffAt` arithmetic, pure ℚ, then
+-- (b) this uniqueness lemma, then (c) the pre-existing `eq_of_simplify_eq`
+-- axiom (below) to lift `simplify LHS = simplify RHS` to the raw `LHS = RHS`
+-- that the `Field R*` axioms actually demand.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+/-- Merging never invents a new exponent, only combines existing ones. -/
+theorem mergeAdjacent_exponent_mem (l : List (𝔽 × 𝔽)) :
+    ∀ p ∈ mergeAdjacent l, ∃ q ∈ l, p.2 = q.2 := by
+  induction l using mergeAdjacent.induct
+  · simp [mergeAdjacent]
+  · simp [mergeAdjacent]
+  · rename_i r₁ r₂ e₂ rest ih
+    simp only [mergeAdjacent, if_true]
+    intro p hp
+    obtain ⟨q, hq, hpq⟩ := ih p hp
+    obtain rfl | hq := List.mem_cons.mp hq
+    · exact ⟨(r₁, e₂), by simp, hpq⟩
+    · exact ⟨q, by simp [hq], hpq⟩
+  · rename_i r₁ e₁ r₂ e₂ rest hne ih
+    simp only [mergeAdjacent, if_neg hne]
+    intro p hp
+    obtain rfl | hp := List.mem_cons.mp hp
+    · exact ⟨(r₁, e₁), by simp, rfl⟩
+    · obtain ⟨q, hq, hpq⟩ := ih p hp
+      exact ⟨q, by simp [hq], hpq⟩
+
+/-- `mergeAdjacent` preserves the total coefficient at every exponent: combining
+adjacent same-exponent entries can't change any exponent's running sum. -/
+theorem mergeAdjacent_coeffAt (l : List (𝔽 × 𝔽)) (e : 𝔽) :
+    coeffAt (mergeAdjacent l) e = coeffAt l e := by
+  induction l using mergeAdjacent.induct
+  · simp [mergeAdjacent, coeffAt]
+  · simp [mergeAdjacent]
+  · rename_i r₁ r₂ e₂ rest ih
+    simp only [mergeAdjacent, if_true]
+    rw [coeffAt_cons, coeffAt_cons, ih, coeffAt_cons]
+    by_cases h : e₂ = e
+    · simp [h]; ring
+    · simp [h]
+  · rename_i r₁ e₁ r₂ e₂ rest hne ih
+    simp only [mergeAdjacent, if_neg hne]
+    rw [coeffAt_cons, coeffAt_cons, ih, coeffAt_cons]
+
+/-- `mergeAdjacent` turns a weakly-descending list into a strictly-descending one:
+grouping merges away every duplicate exponent. -/
+theorem mergeAdjacent_pairwise_lt (l : List (𝔽 × 𝔽))
+    (hp : l.Pairwise (fun p q => q.2 ≤ p.2)) :
+    (mergeAdjacent l).Pairwise (fun p q => q.2 < p.2) := by
+  induction l using mergeAdjacent.induct
+  · simp [mergeAdjacent]
+  · simp [mergeAdjacent]
+  · rename_i r₁ r₂ e₂ rest ih
+    simp only [mergeAdjacent, if_true]
+    apply ih
+    obtain ⟨_, hp'⟩ := List.pairwise_cons.mp hp
+    obtain ⟨hbound, hp''⟩ := List.pairwise_cons.mp hp'
+    exact List.pairwise_cons.mpr ⟨hbound, hp''⟩
+  · rename_i r₁ e₁ r₂ e₂ rest hne ih
+    simp only [mergeAdjacent, if_neg hne]
+    obtain ⟨hbound1, hp'⟩ := List.pairwise_cons.mp hp
+    obtain ⟨hbound2, hp''⟩ := List.pairwise_cons.mp hp'
+    have he : e₂ < e₁ := lt_of_le_of_ne (hbound1 (r₂, e₂) (by simp)) (Ne.symm hne)
+    have hstrict : ∀ q ∈ (r₂, e₂) :: rest, q.2 < e₁ := by
+      intro q hq
+      obtain rfl | hq := List.mem_cons.mp hq
+      · exact he
+      · exact lt_of_le_of_lt (hbound2 q hq) he
+    apply List.pairwise_cons.mpr
+    refine ⟨?_, ih hp'⟩
+    intro z hz
+    obtain ⟨q, hq, hzq⟩ := mergeAdjacent_exponent_mem ((r₂, e₂) :: rest) z hz
+    rw [hzq]
+    exact hstrict q hq
+
+theorem coeffAt_filter_ne_zero (l : List (𝔽 × 𝔽)) (e : 𝔽) :
+    coeffAt (l.filter (fun p => p.1 ≠ 0)) e = coeffAt l e := by
+  induction l with
+  | nil => rfl
+  | cons p rest ih =>
+    obtain ⟨r, e'⟩ := p
+    by_cases hr : r = 0
+    · subst hr
+      simp only [List.filter_cons, ne_eq, not_true_eq_false, decide_false,
+        Bool.false_eq_true, if_false]
+      rw [coeffAt_cons, ih]
+      simp
+    · simp only [List.filter_cons, ne_eq, hr, not_false_eq_true, decide_true, if_true]
+      rw [coeffAt_cons, coeffAt_cons, ih]
+
+theorem coeffAt_mergeSort (l : List (𝔽 × 𝔽)) (e : 𝔽) :
+    coeffAt (l.mergeSort myle) e = coeffAt l e :=
+  coeffAt_perm (List.mergeSort_perm l myle) e
+
+/-- `simplify` doesn't change a hyperreal's value at any exponent — only its
+representation. -/
+theorem coeffAt_simplify (a : R*) (e : 𝔽) : coeffAt (simplify a) e = coeffAt a e := by
+  unfold simplify
+  rw [coeffAt_filter_ne_zero, mergeAdjacent_coeffAt, coeffAt_mergeSort]
+
+theorem simplify_pairwise_lt (a : R*) :
+    (simplify a).Pairwise (fun p q => q.2 < p.2) := by
+  unfold simplify
+  apply List.Pairwise.filter
+  apply mergeAdjacent_pairwise_lt
+  exact (List.pairwise_mergeSort myle_trans myle_total a).imp
+    (fun {p q} h => by simpa [myle] using h)
+
+theorem simplify_nonzero (a : R*) : ∀ p : 𝔽 × 𝔽, List.Mem p (simplify a) → p.1 ≠ 0 := by
+  unfold simplify
+  intro p hp
+  have := List.of_mem_filter hp
+  simpa using this
+
+theorem coeffAt_eq_zero_of_forall_ne {l : List (𝔽 × 𝔽)} {e : 𝔽} (h : ∀ p ∈ l, p.2 ≠ e) :
+    coeffAt l e = 0 := by
+  unfold coeffAt
+  have hnil : l.filter (fun p => p.2 = e) = [] := by
+    apply List.filter_eq_nil_iff.mpr
+    intro p hp
+    simpa using h p hp
+  rw [hnil]
+  rfl
+
+/-- Canonical uniqueness: two strictly exponent-sorted, all-nonzero-coefficient lists
+with the same `coeffAt` everywhere are literally the same list. -/
+theorem canonical_unique : ∀ (a b : List (𝔽 × 𝔽)),
+    a.Pairwise (fun p q => q.2 < p.2) → b.Pairwise (fun p q => q.2 < p.2) →
+    (∀ p ∈ a, p.1 ≠ 0) → (∀ p ∈ b, p.1 ≠ 0) →
+    (∀ e, coeffAt a e = coeffAt b e) → a = b
+  | [], [], _, _, _, _, _ => rfl
+  | [], (r, e) :: b, _, hpb, _, hb0, h => by
+      obtain ⟨hbound, _⟩ := List.pairwise_cons.mp hpb
+      have hcoeff : coeffAt ((r, e) :: b) e = r := by
+        rw [coeffAt_cons, if_pos rfl,
+          coeffAt_eq_zero_of_forall_ne (fun p hp => ne_of_lt (hbound p hp))]
+        ring
+      have heq := h e
+      rw [coeffAt_nil, hcoeff] at heq
+      exact absurd heq.symm (hb0 (r, e) (by simp))
+  | (r, e) :: a, [], hpa, _, ha0, _, h => by
+      obtain ⟨hbound, _⟩ := List.pairwise_cons.mp hpa
+      have hcoeff : coeffAt ((r, e) :: a) e = r := by
+        rw [coeffAt_cons, if_pos rfl,
+          coeffAt_eq_zero_of_forall_ne (fun p hp => ne_of_lt (hbound p hp))]
+        ring
+      have heq := h e
+      rw [coeffAt_nil, hcoeff] at heq
+      exact absurd heq (ha0 (r, e) (by simp))
+  | (r₁, e₁) :: a, (r₂, e₂) :: b, hpa, hpb, ha0, hb0, h => by
+      obtain ⟨hboundA, hpa'⟩ := List.pairwise_cons.mp hpa
+      obtain ⟨hboundB, hpb'⟩ := List.pairwise_cons.mp hpb
+      have haCoeff : coeffAt ((r₁, e₁) :: a) e₁ = r₁ := by
+        rw [coeffAt_cons, if_pos rfl,
+          coeffAt_eq_zero_of_forall_ne (fun p hp => ne_of_lt (hboundA p hp))]
+        ring
+      have hbCoeff : coeffAt ((r₂, e₂) :: b) e₂ = r₂ := by
+        rw [coeffAt_cons, if_pos rfl,
+          coeffAt_eq_zero_of_forall_ne (fun p hp => ne_of_lt (hboundB p hp))]
+        ring
+      have hboundA' : ∀ p ∈ (r₁, e₁) :: a, p.2 ≤ e₁ := fun p hp =>
+        (List.mem_cons.mp hp).elim (fun h' => h' ▸ le_refl _) (fun hp' => le_of_lt (hboundA p hp'))
+      have hboundB' : ∀ p ∈ (r₂, e₂) :: b, p.2 ≤ e₂ := fun p hp =>
+        (List.mem_cons.mp hp).elim (fun h' => h' ▸ le_refl _) (fun hp' => le_of_lt (hboundB p hp'))
+      have he : e₁ = e₂ := by
+        by_contra hne
+        rcases lt_or_gt_of_ne hne with hlt | hgt
+        · have hz : coeffAt ((r₁, e₁) :: a) e₂ = 0 :=
+            coeffAt_eq_zero_of_forall_ne
+              (fun p hp => ne_of_lt (lt_of_le_of_lt (hboundA' p hp) hlt))
+          have heq := h e₂
+          rw [hz, hbCoeff] at heq
+          exact hb0 (r₂, e₂) (by simp) heq.symm
+        · have hz : coeffAt ((r₂, e₂) :: b) e₁ = 0 :=
+            coeffAt_eq_zero_of_forall_ne
+              (fun p hp => ne_of_lt (lt_of_le_of_lt (hboundB' p hp) hgt))
+          have heq := h e₁
+          rw [hz, haCoeff] at heq
+          exact ha0 (r₁, e₁) (by simp) heq
+      subst he
+      have hr : r₁ = r₂ := by
+        have heq := h e₁
+        rwa [haCoeff, hbCoeff] at heq
+      subst hr
+      have htails : ∀ e, coeffAt a e = coeffAt b e := by
+        intro e
+        by_cases he' : e = e₁
+        · subst he'
+          rw [coeffAt_eq_zero_of_forall_ne (fun p hp => ne_of_lt (hboundA p hp)),
+            coeffAt_eq_zero_of_forall_ne (fun p hp => ne_of_lt (hboundB p hp))]
+        · have hne' : e₁ ≠ e := fun h' => he' h'.symm
+          have heq := h e
+          rw [coeffAt_cons, coeffAt_cons, if_neg hne'] at heq
+          simpa using heq
+      have hab : a = b := canonical_unique a b hpa' hpb'
+        (fun p hp => ha0 p (List.mem_cons_of_mem _ hp))
+        (fun p hp => hb0 p (List.mem_cons_of_mem _ hp)) htails
+      rw [hab]
+
+/-- The master corollary: two hyperreal expressions with the same value at every
+exponent simplify to the same canonical form. Ring-law proofs below reduce to
+(a) equal `coeffAt` profiles, then (b) this lemma. -/
+theorem simplify_eq_of_coeffAt_eq {a b : R*} (h : ∀ e, coeffAt a e = coeffAt b e) :
+    simplify a = simplify b :=
+  canonical_unique (simplify a) (simplify b) (simplify_pairwise_lt a) (simplify_pairwise_lt b)
+    (simplify_nonzero a) (simplify_nonzero b)
+    (fun e => by rw [coeffAt_simplify, coeffAt_simplify]; exact h e)
+
+theorem simplify_idempotent (a : R*) : simplify (simplify a) = simplify a :=
+  simplify_eq_of_coeffAt_eq (coeffAt_simplify a)
+
+theorem simplify_nil : simplify ([] : R*) = [] := by native_decide
+
+theorem coeffAt_append (l₁ l₂ : List (𝔽 × 𝔽)) (e : 𝔽) :
+    coeffAt (List.append l₁ l₂) e = coeffAt l₁ e + coeffAt l₂ e := by
+  unfold coeffAt
+  rw [List.append_eq, List.filter_append, List.map_append, List.sum_append]
+
+theorem coeffAt_merge (x y : R*) (e : 𝔽) :
+    coeffAt (merge x y) e = coeffAt x e + coeffAt y e := by
+  unfold merge
+  split_ifs with hx hy
+  · subst hx; rw [coeffAt_nil]; ring
+  · subst hy; rw [coeffAt_nil]; ring
+  · rw [coeffAt_simplify, coeffAt_append]
+
+theorem coeffAt_neg_map (x : R*) (e : 𝔽) :
+    coeffAt (x.map (fun (p : 𝔽 × 𝔽) => (-p.1, p.2))) e = -coeffAt x e := by
+  induction x with
+  | nil => simp [coeffAt]
+  | cons p rest ih =>
+    obtain ⟨r, e'⟩ := p
+    simp only [List.map_cons]
+    rw [coeffAt_cons, coeffAt_cons, ih]
+    by_cases h : e' = e <;> simp [h] <;> ring
+
 /-- A two-element list, sorted descending by exponent (strict), is a fixed point of mergeSort
     regardless of which order the two elements were given in. -/
 lemma mergeSort_pair (p q : 𝔽 × 𝔽) (h : q.2 < p.2) :
@@ -710,31 +950,133 @@ instance : Field R* := {
     intro x
     simp [HSMul.hSMul, zero]
     rfl
-  sub_eq_add_neg := sorry,
+  sub_eq_add_neg := fun x y => by
+    show merge x (List.map (fun p : 𝔽 × 𝔽 => (-p.1, p.2)) y)
+      = normalize (merge x (normalize (List.map (fun p : 𝔽 × 𝔽 => (-p.1, p.2)) y)))
+    apply eq_of_simplify_eq
+    unfold normalize
+    rw [simplify_idempotent]
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    rw [coeffAt_merge, coeffAt_merge, coeffAt_simplify],
   zsmul_succ' := sorry, -- by exact zsmul_succ,
   zsmul_neg' := sorry, -- by exact zsmul_neg',
-  zero_add := sorry,
-  zero_mul := sorry,
-  mul_zero:=sorry,
-  exists_pair_ne := sorry,
-  inv_zero:=sorry,
-  neg_add_cancel:=sorry,
+  zero_add := fun x => by
+    show normalize (merge 0 x) = x
+    unfold normalize
+    apply eq_of_simplify_eq
+    rw [simplify_idempotent]
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    rw [coeffAt_merge]
+    have h0 : coeffAt (0 : R*) e = 0 := coeffAt_nil e
+    rw [h0]
+    ring,
+  zero_mul := fun x => by
+    show normalize ((List.product (0 : R*) x).map
+      (fun ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2))) = 0
+    have hp : List.product (0 : R*) x = ([] : List ((𝔽 × 𝔽) × 𝔽 × 𝔽)) := rfl
+    rw [hp]
+    show simplify ([] : R*) = 0
+    rw [simplify_nil]
+    rfl,
+  mul_zero := fun x => by
+    show normalize ((List.product x (0 : R*)).map
+      (fun ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2))) = 0
+    have hp : List.product x (0 : R*) = ([] : List ((𝔽 × 𝔽) × 𝔽 × 𝔽)) := by
+      show List.flatMap (fun a => List.map (Prod.mk a) ([] : List (𝔽 × 𝔽))) x = []
+      induction x with
+      | nil => rfl
+      | cons a t ih => simp [List.flatMap_cons, ih]
+    rw [hp]
+    show simplify ([] : R*) = 0
+    rw [simplify_nil]
+    rfl,
+  exists_pair_ne := ⟨0, 1, by native_decide⟩,
+  inv_zero := rfl,
+  neg_add_cancel := fun x => by
+    show normalize (merge (normalize (x.map (fun (p : 𝔽 × 𝔽) => (-p.1, p.2)))) x) = ([] : R*)
+    unfold normalize
+    rw [← simplify_nil]
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    rw [coeffAt_merge, coeffAt_simplify, coeffAt_neg_map, coeffAt_nil]
+    ring,
   nsmul_zero:= sorry,
   nsmul_succ:=sorry,
   npow_zero:=sorry,
   npow_succ:=sorry,
   nnqsmul_def:=sorry,
   qsmul_def:=sorry,
-  add_assoc := by sorry,
-  add_comm := by sorry,
+  add_assoc := fun x y z => by
+    show normalize (merge (normalize (merge x y)) z) = normalize (merge x (normalize (merge y z)))
+    unfold normalize
+    apply eq_of_simplify_eq
+    rw [simplify_idempotent, simplify_idempotent]
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    rw [coeffAt_merge, coeffAt_merge, coeffAt_simplify, coeffAt_simplify, coeffAt_merge,
+      coeffAt_merge]
+    ring,
+  add_comm := fun x y => by
+    show normalize (merge x y) = normalize (merge y x)
+    unfold normalize
+    apply eq_of_simplify_eq
+    rw [simplify_idempotent, simplify_idempotent]
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    rw [coeffAt_merge, coeffAt_merge]
+    ring,
   left_distrib := by sorry,
   right_distrib := by sorry,
   mul_assoc := by sorry,
-  one_mul := by sorry,
-  mul_one := by sorry,
+  one_mul := fun x => by
+    show normalize ((List.product (1 : R*) x).map
+      (fun ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2))) = x
+    have hp : List.product (1 : R*) x = x.map (fun q => (((1 : 𝔽), (0 : 𝔽)), q)) := by
+      show List.flatMap (fun a => x.map (Prod.mk a)) [((1 : 𝔽), (0 : 𝔽))]
+        = x.map (fun q => (((1 : 𝔽), (0 : 𝔽)), q))
+      rw [List.flatMap_singleton]
+    rw [hp, List.map_map]
+    have hid : ((fun ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2)) ∘
+        fun q : 𝔽 × 𝔽 => (((1 : 𝔽), (0 : 𝔽)), q)) = id := by
+      funext q
+      obtain ⟨r, e⟩ := q
+      simp
+    rw [hid, List.map_id]
+    unfold normalize
+    exact eq_of_simplify_eq (simplify x) x (simplify_idempotent x),
+  mul_one := fun x => by
+    show normalize ((List.product x (1 : R*)).map
+      (fun ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2))) = x
+    have hp : List.product x (1 : R*) = x.map (fun p => (p, ((1 : 𝔽), (0 : 𝔽)))) := by
+      show List.flatMap (fun a => [(a, ((1 : 𝔽), (0 : 𝔽)))]) x
+        = x.map (fun p => (p, ((1 : 𝔽), (0 : 𝔽))))
+      induction x with
+      | nil => rfl
+      | cons a t ih => simp [List.flatMap_cons, ih]
+    rw [hp, List.map_map]
+    have hid : ((fun ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2)) ∘
+        fun p : 𝔽 × 𝔽 => (p, ((1 : 𝔽), (0 : 𝔽)))) = id := by
+      funext p
+      obtain ⟨r, e⟩ := p
+      simp
+    rw [hid, List.map_id]
+    unfold normalize
+    exact eq_of_simplify_eq (simplify x) x (simplify_idempotent x),
   mul_comm := by sorry,
   mul_inv_cancel := by sorry,
-  add_zero := by sorry
+  add_zero := fun x => by
+    show normalize (merge x 0) = x
+    unfold normalize
+    apply eq_of_simplify_eq
+    rw [simplify_idempotent]
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    rw [coeffAt_merge]
+    have h0 : coeffAt (0 : R*) e = 0 := coeffAt_nil e
+    rw [h0]
+    ring
 }
 
 
