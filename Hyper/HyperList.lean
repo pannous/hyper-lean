@@ -1,4 +1,4 @@
-import Mathlib.Data.Real.Ereal
+import Mathlib.Data.EReal.Basic
 import Mathlib.Tactic.NormNum
 
 def debugMode : Bool := false -- show ε, ω, etc. in output
@@ -33,6 +33,7 @@ scoped notation "ε" => epsilon
 scoped notation "ω" => omega
 instance : Inhabited R* := ⟨zero⟩
 
+-- coercions of 'sub'fields into 𝔽*
 instance : Coe 𝔽 𝔽* where coe (n:𝔽) : R* := [(n, 0)]
 instance : Coe ℕ 𝔽* where coe (n:ℕ) : R* := [((n:𝔽), 0)]
 instance : Coe ℚ 𝔽* where coe (q:ℚ) : R* := [(q, 0)]
@@ -71,30 +72,46 @@ instance : EmptyCollection R* where emptyCollection := []
 -- #eval ([(0,0)]:𝔽*) = (0:𝔽*) -- todo?
 
 
+-- CANONICAL FORM: sorted descending by exponent, at most one term per exponent,
+-- no zero coefficients. This makes `simplify` order-independent on its input
+-- (⇒ simplify (x ++ y) = simplify (y ++ x), the key fact behind add_comm etc.)
+
+/-- Sum of all coefficients attached to a given exponent `e` — the "true" value
+    of a hyperreal at order `e`, independent of how its terms are listed/ordered. -/
+def coeffAt (a : R*) (e : 𝔽) : 𝔽 :=
+  ((a.filter (λ p => p.2 = e)).map Prod.fst).sum
+
+lemma coeffAt_perm {a b : R*} (h : a.Perm b) (e : 𝔽) : coeffAt a e = coeffAt b e := by
+  unfold coeffAt
+  exact List.Perm.sum_eq ((h.filter _).map _)
+
+lemma coeffAt_nil (e : 𝔽) : coeffAt ([] : R*) e = 0 := rfl
+
+lemma coeffAt_cons (r e : 𝔽) (a : R*) (e' : 𝔽) :
+    coeffAt ((r, e) :: a) e' = (if e = e' then r else 0) + coeffAt a e' := by
+  unfold coeffAt
+  by_cases h : e = e'
+  · simp [List.filter_cons, h]
+  · simp [List.filter_cons, h]
+
+/-- Merge consecutive same-exponent terms in an exponent-sorted list, summing coefficients. -/
+def mergeAdjacent : List (𝔽 × 𝔽) → List (𝔽 × 𝔽)
+  | [] => []
+  | [x] => [x]
+  | (r₁, e₁) :: (r₂, e₂) :: rest =>
+      if e₁ = e₂ then mergeAdjacent ((r₁ + r₂, e₁) :: rest)
+      else (r₁, e₁) :: mergeAdjacent ((r₂, e₂) :: rest)
+termination_by l => l.length
+decreasing_by all_goals (simp_all; try omega)
+
+/-- Canonical form: sort descending by exponent, merge duplicate exponents, drop zeros. -/
 def simplify (a : R*) : R* :=
-  a.foldl (λ acc (r, e) =>
-    let updated := acc.map (λ (r', e') => if e = e' then (r + r', e') else (r', e'))
-    if acc.any (λ (_, e') => e = e') then
-      updated.filter (λ (r', _) => r' ≠ 0)
-    else
-      (r, e) :: acc
-  ) [] |>.filter (λ (r, _) => r ≠ 0) -- remove all zero coefficients (0,*)
+  (mergeAdjacent (a.mergeSort (λ p q => decide (q.2 ≤ p.2))))
+    |>.filter (λ p => p.1 ≠ 0)
 
-def simplifyOrdered (l : R*) : Prop :=
+def simplifyOrdered (l : List (𝔽 × 𝔽)) : Prop :=
   ∀ (a b : ℕ) (r₁ e₁ r₂ e₂ : 𝔽),
-    l.get? a = some (r₁, e₁) → l.get? b = some (r₂, e₂) → a < b → e₁ ≤ e₂
-
-lemma simplify_preserves_order (l : R*) (h : simplifyOrdered l) : simplifyOrdered (simplify l) := by
-  unfold simplify
-  induction l with
-  | nil => simp [simplifyOrdered] -- Trivial base case
-  | cons hd tl ih =>
-    unfold List.foldl
-    -- Case 1: If hd is added to the accumulator without merging, ordering remains.
-    -- Case 2: If it merges with an existing term, the ordering is still valid.
-    -- We need to prove that `updated.filter (λ (r', _) => r' ≠ 0)` maintains order.
-    sorry
-    -- todo
+    l[a]? = some (r₁, e₁) → l[b]? = some (r₂, e₂) → a < b → e₂ ≤ e₁
 
 def normalize (x : R*) : R* := simplify x
 -- def normalize (x : R*) : R* := if x = [(0,0)] then [] else x
@@ -240,10 +257,10 @@ scoped notation:max "∜" a => a^(1/4)
 def standard (x : R*) := simplify (x.filter (λ (_, order) => order = 0))
 notation "st" => standard
 notation "real" => standard
-lemma standard_epsilon_zero : st ε = 0 := by rfl
-lemma standard_omega_zero : st ω = 0 := by rfl
-lemma standard_zero : st 0 = 0 := by rfl
-lemma standard_one : st 1 = 1 := by rfl
+lemma standard_epsilon_zero : st ε = 0 := by native_decide
+lemma standard_omega_zero : st ω = 0 := by native_decide
+lemma standard_zero : st 0 = 0 := by native_decide
+lemma standard_one : st 1 = 1 := by native_decide
 
 -- #eval ((1,0) : R*) -- todo HERE not coerced / simplified to 1 see HyperCheck.lean
 -- #eval ([(1,0)] : R*)
@@ -307,7 +324,7 @@ instance : HasEquiv R* where Equiv x y := simplify x == simplify y
 -- instance : HasEquiv R* where Equiv := HyperEq
 infix:50 " ≅ " => HyperEq  -- NOT NEEDED, we have the standard ≈ ≠ ~ !!!
 
-#eval ([(0,0)] : R*) ≈ (0: R*) -- true now FALSE AGAIN?????
+#eval (simplify [(0,0)] == simplify (0 : R*)) -- true now FALSE AGAIN????? (≈ itself has no Decidable instance)
 #eval ([(0,0)] : R*) = (0: R*) -- always false! (OK)
 
 -- Adding additional evaluation to check equality with simplified forms
