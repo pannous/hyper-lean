@@ -6,9 +6,9 @@ Basic hyperreal identities, stated once against the `IsHyperReal` interface
 instantiates it — `HyperList`, or any future backend — without this file
 knowing whether `eps`/`omega` are lists, functions, or opaque axioms.
 
-Concrete backends only need to provide `instance : IsHyperReal R*` once
-(see e.g. `Hyper/probes/HyperListInstance.lean`); everything below then
-applies to them for free.
+Concrete backends only need to provide `instance : IsHyperReal α` once (see
+`Hyper/HyperReal.lean` for the current reference model); everything below
+then applies to them for free.
 -/
 
 namespace Hyper.Basics
@@ -29,6 +29,7 @@ example : (0 : α) + omega = omega := zero_add_omega
 
 example : (eps : α) * omega = 1 := eps_mul_omega
 example : (omega : α) * eps = 1 := omega_mul_eps
+example : (eps : α) * omega = omega * eps := eps_omega_comm
 
 example : (0 : α) < eps := eps_pos
 example : (eps : α) < 1 := eps_lt_one

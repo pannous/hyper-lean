@@ -49,3 +49,43 @@ so far (their full order instance is separate, tracked work). Once a backend
 proves `Preorder`/`LinearOrder`, these three fields could be dropped in
 favour of the derivation without changing any downstream proof.
 -/
+
+namespace IsHyperReal
+
+variable {α : Type} [Zero α] [One α] [Add α] [Mul α] [Neg α] [Sub α] [LT α] [LE α]
+  [IsHyperReal α]
+
+/-- `ε` and `ω` commute with each other — genuinely derived from the two
+gauging axioms alone, no `mul_comm`/`CommRing` needed. This is the shape of
+fact this file is *for*: every backend gets it for free the moment it
+supplies `eps_mul_omega`/`omega_mul_eps`, without proving it itself. -/
+theorem eps_omega_comm : (eps : α) * omega = omega * eps := by
+  rw [eps_mul_omega, omega_mul_eps]
+
+end IsHyperReal
+
+/-!
+### Migration candidates
+
+Facts currently listed as raw *fields* above but that are really consequences
+of more basic structure, once a backend has it:
+
+- `eps_ne_zero`/`eps_ne_omega`/`eps_ne_one` — derivable from `eps_pos`/
+  `eps_lt_omega`/`eps_lt_one` given `<` irreflexive (needs `Preorder`).
+- `eps_sub_eps`/`neg_eps_add_eps` — both instances of `sub_self`/
+  `neg_add_cancel`, i.e. free from any `AddGroup` instance.
+- `eps_add_zero`/`zero_add_omega` — instances of `add_zero`/`zero_add` from
+  any `AddMonoid` instance.
+- `eps_add_eps`/`eps_add_eps_add_eps`/`omega_add_omega` — instances of
+  `two_mul`/distributivity from any `Semiring`/`Ring` instance.
+
+None of that ring/order machinery is required *yet* because backends still
+carry `sorry`s in their algebraic instances (see task "close Field-instance
+sorries"). As those get filled in, prefer moving a fact from this class's
+field list into a `theorem` derived from the weaker Mathlib class it actually
+follows from (as `eps_omega_comm` above does today) — that shrinks the
+per-backend proof burden without touching `Hyper/HyperBasics.lean`, since
+`IsHyperReal.foo` resolves the same way whether `foo` is a field or a
+`theorem`. Conversely, if a fact turns out to need real backend-specific
+knowledge no weaker class can supply, it belongs back as a field.
+-/
