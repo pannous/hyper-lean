@@ -473,6 +473,8 @@ instance decidableHyperEquiv : DecidableRel (α := R*) (· ≈ ·) :=
 
 #eval (simplify [(0,0)] == simplify (0 : R*)) -- true (simplify drops zero coefficients)
 #eval ([(0,0)] : R*) = (0: R*) -- always false! (OK, raw lists differ)
+#synth HasEquiv R*
+#synth DecidableRel (α := R*) (· ≈ ·)
 #eval ([(0,0)] : R*) ≈ (0: R*) -- true (≈ compares simplified instances)
 def HyperQuotient := Quotient HyperSetoid
 instance [DecidableEq Comps] : DecidableEq HyperQuotient :=
