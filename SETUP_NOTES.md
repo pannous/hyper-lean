@@ -34,6 +34,9 @@ See `example_working.lean` for a functional demonstration of:
 
 ### 🚀 Usage
 ```bash
+# super folder
+cd ~/dev/script/lean4/hyper/../
+
 # Build the project
 lake build
 

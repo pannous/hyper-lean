@@ -20,10 +20,14 @@ In 1960 Abraham Robinson (1918–1974) solved the three hundred year old problem
 
 The simple set of axioms for the hyperreal number system given here (and in Elementary Calculus) make it possible to present infinitesimal calculus at the college freshman level, avoiding concepts from mathematical logic. (It is shown in Chapter 15 of [hkeisler] that these axioms are equivalent to Robinson’s approach.)  
 
-(The following axioms are slightly different to Keislers, in that R∗ being an ordered field extension of R follows from the basic axioms: R∗ with the relation ‹∗ and the functions +,−,·,⁻¹ is an extension of R which satisfies the Trichotomy Law. (Proposition 1.18 in HKeisler))  
+The following axioms are slightly different to Keislers, in that R∗ being an ordered field extension of R follows from the basic axioms: 
 
-Also for us ε is not an arbitrary infinitesimally small number but a fixed chosen one, similar to i:  
+R∗ with the relation < ∗ and the functions +,−,·,⁻¹ is an extension of R which satisfies the Trichotomy Law. 
+(Proposition 1.18 in HKeisler)  
 
+For us ε is not an arbitrary infinitesimally small number but a fixed chosen one, similar to i:  
+
+# Order Axiom
 The canonical infinitesimal ε has the property of being bigger than 0 and smaller than all positive standard numbers:    
 0 < ε < r ∀r∊ℝ⁺    
 
@@ -35,13 +39,14 @@ r < ω   ∀r∊ℝ
 
 These two symbols can be linked via canonical gauging:    
 
+# Gauging Axiom
 ω := 1/ε       
 
 1/∞ = 0 # ∞ is not part our field, just for illustration  
 1/0 = ∞  # not ω!      
 ω/∞ =〚1〛?  
 
-In fact ∞ is not a number but may be the equivalence class ∞=〚ω〛 or ∞=〚ωᵚ〛wrt '≈' see below  
+In fact ∞ is not a number but may be the equivalence class ∞ =〚ω〛 or ∞ =〚ωᵚ〛wrt '≈' see below  
 
 Have you ever been bothered that "infinity plus one equals infinity"? This is no longer the case for Hyper Reals:  
 
@@ -53,6 +58,7 @@ We are mostly interested in applicative usage of Hyperreal numbers, defined axio
 ℝ⋆ = R∗ = ∗R notation∗, last one easiest to type  
 ℝ⋆ ≈ "algebraic-span / algebraic-closure(ℝ,ε)" # see term axioms # ω not needed because ω=1/ε  
 ℝ⋆ ≅ vectorial-span(1,ε,ω,ε²,ω²,…)   # 1/ε not needed because ω=1/ε  
+💡 for now we are satisfied with natural orders ε,ε²,ε³ ...  the theory may be extended to arbitrary orders 💡
 
 Definition 1.1. An element x∊R∗ is  
 • finite if |x| < r for some real r  
@@ -66,7 +72,7 @@ only real infinitesimal is 0.
 𝕀⁻¹ infinitesimal small nonstandard numbers ℝ·ε = {a∗ε a∊ℝ} outer span order -1      
 𝕀⁻² infinitesimal small nonstandard numbers ℝ·ε² = {a∗ε² a∊ℝ} outer span order -2    
 𝔽 finite standard ℝ and nonstandard ℝ+𝕀 numbers ‹ℝ,ε›  {x: |x| < r for some r in ℝ}    
-	𝕐 unlimited infinite nonstandard numbers 《ω》 order ∞     
+𝕐 unlimited infinite nonstandard numbers 《ω》 order ∞     
 𝕐¹ unlimited infinite nonstandard numbers ℝ·ω = {a∗ω a∊ℝ} order 1    
 𝕐² unlimited infinite nonstandard numbers ℝ·ω² = {a ∗ ω² a∊ℝ} order 2  
 
@@ -74,7 +80,17 @@ only real infinitesimal is 0.
 
 Pure reals in ℝ⋆ are sometimes called 'appreciable' but should just be called 'real'.    
 
+
+## Generalisations
+Generalisations or alternative constructions of Hyperreal numbers can be found in    
+https://en.wikipedia.org/wiki/Hyperreal_number    
+https://en.wikipedia.org/wiki/Superreal_number    
+https://en.wikipedia.org/wiki/Surreal_number    
+
+In fact if we were forced to 'anchor' our axioms with concrete constructions, we would pick the elegant approach of surreal numbers and skip other crutch conceptions.    
+
 # Dual numbers
+Dual numbers are a special case simplification of hyper numbers.
 As shown below, using hyperreals allows any function to be differentiated in a very simple way, the derivative of the step function is ω at 0 which is our algebraic dirac delta.  
 Hyperreals convey information of higher derivatives, so the derivative of a ω 'jump' is a ω² 'shock' (jerk) ω³ 'snap' …  
 Sometimes we are not interested in higher order derivatives and are satisfied with first order nonstandard analysis. In this case we can introduce an   
@@ -116,32 +132,35 @@ for easier typing these classes can be written as ‹I› ‹‹I›› ‹Y› 
 
 		# Orders  
 
-## ωⁿ
+# Hyperfinites
+even though we are operating on any field including ℝ, where this movement is going as that we can limit ourselves to fields which are not infinite, but we delay such a choice of maximum numbers for later. 2¹⁰⁰⁰  seems like a save bet, in truth we want a much smaller number so that in physics different phenomena of different orders have their own epsilon order without losing any generalization. 
 
-ωⁿ > r∗ω for r in ℝ, n›1    
+So for example 
+1) order 1 would be quantum scales, 
+2) order 2 would be planetary scales and 
+3) order 3 would be galactic scales. 
+
+In none of our simulations would we need to calculate a single molecule to simulate a whole galaxy cluster. Of course it can be helpful for higher level simulations to be informed of the fine substructure but one never uses them explicitly, only through statistics.
+
+
+
+## ωⁿ
+ωⁿ > r∗ω for r in ℝ, n›1 since they are higher order "A small planet is bigger than a huge apple"
 εⁿ < r∗ε for r in ℝ⁺ n›1  
 
 Unlike the constructive definition of ⋆ℝ (as sequence classes) we would like to differentiate between different orders:    
 ℝ order 0    
 
 𝕁 = ‹ω›ℝ = {a∗ω a∊ℝ} order 1 infinites  
-	𝕀 = ‹ε›ℝ = {a∗ε a∊ℝ} order -1 infinitesimals  
-
-	Generalisations or alternative constructions of Hyperreal numbers can be found in    
-https://en.wikipedia.org/wiki/Hyperreal_number    
-https://en.wikipedia.org/wiki/Superreal_number    
-https://en.wikipedia.org/wiki/Surreal_number    
-
-In fact if we were forced to 'anchor' our axioms with concrete constructions, we would pick the elegant approach of surreal numbers and skip other crutch conceptions.    
-
+𝕀 = ‹ε›ℝ = {a∗ε a∊ℝ} order -1 infinitesimals  
 
 # approximates
 We have a canonical similarity operator ≈ as:  
 x≈ε ‹=› x=a·ε for some a in ℝ⁺      
-	x≈0 ‹=› x=0 or x≈±ε      
-	x≈y ‹=› x-y≈0      
+x≈0 ‹=› x=0 or x≈±ε      
+x≈y ‹=› x-y≈0      
 
-	⚠️ one MAY define '~' so that x~ε =› x~0 !    
+⚠️ one MAY define '~' so that x~ε =› x~0 !    
 ⚠️ some authors define ~ very differently as x~y ‹› x-y limited "of the same order"    
 
 # dot ≈ halo ≈ monad
@@ -149,7 +168,7 @@ The dot / halo around a point x is the set of all nonstandard numbers near x
 halo(x) =〚x≈y for y in ℝ⋆〛    
 Equivalently it's the span of all infinitesimals around x    
 halo(x) = x+𝕀 = {x + a ∗ ε for a in ℝ}    
-halo(x) = x+𝕀 = {x + e for e in 𝕀}    
+halo(x) = x+𝕀 = {x + e for e in 𝕀}     # e for extra / epsilon
 
 ε-disc(x) < halo(x)  
 
@@ -157,8 +176,8 @@ halo(x) = x+𝕀 = {x + e for e in 𝕀}
 Similar to complex numbers we are often just interested in the real part of hyperreal numbers.    
 Slightly different is the https://en.wikipedia.org/wiki/Standard_part_function :    
 
-Standard part 	as St(x) or x̌ (CARON	̌) for finite x    
-Real part 			as Re(x) or Real(x) or x.real or x̌     
+Standard part 	as St(x) or x̌ (CARON) for finite x    
+Real part 			as Re(x) or Real(x) or x.real or r(x) or x̌     
 Complex part 		as C(x)  or Complex(x) or ℂ(x) or x.complex or x̌ for later ℂ extension  
 Hyperreal part 	as Hy(x) or Hyper(x) or x.hyper or x̂ ( ε and ω components of field extension )    
 Infinite part 	as Inf(x) or Omega(x) or x.omega ω(x)     
@@ -180,10 +199,10 @@ x = x̌ + x̂
 x = x̌ + ω(x) + ε(x)    
 
 In some implementations one may set ε(x)=0 if ω(x)≠0 that is infinite parts make infinitesimal parts insignificant    
-But in some scenarios it may be beneficial to keep track of ε parts even if the expression "blows up".    
+But in some scenarios it may be beneficial to keep track of ε parts even if the expression blows up.    
 
 x∊ℝ⋆ is called real if Real(x)=x ‹=› Omega(x)=0 and Epsilon(x)=0    
-	x∊ℝ⋆ is called finite if Omega(x)=0    
+x∊ℝ⋆ is called finite if Omega(x)=0    
 x∊ℝ⋆ is called infinitesimal if Omega(x)=0 and Real(x)=0 ('truely' if Epsilon(x)≠0)    
 x∊ℝ⋆ is called hyperinteger if Real(x)∊ℤ ('truely' if Real(x)≠x otherwise just integer within ℝ⋆)    
 

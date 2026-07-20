@@ -16,14 +16,16 @@ notation "-∞" => (⊥ : EReal)
 namespace Hypers
 section HyperGenerals
 
+-- ⚠️ see HyperList.lean for the current best implementation
+
 -- Avoid Real Numbers When Possible:
 -- If the use of real numbers introduces complexity due to issues like non-decidability of equality, consider if your application can tolerate using rational numbers or fixed-point arithmetic, which do not have these issues in Lean.
 -- variable {𝔽 : Type*} [field 𝔽] -- “Let 𝔽 be a field.”
 -- def 𝔽 := ℚ -- treats it as own Type!!
 -- notation "𝔽" => Float -- our field, true alias
-notation "𝔽" => ℚ -- our field, true alias
+notation "𝔽" => ℚ -- our field, true alias # todo: use ℚ + π ... but not full ℝ
 
-def Comps := List (𝔽 × 𝔽)
+def Comps := List (𝔽 × 𝔽) -- components of hyperreals = ∑ value * ω^order, e.g. π = (π,0) ε = (1,-1)
 -- def Comps := List (ℝ × ℝ)
 -- def Comps := List (ℝ × ℚ) -- what about ε^π :) seriously, needed in e^πi = -1
 -- def Comps := List (ℝ × ℤ) -- ℤ for exponents integer powers of ε and ω enough for now
@@ -33,6 +35,13 @@ def Comps := List (𝔽 × 𝔽)
 
 structure HyperGeneral :=
   components : List (𝔽 × 𝔽)
+  -- components : List (ℝ × ℝ) -- allow π√ε
+  -- components : List (ℚ × ℚ) -- allow π√ε approximation for now
+  -- components : List (Float × Float) -- allow π√ε approximation for now
+  -- components : List (ℝ × ℤ) -- [(3, 0), (1, 1), (2, -2)] => 3 + ω + 2ε^2 -- note ε = ω⁻¹
+  -- components : Comps -- with indirection we can't use add := λ x y => ⟨x.components ++ … why?
+  -- components : 𝔽 → 𝔽 -- as Function, see HyperFun
+  -- components : ℤ → ℝ  -- generalized for infinite lists of components
 
 notation "R*" => HyperGeneral
 -- notation "ℚ*" => R* -- but what about π?
@@ -42,14 +51,6 @@ notation "𝔽⋆" => R*
 -- notation "ℝ*" => R* -- may conflict with Lean 4 notation for hyperreals
 
 -- def Hyper:= R* -- remove!
-
-  -- components : 𝔽 → 𝔽 -- as Function, see HyperFun
-  -- components : List (ℝ × ℝ) -- allow π√ε
-  -- components : List (ℚ × ℚ) -- allow π√ε approximation for now
-  -- components : List (Float × Float) -- allow π√ε approximation for now
-  -- components : List (ℝ × ℤ) -- [(3, 0), (1, 1), (2, -2)] => 3 + ω + 2ε^2 -- note ε = ω⁻¹
-  -- components : ℤ → ℝ  -- generalized for infinite lists of components
-  -- components : Comps -- with indirection we can't use add := λ x y => ⟨x.components ++ … why?
 
 -- structure HyperSimple :=
   -- components : ℝ × ℤ  -- ONE of (3, 0), (1, 1), (2, -2) … => 3 or ω or 2ε^2 -- note ε = ω⁻¹
@@ -70,7 +71,7 @@ instance : Inhabited R* where
     components := []
   }
 
-def zero : R* := ⟨[]⟩
+def zero : R* := ⟨[]⟩  -- == ⟨[0,x]⟩ vis simplification
 def one : R* := ⟨[(1, 0)]⟩
 def epsilon : R* := ⟨[(1, -1)]⟩
 def omega : R* := ⟨[(1, 1)]⟩
@@ -269,3 +270,4 @@ instance : Field R* := {
 
 end HyperGenerals
 end Hypers
+

@@ -455,16 +455,10 @@ instance : BEq (List (ℤ × ℤ)) where beq x y := (simplify (x:R*)) = (simplif
 instance : BEq (List (ℕ × ℕ)) where beq x y := (simplify (x:R*)) = (simplify (y:R*))
 
 
--- standard ≈ equality
-instance : HasEquiv R* where Equiv x y := simplify x == simplify y
--- instance : HasEquiv R* where Equiv := HyperEq
+-- standard ≈ equality: derived from the Setoid below (core Lean gives `HasEquiv` from any
+-- `Setoid` via `Setoid.r`); a second explicit `HasEquiv R*` instance would create a diamond
+-- and break `Decidable (x ≈ y)` resolution, so we do NOT declare one here.
 infix:50 " ≅ " => HyperEq  -- NOT NEEDED, we have the standard ≈ ≠ ~ !!!
-
-#eval (simplify [(0,0)] == simplify (0 : R*)) -- true now FALSE AGAIN????? (≈ itself has no Decidable instance)
-#eval ([(0,0)] : R*) = (0: R*) -- always false! (OK)
-
--- Adding additional evaluation to check equality with simplified forms
--- #eval ([(0,0)] : R*) ≅ (0: R*)
 
 instance HyperSetoid : Setoid R* :=
 { r := HyperEq,
@@ -473,6 +467,13 @@ instance HyperSetoid : Setoid R* :=
     (by intro x y h; unfold HyperEq at h ⊢; rw [h]),
     (by intro x y z hxy hyz; unfold HyperEq at hxy hyz ⊢; rw [hxy, hyz])
   ⟩ }
+
+instance decidableHyperEquiv : DecidableRel (α := R*) (· ≈ ·) :=
+  fun x y => decEq (simplify x) (simplify y)
+
+#eval (simplify [(0,0)] == simplify (0 : R*)) -- true (simplify drops zero coefficients)
+#eval ([(0,0)] : R*) = (0: R*) -- always false! (OK, raw lists differ)
+#eval ([(0,0)] : R*) ≈ (0: R*) -- true (≈ compares simplified instances)
 def HyperQuotient := Quotient HyperSetoid
 instance [DecidableEq Comps] : DecidableEq HyperQuotient :=
   λ x y =>

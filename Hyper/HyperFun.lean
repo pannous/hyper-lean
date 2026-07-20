@@ -10,6 +10,9 @@ import Hyper.HyperUtil
 import Lean
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 
+--- ⚠️ 💡  implement hyperreal numbers via a function of their coefficients π*ε =>  f(-1)=π
+--- This very general approach seems to be overkill and hard for proofs see hypergeneral for a list based implementation
+
 #eval Float.sin 0
 -- #eval Real.sin 0  -- abstract function!
 -- import data.real.basic -- Import basic real number theory in LEAN 3
