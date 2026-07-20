@@ -104,9 +104,12 @@ def mergeAdjacent : List (𝔽 × 𝔽) → List (𝔽 × 𝔽)
 termination_by l => l.length
 decreasing_by all_goals (simp_all; try omega)
 
+/-- Comparator for descending order by exponent (highest order first). -/
+def myle (p q : 𝔽 × 𝔽) : Bool := decide (q.2 ≤ p.2)
+
 /-- Canonical form: sort descending by exponent, merge duplicate exponents, drop zeros. -/
 def simplify (a : R*) : R* :=
-  (mergeAdjacent (a.mergeSort (λ p q => decide (q.2 ≤ p.2))))
+  (mergeAdjacent (a.mergeSort myle))
     |>.filter (λ p => p.1 ≠ 0)
 
 def simplifyOrdered (l : List (𝔽 × 𝔽)) : Prop :=
@@ -261,6 +264,85 @@ lemma standard_epsilon_zero : st ε = 0 := by native_decide
 lemma standard_omega_zero : st ω = 0 := by native_decide
 lemma standard_zero : st 0 = 0 := by native_decide
 lemma standard_one : st 1 = 1 := by native_decide
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- ORDER: leading term (highest exponent) of `simplify (a - b)` decides a vs b.
+-- This is the standard Hahn-series / hyperreal convention: higher order
+-- (more infinite) terms dominate; among terms of equal order, larger
+-- coefficient dominates. Matches the Readme's "Order Axiom".
+-- ═══════════════════════════════════════════════════════════════════════════
+
+lemma myle_trans : ∀ p q r : 𝔽 × 𝔽, myle p q → myle q r → myle p r := by
+  intro p q r hpq hqr
+  simp only [myle, decide_eq_true_eq] at *
+  exact hqr.trans hpq
+
+lemma myle_total : ∀ p q : 𝔽 × 𝔽, myle p q || myle q p := by
+  intro p q
+  simp only [myle, decide_eq_true_eq, Bool.or_eq_true]
+  rcases le_total p.2 q.2 with h | h
+  · right; exact h
+  · left; exact h
+
+/-- A two-element list, sorted descending by exponent (strict), is a fixed point of mergeSort
+    regardless of which order the two elements were given in. -/
+lemma mergeSort_pair (p q : 𝔽 × 𝔽) (h : q.2 < p.2) :
+    [p, q].mergeSort myle = [p, q] ∧ [q, p].mergeSort myle = [p, q] := by
+  have hsorted : [p, q].Pairwise (fun a b => myle a b) := by
+    rw [List.pairwise_cons]
+    refine ⟨fun y hy => ?_, List.Pairwise.cons (fun y hy => absurd hy (List.not_mem_nil)) List.Pairwise.nil⟩
+    simp only [List.mem_singleton] at hy; subst hy
+    simpa [myle] using h.le
+  refine ⟨List.mergeSort_of_pairwise hsorted, ?_⟩
+  apply List.Perm.eq_of_pairwise (le := fun a b => myle a b)
+  · intro a b ha hb hab hba
+    simp only [List.mem_mergeSort, List.mem_singleton, List.mem_cons, List.not_mem_nil,
+      or_false] at ha hb
+    by_contra hne
+    have : a.2 = b.2 := by
+      simp only [myle, decide_eq_true_eq] at hab hba
+      exact le_antisymm hba hab
+    rcases ha with rfl | rfl <;> rcases hb with rfl | rfl <;>
+      simp_all <;> exact absurd this (by simpa using h.ne')
+  · exact List.pairwise_mergeSort myle_trans myle_total [q, p]
+  · exact hsorted
+  · exact (List.mergeSort_perm [q, p] myle).trans (List.Perm.swap p q [])
+
+/-- Canonical form of a strictly-sorted two-term hyperreal: unchanged (assuming nonzero coeffs). -/
+lemma simplify_pair {r₁ r₂ e₁ e₂ : 𝔽} (h : e₂ < e₁) (h₁ : r₁ ≠ 0) (h₂ : r₂ ≠ 0) :
+    simplify [(r₁, e₁), (r₂, e₂)] = [(r₁, e₁), (r₂, e₂)] ∧
+    simplify [(r₂, e₂), (r₁, e₁)] = [(r₁, e₁), (r₂, e₂)] := by
+  obtain ⟨h1, h2⟩ := mergeSort_pair (r₁, e₁) (r₂, e₂) h
+  have step : ∀ l : List (𝔽 × 𝔽), l.mergeSort myle = [(r₁, e₁), (r₂, e₂)] →
+      simplify l = [(r₁, e₁), (r₂, e₂)] := by
+    intro l hl
+    unfold simplify
+    rw [hl]
+    simp [mergeAdjacent, h.ne', h₁, h₂]
+  exact ⟨step _ h1, step _ h2⟩
+
+/-- Leading (highest-order) sign of a hyperreal: `gt` if the top term is positive,
+    `lt` if negative, `eq` if the value is (canonically) zero. -/
+def leadSign (a : R*) : Ordering :=
+  match simplify a with
+  | [] => Ordering.eq
+  | (r, _) :: _ => if 0 < r then Ordering.gt else Ordering.lt
+
+instance : LT R* where lt a b := leadSign (a - b) = Ordering.lt
+instance : LE R* where le a b := leadSign (a - b) ≠ Ordering.gt
+
+instance (a b : R*) : Decidable (a < b) :=
+  inferInstanceAs (Decidable (leadSign (a - b) = Ordering.lt))
+instance (a b : R*) : Decidable (a ≤ b) :=
+  inferInstanceAs (Decidable (leadSign (a - b) ≠ Ordering.gt))
+
+/-- The concrete positivity/order fact behind everything else: a two-term difference
+    with a dominant (higher-exponent) term of known sign determines `<`. -/
+lemma lt_of_lead_pair {a b : R*} {r₁ r₂ e₁ e₂ : 𝔽} (hab : a - b = [(r₁, e₁), (r₂, e₂)])
+    (h : e₂ < e₁) (h₁ : r₁ ≠ 0) (h₂ : r₂ ≠ 0) (hneg : r₁ < 0) : a < b := by
+  show leadSign (a - b) = Ordering.lt
+  rw [hab, leadSign, (simplify_pair h h₁ h₂).1]
+  simp [not_lt.mpr hneg.le]
 
 -- #eval ((1,0) : R*) -- todo HERE not coerced / simplified to 1 see HyperCheck.lean
 -- #eval ([(1,0)] : R*)
