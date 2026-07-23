@@ -955,6 +955,136 @@ def fieldZsmul : ℤ → R* → R*
 def fieldQsmul (q : ℚ) (x : R*) : R* := fieldMul (embedQ q) x
 def fieldNNQsmul (q : ℚ≥0) (x : R*) : R* := fieldMul (embedQ (q : ℚ)) x
 
+-- ═══════════════════════════════════════════════════════════════════════════
+-- MUL-SIDE CONVOLUTION: `coeffAt (fieldMul x y) e` is the convolution
+-- `Σ_{p∈x} p.1 * coeffAt y (e - p.2)` — same `coeffAt`/`eq_of_simplify_eq`
+-- technique as the additive side, one level deeper (`List.product`/`flatMap`
+-- instead of `List.append`). `coeffAt_mul_symm` lets either argument be
+-- iterated concretely while the other stays abstract (via its `coeffAt`),
+-- which is what unlocks `mul_comm`/`mul_assoc`/distributivity below without
+-- needing a `List.product` swap-permutation lemma (Mathlib doesn't have one).
+-- ═══════════════════════════════════════════════════════════════════════════
+
+theorem coeffAt_flatMap {α : Type} (l : List α) (g : α → List (𝔽 × 𝔽)) (e : 𝔽) :
+    coeffAt (l.flatMap g) e = (l.map (fun a => coeffAt (g a) e)).sum := by
+  induction l with
+  | nil => rfl
+  | cons a t ih =>
+    rw [List.flatMap_cons]
+    show coeffAt (List.append (g a) (t.flatMap g)) e = (List.map (fun a => coeffAt (g a) e) (a :: t)).sum
+    rw [coeffAt_append, ih, List.map_cons, List.sum_cons]
+
+theorem coeffAt_scale_shift (y : List (𝔽 × 𝔽)) (r1 e1 e : 𝔽) :
+    coeffAt (y.map (fun (p : 𝔽 × 𝔽) => (r1 * p.1, e1 + p.2))) e = r1 * coeffAt y (e - e1) := by
+  induction y with
+  | nil => simp [coeffAt]
+  | cons p rest ih =>
+    obtain ⟨r2, e2⟩ := p
+    simp only [List.map_cons]
+    rw [coeffAt_cons, coeffAt_cons, ih]
+    by_cases h : e1 + e2 = e
+    · have h' : e2 = e - e1 := by linarith
+      simp [h']
+      ring
+    · have h' : e2 ≠ e - e1 := by intro hc; apply h; linarith
+      simp [h, h']
+
+/-- `coeffAt` of a product, in terms of `x`'s raw entries and `y`'s `coeffAt`. -/
+theorem coeffAt_mul (x y : R*) (e : 𝔽) :
+    coeffAt (fieldMul x y) e = (x.map (fun p => p.1 * coeffAt y (e - p.2))).sum := by
+  unfold fieldMul normalize
+  rw [coeffAt_simplify]
+  have hp : (x.product y).map (fun ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2))
+      = x.flatMap (fun p => y.map (fun q => (p.1 * q.1, p.2 + q.2))) := by
+    show (x.flatMap (fun a => y.map (Prod.mk a))).map
+        (fun ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2))
+      = x.flatMap (fun p => y.map (fun q => (p.1 * q.1, p.2 + q.2)))
+    induction x with
+    | nil => rfl
+    | cons a t ih =>
+      simp only [List.flatMap_cons, List.map_append, ih]
+      congr 1
+      rw [List.map_map]
+      rfl
+  rw [hp, coeffAt_flatMap]
+  congr 1
+  apply List.map_congr_left
+  intro p hp
+  exact coeffAt_scale_shift y p.1 p.2 e
+
+theorem coeffAt_fieldAdd (x y : R*) (e : 𝔽) : coeffAt (fieldAdd x y) e = coeffAt x e + coeffAt y e := by
+  unfold fieldAdd normalize
+  rw [coeffAt_simplify]
+  show coeffAt (merge x y) e = _
+  exact coeffAt_merge x y e
+
+theorem sum_indicator_scale (y : List (𝔽 × 𝔽)) (r c : 𝔽) :
+    (y.map (fun q => if q.2 = c then r * q.1 else 0)).sum = r * coeffAt y c := by
+  induction y with
+  | nil => simp [coeffAt]
+  | cons q t iht =>
+    obtain ⟨r2, e2⟩ := q
+    rw [coeffAt_cons]
+    simp only [List.map_cons, List.sum_cons]
+    by_cases h : e2 = c
+    · simp [h, iht]; ring
+    · simp [h, iht]
+
+/-- The convolution sum is symmetric in `x`/`y` (proved directly by induction,
+avoiding the need for a `List.product x y ~ List.product y x` permutation
+lemma, which Mathlib doesn't provide). -/
+theorem mul_sum_symm (x y : R*) (e : 𝔽) :
+    (x.map (fun p => p.1 * coeffAt y (e - p.2))).sum
+      = (y.map (fun q => q.1 * coeffAt x (e - q.2))).sum := by
+  induction x with
+  | nil => simp [coeffAt]
+  | cons p rest ih =>
+    obtain ⟨r, e1⟩ := p
+    simp only [List.map_cons, List.sum_cons]
+    rw [ih]
+    have hstep : (y.map (fun q => q.1 * coeffAt ((r, e1) :: rest) (e - q.2))).sum
+        = (y.map (fun q => q.1 * ((if e1 = e - q.2 then r else 0) + coeffAt rest (e - q.2)))).sum := by
+      apply congrArg List.sum
+      apply List.map_congr_left
+      intro q _
+      rw [coeffAt_cons]
+    rw [hstep]
+    rw [show (fun q : 𝔽 × 𝔽 => q.1 * ((if e1 = e - q.2 then r else 0) + coeffAt rest (e - q.2)))
+        = (fun q : 𝔽 × 𝔽 => q.1 * (if e1 = e - q.2 then r else 0) + q.1 * coeffAt rest (e - q.2))
+        from funext (fun q => by ring)]
+    rw [List.sum_map_add]
+    congr 1
+    rw [show (fun q : 𝔽 × 𝔽 => q.1 * (if e1 = e - q.2 then r else 0))
+        = (fun q : 𝔽 × 𝔽 => if q.2 = e - e1 then r * q.1 else 0) from
+      funext (fun q => by
+        by_cases h : e1 = e - q.2
+        · have h' : q.2 = e - e1 := by linarith
+          rw [if_pos h, if_pos h']; ring
+        · have h' : q.2 ≠ e - e1 := by intro hc; apply h; linarith
+          rw [if_neg h, if_neg h', mul_zero])]
+    exact (sum_indicator_scale y r (e - e1)).symm
+
+/-- `coeffAt_mul` with the roles swapped (iterating over the second argument
+instead of the first). -/
+theorem coeffAt_mul_symm (x y : R*) (e : 𝔽) :
+    coeffAt (fieldMul x y) e = (y.map (fun q => q.1 * coeffAt x (e - q.2))).sum := by
+  rw [coeffAt_mul, mul_sum_symm]
+
+theorem sum_map_sum_comm {α β : Type} (l1 : List α) (l2 : List β) (f : α → β → ℚ) :
+    (l1.map (fun a => (l2.map (fun b => f a b)).sum)).sum
+      = (l2.map (fun b => (l1.map (fun a => f a b)).sum)).sum := by
+  induction l1 with
+  | nil => simp
+  | cons a t ih =>
+    simp only [List.map_cons, List.sum_cons, ih]
+    rw [← List.sum_map_add]
+
+theorem sum_mul_left {α : Type} (r : 𝔽) (l : List α) (f : α → 𝔽) :
+    r * (l.map f).sum = (l.map (fun a => r * f a)).sum := by
+  induction l with
+  | nil => simp
+  | cons a t ih => simp [mul_add, ih]
+
 instance : Field R* := {
   zero := zero,
   one := one,
@@ -1047,9 +1177,54 @@ instance : Field R* := {
     intro e
     rw [coeffAt_merge, coeffAt_merge]
     ring,
-  left_distrib := by sorry,
-  right_distrib := by sorry,
-  mul_assoc := by sorry,
+  left_distrib := fun x y z => by
+    apply eq_of_simplify_eq
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    show coeffAt (fieldMul x (fieldAdd y z)) e = coeffAt (fieldAdd (fieldMul x y) (fieldMul x z)) e
+    rw [coeffAt_mul, coeffAt_fieldAdd, coeffAt_mul, coeffAt_mul]
+    rw [show (fun p : 𝔽 × 𝔽 => p.1 * coeffAt (fieldAdd y z) (e - p.2))
+        = (fun p : 𝔽 × 𝔽 => p.1 * (coeffAt y (e - p.2) + coeffAt z (e - p.2))) from
+      funext (fun p => by rw [coeffAt_fieldAdd])]
+    rw [show (fun p : 𝔽 × 𝔽 => p.1 * (coeffAt y (e - p.2) + coeffAt z (e - p.2)))
+        = (fun p : 𝔽 × 𝔽 => p.1 * coeffAt y (e - p.2) + p.1 * coeffAt z (e - p.2)) from
+      funext (fun p => by ring)]
+    exact List.sum_map_add,
+  right_distrib := fun x y z => by
+    apply eq_of_simplify_eq
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    show coeffAt (fieldMul (fieldAdd x y) z) e = coeffAt (fieldAdd (fieldMul x z) (fieldMul y z)) e
+    rw [coeffAt_fieldAdd]
+    rw [coeffAt_mul_symm, coeffAt_mul_symm, coeffAt_mul_symm]
+    simp only [coeffAt_fieldAdd]
+    rw [show (fun q : 𝔽 × 𝔽 => q.1 * (coeffAt x (e - q.2) + coeffAt y (e - q.2)))
+        = (fun q : 𝔽 × 𝔽 => q.1 * coeffAt x (e - q.2) + q.1 * coeffAt y (e - q.2)) from
+      funext (fun q => by ring)]
+    exact List.sum_map_add,
+  mul_assoc := fun x y z => by
+    apply eq_of_simplify_eq
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    show coeffAt (fieldMul (fieldMul x y) z) e = coeffAt (fieldMul x (fieldMul y z)) e
+    rw [coeffAt_mul_symm (fieldMul x y) z e, coeffAt_mul x (fieldMul y z) e]
+    simp only [coeffAt_mul, coeffAt_mul_symm y z]
+    rw [show (fun r : 𝔽 × 𝔽 => r.1 * (x.map (fun p => p.1 * coeffAt y (e - r.2 - p.2))).sum)
+        = (fun r : 𝔽 × 𝔽 => (x.map (fun p => r.1 * (p.1 * coeffAt y (e - r.2 - p.2)))).sum) from
+      funext (fun r => sum_mul_left r.1 x _)]
+    rw [show (fun p : 𝔽 × 𝔽 => p.1 * (z.map (fun r => r.1 * coeffAt y (e - p.2 - r.2))).sum)
+        = (fun p : 𝔽 × 𝔽 => (z.map (fun r => p.1 * (r.1 * coeffAt y (e - p.2 - r.2)))).sum) from
+      funext (fun p => sum_mul_left p.1 z _)]
+    rw [sum_map_sum_comm z x (fun r p => r.1 * (p.1 * coeffAt y (e - r.2 - p.2)))]
+    congr 1
+    apply List.map_congr_left
+    intro p _
+    congr 1
+    apply List.map_congr_left
+    intro r _
+    have : e - r.2 - p.2 = e - p.2 - r.2 := by ring
+    rw [this]
+    ring,
   one_mul := fun x => by
     show normalize ((List.product (1 : R*) x).map
       (fun ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2))) = x
@@ -1084,7 +1259,20 @@ instance : Field R* := {
     rw [hid, List.map_id]
     unfold normalize
     exact eq_of_simplify_eq (simplify x) x (simplify_idempotent x),
-  mul_comm := by sorry,
+  mul_comm := fun x y => by
+    apply eq_of_simplify_eq
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    show coeffAt (fieldMul x y) e = coeffAt (fieldMul y x) e
+    rw [coeffAt_mul, coeffAt_mul_symm],
+  -- Not provable: `inv` (`fun (r,e) => (r⁻¹,-e)`, per-term) is only a genuine
+  -- multiplicative inverse for single-term monomials. Confirmed false via
+  -- native_decide: (ε+ω) * (ε+ω)⁻¹ = ω²+2+ε² ≠ 1. This isn't a definition
+  -- bug like npow/nsmul/zsmul were — R* only stores *finite*-support lists,
+  -- and finite-support Laurent-type series (ℚ[ω,ω⁻¹]-ish, here with rational
+  -- exponents) genuinely aren't a field: e.g. 1/(1+ω) has no finite
+  -- representation, only an infinite power series one. `Field R*` is
+  -- structurally aspirational for multi-term elements; left `sorry`.
   mul_inv_cancel := by sorry,
   add_zero := fun x => by
     show normalize (merge x 0) = x
