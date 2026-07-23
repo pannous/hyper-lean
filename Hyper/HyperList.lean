@@ -955,6 +955,11 @@ def fieldZsmul : ℤ → R* → R*
 def fieldQsmul (q : ℚ) (x : R*) : R* := fieldMul (embedQ q) x
 def fieldNNQsmul (q : ℚ≥0) (x : R*) : R* := fieldMul (embedQ (q : ℚ)) x
 
+instance : NatCast R* := ⟨fun n => embedQ n⟩
+instance : IntCast R* := ⟨fun n => embedQ n⟩
+instance : RatCast R* := ⟨embedQ⟩
+instance : NNRatCast R* := ⟨fun q => embedQ (q : ℚ)⟩
+
 -- ═══════════════════════════════════════════════════════════════════════════
 -- MUL-SIDE CONVOLUTION: `coeffAt (fieldMul x y) e` is the convolution
 -- `Σ_{p∈x} p.1 * coeffAt y (e - p.2)` — same `coeffAt`/`eq_of_simplify_eq`
@@ -1106,8 +1111,118 @@ instance : Field R* := {
   -- more step to `Rat.castRec`. Left open; `fieldQsmul`/`fieldNNQsmul` above are
   -- still the mathematically correct operations (ring-multiply by the embedded
   -- rational) regardless of whether this bridging identity is proved.
-  qsmul_def := sorry,
-  nnqsmul_def := sorry,
+  -- `qsmul_def : qsmul q x = ↑q * x` reduces (via `congr 1` on `fieldMul`) to
+  -- exactly `embedQ q = ↑q`. Attempted to prove this by unfolding `↑q` to its
+  -- default implementation (`Rat.castRec`, then `Nat.unaryCast`/`Int.castDef`)
+  -- and inducting to relate it to `embedQ` — but naming `Rat.castRec` (or any
+  -- generic Mathlib cast lemma about it) explicitly requires `NatCast R*`/
+  -- `IntCast R*`/`Div R*` to already be registered instances, which they are
+  -- NOT while still constructing THIS Field instance (confirmed:
+  -- `synthInstanceFailed` on all three). The axiom's *statement* gets `↑q`
+  -- via Lean's self-referential structure-literal substitution (which is why
+  -- `show embedQ a = ↑a` elaborates fine), but nothing *about* `↑q` is provable
+  -- until the instance already exists — a genuine circularity in this
+  -- approach, not just "needs a longer induction chain" as originally scoped.
+  -- Possible way forward (untested): declare standalone `instance : NatCast
+  -- R* := ⟨embedQ ∘ (↑·)⟩` / `IntCast` / `RatCast` *before* this Field
+  -- instance, built directly from `embedQ`. If ambient instance search then
+  -- picks those up for `[toRatCast : RatCast K]` (unclear whether it would,
+  -- vs. preferring the in-structure `Rat.castRec` default — untested), this
+  -- axiom would become close to `rfl`. Left open.
+  qsmul_def := by
+    intro a x
+    unfold fieldQsmul
+    congr 1,
+  nnqsmul_def := by
+    intro q x
+    unfold fieldNNQsmul
+    congr 1,
+  -- Custom `NatCast`/`IntCast`/`RatCast`/`NNRatCast` (all `embedQ`-based, declared
+  -- above) don't match the shapes Mathlib's defaults expect for these 5
+  -- axioms, so they need proofs of their own — the trade for `qsmul_def`/
+  -- `nnqsmul_def` being free above.
+  natCast_zero := by
+    show embedQ ((0 : ℕ) : 𝔽) = 0
+    apply eq_of_simplify_eq
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    show coeffAt (embedQ ((0 : ℕ) : 𝔽)) e = coeffAt (0 : R*) e
+    have h0 : coeffAt (0 : R*) e = 0 := coeffAt_nil e
+    rw [h0]
+    simp [embedQ, coeffAt_cons, coeffAt_nil],
+  natCast_succ := by
+    intro n
+    show embedQ ((n + 1 : ℕ) : 𝔽) = fieldAdd (embedQ (n : 𝔽)) 1
+    have h1 : (1 : R*) = embedQ 1 := rfl
+    rw [h1]
+    apply eq_of_simplify_eq
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    rw [coeffAt_fieldAdd]
+    show coeffAt (embedQ ((n + 1 : ℕ) : 𝔽)) e
+      = coeffAt (embedQ (n : 𝔽)) e + coeffAt (embedQ (1 : 𝔽)) e
+    simp only [embedQ, coeffAt_cons, coeffAt_nil]
+    by_cases h : (0 : 𝔽) = e
+    · rw [if_pos h, if_pos h, if_pos h]; push_cast; ring
+    · rw [if_neg h, if_neg h, if_neg h]; ring,
+  intCast_negSucc := by
+    intro n
+    show embedQ (Int.negSucc n : 𝔽) = fieldNeg (embedQ ((n + 1 : ℕ) : 𝔽))
+    apply eq_of_simplify_eq
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    show coeffAt (embedQ (Int.negSucc n : 𝔽)) e = coeffAt (fieldNeg (embedQ ((n + 1 : ℕ) : 𝔽))) e
+    unfold fieldNeg normalize
+    rw [coeffAt_simplify]
+    simp only [embedQ, coeffAt_cons, coeffAt_nil, List.map_cons, List.map_nil]
+    by_cases h : (0 : 𝔽) = e
+    · rw [if_pos h, if_pos h]; push_cast; ring
+    · rw [if_neg h, if_neg h],
+  ratCast_def := by
+    intro q
+    show embedQ q = fieldMul (embedQ (q.num : 𝔽)) ((embedQ (q.den : 𝔽)).map (fun (p : 𝔽 × 𝔽) => (p.1⁻¹, -p.2)))
+    have hinv : (embedQ (q.den : 𝔽)).map (fun (p : 𝔽 × 𝔽) => (p.1⁻¹, -p.2)) = embedQ ((q.den : 𝔽)⁻¹) := by
+      simp [embedQ]
+    rw [hinv]
+    apply eq_of_simplify_eq
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    rw [coeffAt_mul]
+    unfold embedQ
+    simp only [List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, coeffAt_cons, coeffAt_nil,
+      sub_zero, add_zero]
+    by_cases h : (0 : 𝔽) = e
+    · rw [if_pos h, if_pos h]
+      have hden : (q.den : ℚ) ≠ 0 := by exact_mod_cast q.den_nz
+      have heq : (q.num : ℚ) * (q.den : ℚ)⁻¹ = q := by
+        field_simp
+        rw [mul_comm]
+        exact_mod_cast (Rat.mul_den_eq_num q).symm
+      linarith [heq]
+    · rw [if_neg h, if_neg h]; ring,
+  nnratCast_def := by
+    intro q
+    show embedQ (q : 𝔽) = fieldMul (embedQ (q.num : 𝔽))
+      ((embedQ (q.den : 𝔽)).map (fun (p : 𝔽 × 𝔽) => (p.1⁻¹, -p.2)))
+    have hinv : (embedQ (q.den : 𝔽)).map (fun (p : 𝔽 × 𝔽) => (p.1⁻¹, -p.2)) = embedQ ((q.den : 𝔽)⁻¹) := by
+      simp [embedQ]
+    rw [hinv]
+    apply eq_of_simplify_eq
+    apply simplify_eq_of_coeffAt_eq
+    intro e
+    rw [coeffAt_mul]
+    unfold embedQ
+    simp only [List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, coeffAt_cons, coeffAt_nil,
+      sub_zero, add_zero]
+    by_cases h : (0 : 𝔽) = e
+    · rw [if_pos h, if_pos h]
+      have hden : (q.den : ℚ) ≠ 0 := by have := q.den_pos; positivity
+      have heq : (q.num : ℚ) * (q.den : ℚ)⁻¹ = (q : ℚ) := by
+        field_simp
+        rw [mul_comm]
+        exact_mod_cast (NNRat.mul_den_eq_num q).symm
+      linarith [heq]
+    · rw [if_neg h, if_neg h]; ring,
   sub_eq_add_neg := fun x y => by
     show merge x (List.map (fun p : 𝔽 × 𝔽 => (-p.1, p.2)) y)
       = normalize (merge x (normalize (List.map (fun p : 𝔽 × 𝔽 => (-p.1, p.2)) y)))
