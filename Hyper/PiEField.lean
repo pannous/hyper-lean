@@ -47,6 +47,8 @@ import Mathlib.Data.EReal.Basic
 import Mathlib.Tactic.NormNum
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.Analysis.SpecialFunctions.Exp
+import Mathlib.Analysis.Real.Pi.Bounds
+import Mathlib.Analysis.Complex.ExponentialBounds
 
 /-- A term `(coefficient, πExp, eExp)` — `coefficient · π^πExp · e^eExp`. -/
 abbrev PETerm := ℚ × ℚ × ℚ
@@ -105,6 +107,70 @@ def eGen : PiEField := [(1, 0, 1)]
     when this holds — a cheap guard against silently trusting `x⁻¹` for a
     multi-term `x`. -/
 def isMonomial (x : PiEField) : Bool := x.length ≤ 1
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Numeric order — deliberately NOT the `lexLE` above. `lexLE` sorts a
+-- monomial's *own* exponents for canonical form; it says nothing about
+-- comparing the actual sizes of two different values (e.g. is `e < π`?).
+-- That's a genuinely different question, and — unlike whether π and e are
+-- *algebraically related* — it is NOT open: e ≈ 2.71828, π ≈ 3.14159, and
+-- both have known, proven rational bounds in Mathlib (`Real.pi_gt_d6` /
+-- `pi_lt_d6`, `Real.exp_one_gt_d9` / `exp_one_lt_d9` — genuine theorems,
+-- not axioms). Interval arithmetic on those bounds decides the sign of any
+-- *degree-≤1* combination (`a + b·π + c·e`) exactly. Degree ≥2 (products,
+-- powers) is where things can genuinely get hard — e.g. whether `π² = e³`
+-- is unknown — so `monoBounds` returns `none` there rather than guessing.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+/-- Rational lower/upper bounds, wide enough to be checked directly against
+    `Real.pi_gt_d6`/`pi_lt_d6` and `Real.exp_one_gt_d9`/`exp_one_lt_d9`. -/
+def piLo : ℚ := 3141592 / 1000000
+def piHi : ℚ := 3141593 / 1000000
+def eLo : ℚ := 27182818283 / 10000000000
+def eHi : ℚ := 27182818286 / 10000000000
+
+-- Grounded in real Mathlib theorems, not just plausible-looking literals.
+example : (piLo : ℝ) < Real.pi := by have := Real.pi_gt_d6; norm_num [piLo] at this ⊢; linarith
+example : Real.pi < (piHi : ℝ) := by have := Real.pi_lt_d6; norm_num [piHi] at this ⊢; linarith
+example : (eLo : ℝ) < Real.exp 1 := by
+  have := Real.exp_one_gt_d9; norm_num [eLo] at this ⊢; linarith
+example : Real.exp 1 < (eHi : ℝ) := by
+  have := Real.exp_one_lt_d9; norm_num [eHi] at this ⊢; linarith
+
+/-- A rational interval bounding a single term's real value — exact for a
+    constant or a rational multiple of `π` or `e`; `none` (honestly
+    unattempted, not guessed) for anything of higher degree. -/
+def monoBounds (t : PETerm) : Option (ℚ × ℚ) :=
+  let (c, a, b) := t
+  if a = 0 ∧ b = 0 then some (c, c)
+  else if a = 1 ∧ b = 0 then some (if 0 ≤ c then (c * piLo, c * piHi) else (c * piHi, c * piLo))
+  else if a = 0 ∧ b = 1 then some (if 0 ≤ c then (c * eLo, c * eHi) else (c * eHi, c * eLo))
+  else none
+
+/-- Sum the per-term intervals — `none` as soon as any term falls outside
+    the degree-≤1 fragment `monoBounds` handles. -/
+def sumBounds (x : PiEField) : Option (ℚ × ℚ) :=
+  x.foldl (fun acc t => match acc, monoBounds t with
+    | some (lo, hi), some (lo2, hi2) => some (lo + lo2, hi + hi2)
+    | _, _ => none) (some (0, 0))
+
+/-- `.gt`/`.lt`/`.eq` if the interval settles it, `none` if inconclusive at
+    this precision or outside the degree-≤1 fragment. A partial function on
+    purpose — a total `LT`/`LE` instance here would have to lie somewhere. -/
+def numericSign (x : PiEField) : Option Ordering :=
+  match sumBounds x with
+  | some (lo, hi) =>
+      if 0 < lo then some .gt
+      else if hi < 0 then some .lt
+      else if lo = 0 ∧ hi = 0 then some .eq
+      else none
+  | none => none
+
+-- The actual point: e < π, decided from the formal representation, not
+-- assumed.
+example : numericSign (eGen - piGen) = some .lt := by native_decide
+example : numericSign (piGen - eGen) = some .gt := by native_decide
+example : numericSign (piGen + eGen) = some .gt := by native_decide
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Sanity: nonzero, distinct, monomial-exact division, genuine independence
@@ -194,6 +260,10 @@ example : (pi * pi⁻¹ : RatFun) ≈ 1 := by native_decide
 example : (pi + e : RatFun) ≈ e + pi := by native_decide
 example : (pi * e : RatFun) ≈ e * pi := by native_decide
 example : ((pi + e) * (pi - e) : RatFun) ≈ pi * pi - e * e := by native_decide -- difference of squares
+
+-- e < π, at the friendly-syntax level too, decided (not assumed) via
+-- `PiEField.numericSign` on the normalized form.
+example : PiEField.numericSign (normalize (e - pi)) = some .lt := by native_decide
 
 /-- What's still honestly NOT fixed: inverting a non-monomial. The
     normalizer doesn't hide this — `PiEField.isMonomial` on the normalized
