@@ -35,7 +35,7 @@ the generic operations can switch between these aliases without changing its
 term-level representation.
 -/
 abbrev RationalHyperReal := HyperList
-abbrev PiEHyperReal := PiEField.Hyper
+abbrev PiEHyperReal := RatFun.Hyper
 
 end Hypers
 

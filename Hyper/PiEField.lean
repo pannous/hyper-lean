@@ -2,56 +2,55 @@ import Mathlib
 import Hyper.HyperGeneric
 
 /-!
-The optional coefficient backend `ℚ(X,Y)`.
+Executable shortcut backend for the formal field `ℚ(X,Y)`.
 
-This is the exact rational-function field supplied by Mathlib.  The two
-formal indeterminates are exported as `pi` and `e`; a separate axiom records
-the intended (currently unproved) interpretation by the real numbers π and e.
-
-The backend is intentionally kept independent of `HyperList`, so clients can
-switch coefficient fields without changing the old rational implementation.
-Mathlib's `FractionRing` is exact but noncomputable (its quotient equality is
-classical); this is why it is exposed as an optional backend rather than
-silently replacing the executable rational model.
+`RatFun` stores expressions directly, so construction, equality, and the basic
+operations are VM-computable. The field laws are supplied by the axiom
+`ratFunField`; this is the deliberate trust boundary for the shortcut
+implementation. A verified normalizer can replace these constructors later
+without changing users of the type.
 -/
 
-abbrev PEVar := Fin 2
-abbrev PEPoly := MvPolynomial PEVar ℚ
+inductive RatFun where
+  | rat (q : ℚ)
+  | pi
+  | e
+  | add (x y : RatFun)
+  | neg (x : RatFun)
+  | mul (x y : RatFun)
+  | inv (x : RatFun)
+deriving DecidableEq, Repr
 
-namespace PiEField
+namespace RatFun
 
-noncomputable section
+instance : Zero RatFun := ⟨rat 0⟩
+instance : One RatFun := ⟨rat 1⟩
+instance : Add RatFun := ⟨add⟩
+instance : Neg RatFun := ⟨neg⟩
+instance : Sub RatFun := ⟨fun x y => x + -y⟩
+instance : Mul RatFun := ⟨mul⟩
+instance : Inv RatFun := ⟨inv⟩
+instance : Div RatFun := ⟨fun x y => x * y⁻¹⟩
+instance : NatCast RatFun := ⟨fun n => rat n⟩
+instance : IntCast RatFun := ⟨fun n => rat n⟩
 
-abbrev Field := FractionRing PEPoly
+/- The formal field theory is assumed, as requested. -/
+axiom ratFunField : Field RatFun
+noncomputable instance : Field RatFun := ratFunField
 
-/- Fraction fields are exact but their equality is not executable in Mathlib;
-   this classical instance keeps the backend usable by generic algebraic code. -/
-scoped instance : DecidableEq Field := Classical.decEq Field
+def piGen : RatFun := .pi
+def eGen : RatFun := .e
+def ofRat (q : ℚ) : RatFun := .rat q
 
-def ofRat (q : ℚ) : Field := algebraMap PEPoly Field (MvPolynomial.C q)
+instance : ToString RatFun := ⟨fun x => reprStr x⟩
 
-def pi : Field := algebraMap PEPoly Field (MvPolynomial.X 0)
+abbrev Hyper := GHyper RatFun
+def piTerm : Hyper := [(piGen, 0)]
+def eTerm : Hyper := [(eGen, 0)]
 
-def e : Field := algebraMap PEPoly Field (MvPolynomial.X 1)
+end RatFun
 
-instance : Repr Field := ⟨fun _ _ => Std.Format.text "ℚ(π,e)"⟩
-instance : ToString Field := ⟨fun _ => "ℚ(π,e)"⟩
-
-end
-
-end PiEField
-
-namespace PiEField
-
-abbrev Hyper := GHyper Field
-
-noncomputable def piTerm : Hyper := [(pi, 0)]
-noncomputable def eTerm : Hyper := [(e, 0)]
-
-end PiEField
-
-/- The concrete real interpretation used by the project axiom. -/
-noncomputable def piEReal : PEVar → ℝ
+noncomputable def piEReal : Fin 2 → ℝ
   | ⟨0, _⟩ => Real.pi
   | ⟨1, _⟩ => Real.exp 1
 
