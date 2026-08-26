@@ -1,78 +1,63 @@
-# Plan: adjoin π and e as formal generators (multivariate extension of R*)
+# Plan (corrected): set the coefficient field `𝔽` to a real algebraic field
 
-## Goal
+## Course correction
 
-Extend the existing single-generator model (`R* = List (ℚ × ℚ)`, monomials
-`coefficient · ε^exponent`) to also carry `π` and `e` as independent formal
-generators, the same way `ε`/`ω` are already handled — not as approximated
-real numbers, and not by moving to a richer coefficient field (real algebraic
-numbers don't contain π or e anyway; they're transcendental). `ℚ(π)` as an
-abstract field extension is isomorphic to `ℚ(x)` (a fresh indeterminate)
-since π is transcendental — so "adjoin a new formal symbol" is not a hack,
-it's the mathematically exact description of what that extension *is*.
+The previous pass (`Hyper/HyperConstants.lean`) adjoined π and e as extra
+*exponent* dimensions, keeping the coefficient field `𝔽 = ℚ`. That's not
+what was asked for: the actual request is to replace `𝔽` itself with the
+"special field" discussed earlier — a genuine, decidable field of real
+algebraic numbers, richer than ℚ. `HyperConstants.lean` stays (it's correct
+for what it does, and doesn't conflict with this), but it's not this task.
 
-## Design
+## What's actually achievable, honestly
 
-- **New file, `Hyper/HyperConstants.lean`. Do not touch `Hyper/HyperList.lean`.**
-  That file has ~1250 lines and dozens of proved theorems (order,
-  `Field R*` instance, dart-probability results elsewhere depend on it).
-  Generalizing its term type in place risks breaking all of it for a
-  demonstration feature. A new, smaller, self-contained file proves the
-  concept without that risk.
+The *general* field of real algebraic numbers (arbitrary-degree roots,
+canonical representation as minimal-polynomial + isolating interval,
+decidable comparison between roots of *different* polynomials via Sturm
+sequences) is a serious, multi-week undertaking — the kind of thing Sage's
+`QQbar` or Mathematica's `Root` objects are. Mathlib has no ready-made
+computable instance for this (confirmed by searching the vendored copy:
+`AlgebraicClosure` exists but is classical/noncomputable, `IsAlgebraic` is a
+bare `Prop`, nothing with `DecidableEq`/`DecidableLE`).
 
-- **Term representation**: instead of `(coefficient, ε-exponent) : ℚ × ℚ`,
-  use `(coefficient, εExp, πExp, eExp) : ℚ × ℚ × ℚ × ℚ` — a fixed-arity
-  tuple, not a general `Finsupp`/`MvPolynomial` machinery. With only three
-  named generators, a plain tuple keeps `DecidableEq`, `Repr`, and all the
-  list-based `simplify`/`mergeAdjacent`/`Mul` logic essentially copy-adapted
-  from `HyperList.lean`, rather than needing Mathlib's general multivariate
-  polynomial infrastructure.
-
-- **Operations to port** (same shape as `HyperList.lean`, generalized from
-  one exponent to three): `simplify`/`mergeAdjacent` (merge terms with
-  identical `(εExp, πExp, eExp)` triples), `Add`/`Neg`/`Sub` (list
-  append/map + simplify), `Mul` (cartesian product, multiply coefficients,
-  **add exponent triples componentwise** — this is where independence lives:
-  there is no rule that ever lets a `π`-exponent bleed into an `ε`-exponent
-  or vice versa), `Zero`/`One`, and the four generators `epsilon`, `omega`,
-  `piGen`, `eGen` as singleton terms.
-
-- **Deliberately not doing**: no numeric evaluation (no plugging in π's
-  digits), no `Inv`/`Field` instance beyond termwise-monomial inverse
-  (same documented limitation as `R*`), no assumed relations between the
-  generators. In particular — **do not add any rewrite rule relating π and
-  e** (e.g. nothing resembling `e^(iπ) = -1`, which needs `i` too and isn't
-  the point here anyway). Whether π and e are even algebraically independent
-  is a genuine open problem in number theory; treating them as free
-  generators is the only mathematically honest default, and it costs
-  nothing — a real relation, if one is ever proven, can always be added
-  later as an explicit rewrite without contradicting anything built on the
-  free version.
+What *is* fully achievable, correct, and a genuine (if narrower) instance of
+"decidable real algebraic numbers": **quadratic field extensions `ℚ(√d)`**,
+for a fixed non-square integer `d`. Elements are pairs `(a, b)` meaning
+`a + b·√d`; arithmetic is closed-form (no case explosion); the field norm
+`a² - d·b²` gives an exact `Inv`; and order is decidable by comparing `a²`
+against `d·b²` in `ℚ` — no numeric approximation of `√d` is ever computed,
+the comparison is exact. This genuinely contains `√2`, the golden ratio
+`(1+√5)/2`, etc. — real, irrational, algebraic numbers with fully exact,
+decidable arithmetic and order.
 
 ## Concrete deliverables
 
-1. `Hyper/HyperConstants.lean`: term type, `simplify`, `Add`/`Neg`/`Sub`/`Mul`
-   instances, `epsilon`/`omega`/`piGen`/`eGen` constants, `DecidableEq`.
-2. A handful of `native_decide`/`#eval`-checked sanity facts:
-   - `piGen ≠ 0`, `eGen ≠ 0`, `piGen ≠ eGen`
-   - `piGen * piGen⁻¹ = 1` (termwise monomial inverse, exact for a single
-     generator — same style as `ε * ω = 1`)
-   - independence is structural, not proved as a theorem about ℝ: a mixed
-     product like `(ε + π) * (ε + π)` genuinely produces a 3-term result
-     (`ε² + 2·ε·π + π²`, no collapsing), demonstrating that cross terms
-     survive rather than silently canceling — that's what "independent
-     generator" *means* at the term-representation level.
+1. `Hyper/QuadField.lean`: `Quad (d : ℤ)` — `a + b√d` — with `Zero`/`One`/
+   `Add`/`Neg`/`Sub`/`Mul`/`Inv`/`Div`, `DecidableEq`, and a decidable
+   `LT`/`LE` via exact rational comparison (`cmp`, case-split on the sign of
+   `a`, `b`, falling back to comparing `a²` vs `d·b²` when they disagree).
+   `native_decide`-checked: `(√2)² = 2`, `√2⁻¹·√2 = 1`,
+   `(1+√2)(1-√2) = -1`, `1 < √2 < 2`, the golden ratio's `φ² = φ + 1` and
+   `1 < φ < 2`.
+2. `Hyper/HyperQuadField.lean`: hyperreal terms `Quad d × ℚ` — same
+   `simplify`/`merge`/`Mul` recipe as `HyperList.lean`, coefficient type
+   swapped from `ℚ` to `Quad d`. This is the actual ask: `ε`/`ω` with
+   irrational scalar coefficients, e.g. `√2 · ε`, checked exactly
+   (`√2·ε·ω = √2`, `(√2·ε)·(√2·ε) = 2·ε²`).
 3. `lake build` clean, no `sorry`.
-4. A short note (extending or alongside the existing
-   `notes/hyperreal-probability-foundations.md`-style notes) recording why
-   this design was chosen over (a) real algebraic numbers as the coefficient
-   field, (b) trying to represent π/e as approximated real values.
+4. Update/extend the notes with why this is the honest scope (quadratic,
+   not fully general algebraic) and how it differs from the discarded
+   π/e-as-exponents approach.
 
-## Explicit non-goals (this pass)
+## Non-goals
 
-- Not merging this into `R*`/`HyperList.lean` — it's a separate,
-  standalone proof of concept.
-- Not building numeric evaluation/approximation.
-- Not attempting any theorem that would require knowing whether π, e are
-  algebraically independent (an open problem) — nothing here should
-  accidentally assume or "prove" something equivalent to resolving it.
+- Not the fully general real-algebraic-number field (root isolation,
+  Sturm sequences) — flagged as a real but much bigger separate task.
+- Not touching `Hyper/HyperList.lean` or `Hyper/HyperConstants.lean` —
+  another standalone file, same reasoning as before (don't risk ~1250 lines
+  of proved work for a demonstration).
+- Not proving a full `Field`/`LinearOrderedField` Mathlib instance for
+  `Quad d` — matching this project's existing style (`HyperList.lean`
+  itself doesn't have one either, `mul_inv_cancel` is a documented `sorry`
+  there), the goal is a correct, tested, computable structure with targeted
+  proved facts, not full abstract-algebra typeclass citizenship.
