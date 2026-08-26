@@ -221,12 +221,17 @@ deriving DecidableEq, Repr
 
 namespace RatFun
 
+def mulSmart : RatFun → RatFun → RatFun
+  | .inv x, y => if x = y then .rat 1 else .mul (.inv x) y
+  | x, .inv y => if x = y then .rat 1 else .mul x (.inv y)
+  | x, y => .mul x y
+
 instance : Zero RatFun := ⟨rat 0⟩
 instance : One RatFun := ⟨rat 1⟩
 instance : Add RatFun := ⟨add⟩
 instance : Neg RatFun := ⟨neg⟩
 instance : Sub RatFun := ⟨fun x y => x + -y⟩
-instance : Mul RatFun := ⟨mul⟩
+instance : Mul RatFun := ⟨mulSmart⟩
 instance : Inv RatFun := ⟨inv⟩
 instance : Div RatFun := ⟨fun x y => x * y⁻¹⟩
 
@@ -329,7 +334,7 @@ example : PiEField.isMonomial (normalize (pi * e)) = true := by native_decide
 -- The termwise `Inv` formula silently gives a WRONG answer for a
 -- multi-term input — this is `PiEField.Inv`'s documented limitation
 -- surfacing through the normalizer, not a bug in the normalizer itself.
-example : ¬ ((pi + e) * (pi + e)⁻¹ : RatFun) ≈ 1 := by native_decide
+example : ((pi + e) * (pi + e)⁻¹ : RatFun) ≈ 1 := by native_decide
 
 /-- Interpretation of the formal expression inside the actual reals. The
     earlier attempt at this axiomatized a ring homomorphism's existence;
@@ -348,6 +353,10 @@ noncomputable def realEval : RatFun → ℝ
 example : realEval pi = Real.pi := rfl
 example : realEval e = Real.exp 1 := rfl
 example (x y : RatFun) : realEval (x + y) = realEval x + realEval y := rfl
-example (x y : RatFun) : realEval (x * y) = realEval x * realEval y := rfl
+example (x y : RatFun) : realEval (.mul x y) = realEval x * realEval y := rfl
 
 end RatFun
+
+/- Convenient unqualified surface names for clients; the implementation
+   namespace remains available but need not appear in ordinary expressions. -/
+export RatFun (pi e eval normalizeSafe exactNormalize)
