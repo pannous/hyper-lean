@@ -48,10 +48,8 @@ def add (x y : RFrac) : RFrac := (x.1 * y.2 + y.1 * x.2, x.2 * y.2)
 def neg (x : RFrac) : RFrac := (-x.1, x.2)
 def sub (x y : RFrac) : RFrac := add x (neg y)
 def mul (x y : RFrac) : RFrac := (x.1 * y.1, x.2 * y.2)
-/-- Swap numerator and denominator — the standard field-of-fractions
-    inverse; correct whenever `x.1 ≠ 0` (unattended for `x.1 = 0`, same
-    "don't chase the ill-defined edge case" spirit as `R*`'s own `Inv`). -/
-def inv (x : RFrac) : RFrac := (x.2, x.1)
+/-- Swap numerator and denominator. As in every Lean `Field`, `0⁻¹ = 0`. -/
+def inv (x : RFrac) : RFrac := if x.1 = 0 then (0, 1) else (x.2, x.1)
 
 instance : Add RFrac := ⟨add⟩
 instance : Neg RFrac := ⟨neg⟩
@@ -86,3 +84,36 @@ example : piPlusE * piPlusE⁻¹ ≈ 1 := by native_decide
 example : ((piGen, 1) * piPlusE⁻¹ : RFrac) * piPlusE ≈ (piGen, 1) := by native_decide
 
 end RFrac
+
+namespace RatFun
+
+/-!
+Fully executable general-denominator normalization. Unlike `RatFun.normalize`,
+this never needs to return `.symbolic`: an inverse is represented by swapping
+the computed numerator and denominator. Unlike `RatFun.exactNormalize`, it can
+be used by `#eval`; equality of results is `≈` (cross multiplication), since
+fractions are not gcd-normalized yet.
+-/
+
+def computableNormalize : RatFun → RFrac
+  | .rat q => ([(q, 0, 0)], 1)
+  | .piAtom => (PiEField.piGen, 1)
+  | .eAtom => (PiEField.eGen, 1)
+  | .add x y => computableNormalize x + computableNormalize y
+  | .neg x => -computableNormalize x
+  | .mul x y => computableNormalize x * computableNormalize y
+  | .inv x => (computableNormalize x)⁻¹
+
+example : computableNormalize ((pi + e)⁻¹) =
+    (1, PiEField.piGen + PiEField.eGen) := by native_decide
+
+example : computableNormalize ((pi + e) * (pi + e)⁻¹) ≈ (1 : RFrac) := by
+  native_decide
+
+example : computableNormalize (pi / (pi + e)) *
+    computableNormalize (pi + e) ≈ (PiEField.piGen, 1) := by
+  native_decide
+
+end RatFun
+
+export RatFun (computableNormalize)
