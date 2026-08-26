@@ -604,6 +604,76 @@ lemma epsilon_sq_lt_epsilon : ε * ε < ε := by native_decide
 lemma epsilon_mul_omega : ε * ω = 1 := by native_decide
 lemma omega_mul_epsilon : ω * ε = 1 := by native_decide
 
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Part functions and predicates (Julia `hyper.jl` parity): `isReal`,
+-- `isFinite`, `isInfinite`, `isInfinitesimal`, `abs`, `sign`, `lead`/`least`,
+-- and the term-level algebraic `∂`/`∫` (`Hyper → Hyper`, shifting every
+-- monomial's exponent — distinct from the function-level `deriv`/`cderiv` in
+-- `Hyper/probes/EvalsDerivatives.lean`, which act on `R* → R*` functions).
+-- ═══════════════════════════════════════════════════════════════════════════
+
+def isReal (x : R*) : Bool := (simplify x).all (λ p => p.2 = 0)
+def isFinite (x : R*) : Bool := (simplify x).all (λ p => p.2 ≤ 0)
+def isInfinite (x : R*) : Bool := (simplify x).any (λ p => p.2 > 0)
+def isInfinitesimal (x : R*) : Bool := (simplify x).all (λ p => p.2 < 0)
+
+def abs (x : R*) : R* := if 0 ≤ x then x else -x
+def sign (x : R*) : R* := if 0 < x then 1 else if x < 0 then -1 else 0
+
+/-- Highest-order (leading) term of `x`, as a singleton `R*`. -/
+def lead (x : R*) : R* := match simplify x with
+  | [] => []
+  | (p :: _) => [p]
+
+/-- Lowest-order term of `x`, as a singleton `R*`. -/
+def least (x : R*) : R* := match (simplify x).reverse with
+  | [] => []
+  | (p :: _) => [p]
+
+/-- Term-level algebraic derivative: `∂(∑ r·xᵉ) := ∑ r·x^{e-1}`, per
+    `hyper.jl`'s `∂(x::Hyper) = Hyper([(r, e-1) for (r, e) in x.terms])`. -/
+def hderiv (x : R*) : R* := x.map (λ (r, e) => (r, e - 1))
+
+/-- Term-level algebraic integral: `∫(∑ r·xᵉ) := ∑ r·x^{e+1}`, per
+    `hyper.jl`'s `∫(x::Hyper) = Hyper([(r, e+1) for (r, e) in x.terms])`.
+    In particular `∫1 = ω` and `∫(42ε) = 42`, matching the Julia comments. -/
+def hint (x : R*) : R* := x.map (λ (r, e) => (r, e + 1))
+
+example : isReal (1 : R*) = true := by native_decide
+example : isReal (ε : R*) = false := by native_decide
+example : isFinite (ε : R*) = true := by native_decide
+example : isFinite (ω : R*) = false := by native_decide
+example : isInfinite (ω : R*) = true := by native_decide
+example : isInfinite (ε : R*) = false := by native_decide
+example : isInfinitesimal (ε : R*) = true := by native_decide
+example : isInfinitesimal (ω : R*) = false := by native_decide
+example : isInfinitesimal (1 : R*) = false := by native_decide
+
+example : abs (-ε : R*) = ε := by native_decide
+example : abs (ε : R*) = ε := by native_decide
+example : sign (ε : R*) = 1 := by native_decide
+example : sign (-ε : R*) = -1 := by native_decide
+example : sign (0 : R*) = 0 := by native_decide
+
+/-- Proximity: `x` and `y` are infinitesimally close, `hyper.jl`'s `near(x, y)`. -/
+def near (x y : R*) : Bool := isInfinitesimal (x - y)
+
+/-- The monad (halo) around a hyperreal `center`, `hyper.jl`'s `Monad`/`Halo`
+    — named `HyperMonad` here to avoid clashing with Lean's `Monad` typeclass. -/
+structure HyperMonad where
+  center : R*
+
+/-- `y ∈ₕ M`: membership in a `HyperMonad`, `hyper.jl`'s `y ∈ Monad(x)`. -/
+def inMonad (y : R*) (M : HyperMonad) : Bool := near M.center y
+
+example : lead (ε + ω : R*) = ([(1, 1)] : R*) := by native_decide
+example : least (ε + ω : R*) = ([(1, -1)] : R*) := by native_decide
+
+example : hint (1 : R*) = ω := by native_decide
+example : hint ((42 : 𝔽) • ε) = (42 : R*) := by native_decide
+example : hderiv (ω : R*) = 1 := by native_decide
+example : hderiv (ε : R*) = ε * ε := by native_decide
+
 /-- Embed a scalar as a real (order-0) hyperreal. Avoids the ambiguity `binop%` elaboration
     runs into when coercing a bare `ℚ` on one side of `-`/`<` against an `R*` on the other. -/
 def embedQ (r : 𝔽) : R* := [(r, 0)]
