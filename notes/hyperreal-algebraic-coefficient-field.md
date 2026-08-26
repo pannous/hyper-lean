@@ -71,3 +71,19 @@ proves the idea stands on its own with zero risk to what's already proved.
 - **Not the general real-algebraic-number field.** Flagged above as a real,
   much bigger, separate undertaking — root isolation, not a coefficient
   swap.
+
+## Composing with the π/e extension
+
+`Hyper/HyperConstants.lean` (π/e as extra exponent tracks, over plain ℚ
+coefficients) and this file's coefficient-field swap act on two different,
+non-interacting slots of a term — coefficient vs. exponent — so they compose
+freely. `Hyper/HyperQuadConstants.lean` does both at once: `Quad d`
+coefficients *and* independent π/e exponent tracks, checked exactly
+(`(√2·π)² = 2·π²`, no cross-collapse between the two mechanisms).
+
+**What still doesn't work, and can't**: `Quad d` itself can never contain π
+or e. `Quad d` is an algebraic extension (`√d` is a root of `x² - d`); π and
+e are transcendental by definition, so no algebraic extension reaches them,
+regardless of `d`. π/e can only ever enter as exponent-track generators
+(formal symbols, as `HyperConstants.lean` already does), never as `Quad`
+elements — that boundary is exact, not a current implementation gap.
