@@ -212,6 +212,11 @@ inductive RatFun where
   | inv (x : RatFun)
 deriving DecidableEq, Repr
 
+inductive EvalResult where
+  | value (x : PiEField)
+  | symbolic (x : RatFun)
+deriving DecidableEq, Repr
+
 namespace RatFun
 
 instance : Zero RatFun := ⟨rat 0⟩
@@ -239,6 +244,36 @@ def normalize : RatFun → PiEField
   | neg x => -normalize x
   | mul x y => normalize x * normalize y
   | inv x => (normalize x)⁻¹
+
+/- A total executable normalizer for the sound fragment.  It declines to
+   evaluate a non-monomial inverse instead of returning a mathematically wrong
+   Laurent value. -/
+def normalizeSafe : RatFun → Option PiEField
+  | rat q => some [(q, 0, 0)]
+  | piAtom => some PiEField.piGen
+  | eAtom => some PiEField.eGen
+  | add x y => do
+      let a ← normalizeSafe x
+      let b ← normalizeSafe y
+      pure (a + b)
+  | neg x => do
+      let a ← normalizeSafe x
+      pure (-a)
+  | mul x y => do
+      let a ← normalizeSafe x
+      let b ← normalizeSafe y
+      pure (a * b)
+  | inv x => do
+      let a ← normalizeSafe x
+      if PiEField.isMonomial a then pure a⁻¹ else none
+
+def eval (x : RatFun) : EvalResult :=
+  match normalizeSafe x with
+  | some value => .value value
+  | none => .symbolic x
+
+example : eval (pi * pi⁻¹) = .value (1 : PiEField) := by native_decide
+example : eval ((pi + e)⁻¹) = .symbolic ((pi + e)⁻¹) := by native_decide
 
 /-!
 Exact general-denominator backend. This is the trusted fallback for cases such
