@@ -48,6 +48,12 @@ abbrev Hyper := GHyper RatFun
 def piTerm : Hyper := [(pi, 0)]
 def eTerm : Hyper := [(e, 0)]
 
+/- Interpretation of the formal field inside the reals.  This is axiomatic in
+   the shortcut backend, just like the `Field` structure above. -/
+axiom realEval : RatFun →+* ℝ
+axiom realEval_pi : realEval pi = Real.pi
+axiom realEval_e : realEval e = Real.exp 1
+
 end RatFun
 
 noncomputable def piEReal : Fin 2 → ℝ
