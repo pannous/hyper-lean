@@ -46,7 +46,21 @@ def mergeAdjacent : List (QCTerm d) → List (QCTerm d)
 termination_by l => l.length
 decreasing_by all_goals (simp_all; try omega)
 
-def myle (p q : QCTerm d) : Bool := decide (q.2 ≤ p.2)
+/-- Lexicographic `≤` on the exponent triple `(εExp, πExp, eExp)`.
+    ⚠️ Mathlib's `Prod` order is *componentwise* (a partial order — `(0,1)`
+    and `(1,0)` are simply incomparable under it), not lexicographic; using
+    raw `≤` here (including one level down, on the remaining `πExp, eExp`
+    pair) would make `mergeSort`'s output order-dependent on the input,
+    silently breaking `simplify`'s canonical-form guarantee (e.g. `ε + π`
+    and `π + ε` could normalize to different raw lists). This explicit,
+    fully-recursive comparator is total, so sorting is genuinely canonical. -/
+def lexLE2 (p q : ℚ × ℚ) : Bool :=
+  decide (p.1 < q.1) ∨ (decide (p.1 = q.1) ∧ decide (p.2 ≤ q.2))
+
+def lexLE (p q : ℚ × ℚ × ℚ) : Bool :=
+  decide (p.1 < q.1) ∨ (decide (p.1 = q.1) ∧ lexLE2 p.2 q.2)
+
+def myle (p q : QCTerm d) : Bool := lexLE q.2 p.2
 
 def simplify (a : QCHyper d) : QCHyper d :=
   (mergeAdjacent (a.mergeSort myle)) |>.filter (fun p => p.1 ≠ 0)
