@@ -13,8 +13,8 @@ without changing users of the type.
 
 inductive RatFun where
   | rat (q : ℚ)
-  | pi
-  | e
+  | piAtom
+  | eAtom
   | add (x y : RatFun)
   | neg (x : RatFun)
   | mul (x y : RatFun)
@@ -38,15 +38,15 @@ instance : IntCast RatFun := ⟨fun n => rat n⟩
 axiom ratFunField : Field RatFun
 noncomputable instance : Field RatFun := ratFunField
 
-def piGen : RatFun := .pi
-def eGen : RatFun := .e
+def pi : RatFun := .piAtom
+def e : RatFun := .eAtom
 def ofRat (q : ℚ) : RatFun := .rat q
 
 instance : ToString RatFun := ⟨fun x => reprStr x⟩
 
 abbrev Hyper := GHyper RatFun
-def piTerm : Hyper := [(piGen, 0)]
-def eTerm : Hyper := [(eGen, 0)]
+def piTerm : Hyper := [(pi, 0)]
+def eTerm : Hyper := [(e, 0)]
 
 end RatFun
 
