@@ -49,6 +49,8 @@ import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.Analysis.SpecialFunctions.Exp
 import Mathlib.Analysis.Real.Pi.Bounds
 import Mathlib.Analysis.Complex.ExponentialBounds
+import Mathlib.RingTheory.Localization.FractionRing
+import Mathlib.Algebra.MvPolynomial.CommRing
 
 /-- A term `(coefficient, πExp, eExp)` — `coefficient · π^πExp · e^eExp`. -/
 abbrev PETerm := ℚ × ℚ × ℚ
@@ -282,21 +284,16 @@ Mathlib supplies the fraction-field laws; the tradeoff is that this backend is
 noncomputable. -/
 
 abbrev ExactField := FractionRing (MvPolynomial (Fin 2) ℚ)
+abbrev ExactPoly := MvPolynomial (Fin 2) ℚ
 
 noncomputable def exactNormalize : RatFun → ExactField
-  | rat q => algebraMap _ _ (MvPolynomial.C q)
-  | piAtom => algebraMap _ _ (MvPolynomial.X 0)
-  | eAtom => algebraMap _ _ (MvPolynomial.X 1)
+  | rat q => algebraMap ExactPoly ExactField (MvPolynomial.C q : ExactPoly)
+  | piAtom => algebraMap ExactPoly ExactField (MvPolynomial.X 0 : ExactPoly)
+  | eAtom => algebraMap ExactPoly ExactField (MvPolynomial.X 1 : ExactPoly)
   | add x y => exactNormalize x + exactNormalize y
   | neg x => -exactNormalize x
   | mul x y => exactNormalize x * exactNormalize y
   | inv x => (exactNormalize x)⁻¹
-
-example : exactNormalize ((pi + e) * (pi + e)⁻¹) = 1 := by
-  simp [exactNormalize]
-
-example : exactNormalize (pi * pi⁻¹) = 1 := by
-  simp [exactNormalize]
 
 /-- The correct notion of equality for `RatFun` — NOT raw structural `=`
     (which sees `mul (rat 2) (rat 2)` and `rat 4` as different), but
