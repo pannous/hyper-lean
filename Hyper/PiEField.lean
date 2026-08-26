@@ -240,6 +240,29 @@ def normalize : RatFun → PiEField
   | mul x y => normalize x * normalize y
   | inv x => (normalize x)⁻¹
 
+/-!
+Exact general-denominator backend. This is the trusted fallback for cases such
+as `(π + e)⁻¹` that the executable Laurent normalizer deliberately rejects.
+Mathlib supplies the fraction-field laws; the tradeoff is that this backend is
+noncomputable. -/
+
+abbrev ExactField := FractionRing (MvPolynomial (Fin 2) ℚ)
+
+noncomputable def exactNormalize : RatFun → ExactField
+  | rat q => algebraMap _ _ (MvPolynomial.C q)
+  | piAtom => algebraMap _ _ (MvPolynomial.X 0)
+  | eAtom => algebraMap _ _ (MvPolynomial.X 1)
+  | add x y => exactNormalize x + exactNormalize y
+  | neg x => -exactNormalize x
+  | mul x y => exactNormalize x * exactNormalize y
+  | inv x => (exactNormalize x)⁻¹
+
+example : exactNormalize ((pi + e) * (pi + e)⁻¹) = 1 := by
+  simp [exactNormalize]
+
+example : exactNormalize (pi * pi⁻¹) = 1 := by
+  simp [exactNormalize]
+
 /-- The correct notion of equality for `RatFun` — NOT raw structural `=`
     (which sees `mul (rat 2) (rat 2)` and `rat 4` as different), but
     agreement after evaluating both sides in `PiEField`. Same shape as
