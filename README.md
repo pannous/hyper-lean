@@ -911,3 +911,10 @@ LOGIC AND SUPERSTRUCTURES
 
 √(ε + ω) ≈ ∑ωⁿ/2ⁿn! ~ … + 0.020833̅ω^3 + 0.125ω² + 0.5ω + 1     
 Maclaurin expansion coefficient of e^{x/2} ??  
+
+# Code
+The github repository for this project is at 
+https://github.com/pannous/hyper-lean
+The main file is under 
+Hyper/HyperReal.lean itself a façade for the decisive choice implementation 
+Hyper/HyperList.lean
