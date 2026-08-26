@@ -1,5 +1,6 @@
 import Hyper.HyperList
 import Hyper.HyperClass
+import Hyper.PiEField
 
 /-!
 `HyperReal` — canonical name for *the* reference hyperreal model.
@@ -25,6 +26,16 @@ namespace Hypers
 
 /-- The reference hyperreal type. Currently `HyperList`. -/
 abbrev HyperReal := HyperList
+
+/-!
+Backend aliases. `HyperReal` remains the established rational model for source
+compatibility.  `PiEHyperReal` has the same list-of-(coefficient, exponent)
+shape, with coefficients in the exact field `ℚ(X,Y)`.  Code written against
+the generic operations can switch between these aliases without changing its
+term-level representation.
+-/
+abbrev RationalHyperReal := HyperList
+abbrev PiEHyperReal := PiEField.Hyper
 
 end Hypers
 
