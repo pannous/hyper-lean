@@ -1,28 +1,22 @@
--- Working example with Hyper numbers in Lean 4.27 stable
-import Hyper.Hyper
+-- Working example with hyperreals in Lean 4.27 stable, updated for the
+-- current `R*` model (Hyper/HyperList.lean). The original imported
+-- `Hyper.Hyper`, a fixed 3-slot struct deliberately gutted in commit
+-- 8a42866; `R*` (`List (ℚ × ℚ)`) replaced it.
+import Hyper.HyperReal
 
 open Hypers
 
 -- Define some hyperreal numbers
-def myHyper : Hyper := ⟨3.5, 2.0, 1.5, false⟩
+def myHyper : R* := embedQ 3 + embedQ (7/2) * ε -- 3 + 3.5ε, `R*`'s equivalent shape
 
 -- Check basic operations
-#check epsilon
-#check omega
-#check ε * ω
-#check ε + ω
+#check (ε : R*)
+#check (ω : R*)
+#check (ε * ω : R*)
+#check (ε + ω : R*)
 
 -- Verify the fundamental relationship
-#check epsilon_times_omega_is_one
-#check omega_times_epsilon_is_one
+example : (ε : R*) * ω = 1 := epsilon_mul_omega
+example : (ω : R*) * ε = 1 := omega_mul_epsilon
 
--- Note: ε * ε = 0 (infinitesimal squared is zero)
-#check epsilon_times_epsilon_is_ZERO
-
--- Note: ω * ω = 0 (this breaks the field axiom)
-#check omega_times_omega_is_ZERO
-
-example : ε * ω = 1 := epsilon_times_omega_is_one
-example : ω * ε = 1 := omega_times_epsilon_is_one
-example : ε * ε = 0 := epsilon_times_epsilon_is_ZERO
-example : ω * ω = 0 := omega_times_omega_is_ZERO
+#eval myHyper

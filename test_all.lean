@@ -1,27 +1,29 @@
--- Comprehensive test of all working Hyper modules
-import Hyper.Hyper
+-- Comprehensive test of the current Hyper modules. The original imported
+-- `Hyper.Hyper`, a fixed 3-slot struct deliberately gutted in commit
+-- 8a42866; `R*` (Hyper/HyperList.lean, aliased HyperReal) replaced it.
+import Hyper.HyperReal
 
 open Hypers
 
--- Test Hyper.Hyper
+-- Test R* (Hyper/HyperList.lean, aliased HyperReal)
 section HyperTests
   -- Basic hyperreal numbers
-  #check ε
-  #check ω
+  #check (ε : R*)
+  #check (ω : R*)
 
   -- Fundamental relationships
-  example : ε * ω = 1 := epsilon_times_omega_is_one
-  example : ω * ε = 1 := omega_times_epsilon_is_one
-  example : ε * ε = 0 := epsilon_times_epsilon_is_ZERO
-  example : ω * ω = 0 := omega_times_omega_is_ZERO
+  example : (ε : R*) * ω = 1 := epsilon_mul_omega
+  example : (ω : R*) * ε = 1 := omega_mul_epsilon
 
   -- Arithmetic operations
-  #check (ε + ω : Hyper)
-  #check (ε - ω : Hyper)
-  #check ((2:ℝ) * ε : Hyper)
+  #check (ε + ω : R*)
+  #check (ε - ω : R*)
+  #check ((2 : ℚ) • ε : R*)
 
-  -- Custom hyperreal
-  def myHyper : Hyper := ⟨3.5, 2.0, 1.5, false⟩
+  -- Custom hyperreal — R*'s equivalent of the old struct literal
+  -- `⟨3.5, 2.0, 1.5, false⟩` (real, ε, ω parts; no fixed field count to
+  -- overflow out of)
+  def myHyper : R* := embedQ (7/2) + embedQ 2 * ε + embedQ (3/2) * ω
   #check myHyper
 end HyperTests
 
