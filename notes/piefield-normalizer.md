@@ -77,3 +77,31 @@ fully-recursive `lexLE` comparator; verified `ε+π` and `π+ε` now normalize
 identically in `HyperQuadConstants.lean` too. `Hyper/HyperGeneric.lean` and
 `Hyper/HyperQuadField.lean` were never at risk — they only ever sort by a
 single `ℚ` exponent, which has a genuine total order.
+
+## A claim walked back: "no natural order on π/e coefficients"
+
+When asked whether `GHyper PiEField` could stand in for `HyperList.lean`'s
+`𝔽` everywhere, said there's "no principled answer to whether π−e is
+positive." That's wrong, and worth recording precisely why, since it
+conflates two genuinely different questions:
+
+- **Comparing the actual sizes of two *specific* known transcendentals**
+  (`e` vs `π`) is elementary — `e ≈ 2.71828 < π ≈ 3.14159`, provable from
+  rational bounds Mathlib already has as theorems
+  (`Real.pi_gt_d6`/`pi_lt_d6`, `Real.exp_one_gt_d9`/`exp_one_lt_d9`), not
+  axioms. Not open at all.
+- **Whether π and e are *algebraically related*** (e.g. does `π² = e³`?) —
+  *that's* the genuinely open one, and it's what "no assumed relation"
+  in this file's header is actually about.
+
+The `lexLE` comparator built earlier for canonical form doesn't help here
+either way — it orders a monomial's *own* exponents for sorting one
+expression, not the relative size of two different values.
+
+`PiEField.numericSign` (added after this correction) resolves the
+non-conflated question directly: interval arithmetic on rational bounds for
+π and e, each checked against the real Mathlib theorems above, decides the
+sign of any degree-≤1 combination exactly (`numericSign (eGen - piGen) =
+some .lt`, i.e. `e < π`, `native_decide`-checked). It returns `none` — not
+a guess — for degree ≥2 (products/powers), which is precisely where the
+genuinely open algebraic-independence-adjacent questions live.
