@@ -1,5 +1,6 @@
 import Hyper.HyperFieldOfFractions
 import Hyper.ComputableFractionAttempt
+import Hyper.ComputablePiEOrder
 
 /-!
 Single selection point for the standard coefficient field.
@@ -14,6 +15,10 @@ namespace CoefficientBackend
 
 abbrev Rational := ℚ
 abbrev PiE := ComputableFractionAttempt.Fraction
+
+/-- Formal generators, with executable arithmetic and numeric order. -/
+def pi : PiE := ComputablePiEOrder.pi
+def e : PiE := ComputablePiEOrder.e
 
 /- Change this to `PiE` to select the computable `ℚ(π,e)` representation. -/
 abbrev Active := Rational
