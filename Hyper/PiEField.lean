@@ -2,13 +2,31 @@
   ℚ(π, e): the coefficient field, not an exponent extension.
   ==============================================================
 
-  `Hyper/HyperConstants.lean` adjoined π and e as extra *exponent* tracks on
-  top of `ℚ`-valued coefficients. That answers a different question than
-  "set the coefficient field to ℚ+π+e" — this file does the latter: `π` and
-  `e` become the generators of the field itself, in exactly the spirit
+ℚ(π, e) means the smallest field containing ℚ, π, e
+Thus \(\pi\) and \(e\) are available as coefficients using addition, subtraction, multiplication, and division. It does not introduce exponentiation such as \(x^\pi\)
+
+  "set the coefficient field to ℚ+π+e" — 
+  `π` and `e` become the generators of the field itself, in exactly the spirit
   `Hyper/HyperList.lean` already adjoins `ε` — a Laurent-monomial ring, with
   canonical form via sort/merge/drop-zero, and `Inv` exact for single
   monomials.
+
+ Alternatives: 
+ • Q[pi,e] polynomial expressions; division by arbitrary nonzero expressions is not included. 
+ • rational expressions  Q(pi,e)/Q[pi,e] ??
+ • Q(π,e)' additionally adjoin all numbers algebraic over this field.
+ • real closure: additionally solve all algebraic equations needed to obtain a real-closed field.
+
+• it remains unknown whether \(\pi\) and \(e\) are algebraically independent. P(π,e)=0 for some polynomial
+• => transcendence degree is 2 or only 1 if such P exists
+
+If exponentiation is actually desired, an ordinary field extension is insufficient. 
+One would instead construct an exponential field, for example a field equipped with \[\exp(x+y)=\exp(x)\exp(y), \]
+or formally adjoin selected values such as \(e^\pi\). 
+That adds extra operations or constants, rather than changing the meaning of \(\mathbb Q(\pi,e)\).
+one defines an iterative exponential closure, roughly \[F_0=\mathbb Q(\pi,e), \]
+\[F_{n+1} = F_n\bigl(\exp(x),\log(y):x\in F_n,\ y\in F_n^{>0}\bigr),
+\]
 
   ⚠️ Scope, stated plainly: Mathlib has no ready-made computable field of
   fractions for a multivariate polynomial ring (`AlgebraicClosure`/
