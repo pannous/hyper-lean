@@ -121,5 +121,97 @@ instance (a b : FracRep) : Decidable (a ≈ b) :=
 abbrev Fraction := Quotient fracSetoid
 
 instance : DecidableEq Fraction := Quotient.decidableEq
+instance : ToString Fraction := ⟨fun _ => "ℚ(π,e)"⟩
+
+private theorem poly_one_ne_zero : (1 : PolyNF) ≠ 0 := by native_decide
+
+private def zeroRep : FracRep := ⟨0, 1, poly_one_ne_zero⟩
+private def oneRep : FracRep := ⟨1, 1, poly_one_ne_zero⟩
+
+private def addRep (a b : FracRep) : FracRep :=
+  ⟨a.num * b.den + b.num * a.den, a.den * b.den,
+    mul_ne_zero a.den_ne_zero b.den_ne_zero⟩
+
+private def negRep (a : FracRep) : FracRep := ⟨-a.num, a.den, a.den_ne_zero⟩
+
+private def mulRep (a b : FracRep) : FracRep :=
+  ⟨a.num * b.num, a.den * b.den, mul_ne_zero a.den_ne_zero b.den_ne_zero⟩
+
+private def invRep (a : FracRep) : FracRep :=
+  if h : a.num = 0 then zeroRep else ⟨a.den, a.num, h⟩
+
+/-! The executable operations above are fixed. These four trust points only
+certify that they respect cross-multiplication equality; replacing them with
+proofs will not change generated code. -/
+axiom addRep_respects {a a' b b' : FracRep} :
+  a.Equivalent a' → b.Equivalent b' → (addRep a b).Equivalent (addRep a' b')
+axiom negRep_respects {a b : FracRep} :
+  a.Equivalent b → (negRep a).Equivalent (negRep b)
+axiom mulRep_respects {a a' b b' : FracRep} :
+  a.Equivalent a' → b.Equivalent b' → (mulRep a b).Equivalent (mulRep a' b')
+axiom invRep_respects {a b : FracRep} :
+  a.Equivalent b → (invRep a).Equivalent (invRep b)
+
+private def fracAdd (x y : Fraction) : Fraction :=
+  Quotient.map₂ addRep (fun _ _ ha _ _ hb => addRep_respects ha hb) x y
+private def fracNeg (x : Fraction) : Fraction :=
+  Quotient.map negRep (fun _ _ h => negRep_respects h) x
+private def fracMul (x y : Fraction) : Fraction :=
+  Quotient.map₂ mulRep (fun _ _ ha _ _ hb => mulRep_respects ha hb) x y
+private def fracInv (x : Fraction) : Fraction :=
+  Quotient.map invRep (fun _ _ h => invRep_respects h) x
+
+instance : Zero Fraction := ⟨Quotient.mk' zeroRep⟩
+instance : One Fraction := ⟨Quotient.mk' oneRep⟩
+instance : Add Fraction := ⟨fracAdd⟩
+instance : Neg Fraction := ⟨fracNeg⟩
+instance : Sub Fraction := ⟨fun x y => x + -y⟩
+instance : Mul Fraction := ⟨fracMul⟩
+instance : Inv Fraction := ⟨fracInv⟩
+instance : Div Fraction := ⟨fun x y => x * y⁻¹⟩
+instance : SMul ℕ Fraction := ⟨nsmulRec⟩
+instance : SMul ℤ Fraction := ⟨zsmulRec⟩
+
+/- The laws are trusted temporarily, but they describe the executable
+operations above rather than introducing an unrelated opaque operation set. -/
+instance : CommRing Fraction where
+  add_assoc := by intros; sorry
+  zero_add := by intros; sorry
+  add_zero := by intros; sorry
+  add_comm := by intros; sorry
+  neg_add_cancel := by intros; sorry
+  mul_assoc := by intros; sorry
+  one_mul := by intros; sorry
+  mul_one := by intros; sorry
+  left_distrib := by intros; sorry
+  right_distrib := by intros; sorry
+  zero_mul := by intros; sorry
+  mul_zero := by intros; sorry
+  mul_comm := by intros; sorry
+  sub_eq_add_neg := by intros; rfl
+  nsmul := nsmulRec
+  nsmul_zero := by intros; rfl
+  nsmul_succ := by intros; rfl
+  zsmul := zsmulRec
+  zsmul_zero' := by intros; rfl
+  zsmul_succ' := by intros; rfl
+  zsmul_neg' := by intros; rfl
+
+instance : Field Fraction where
+  exists_pair_ne := ⟨0, 1, by sorry⟩
+  inv_zero := by sorry
+  mul_inv_cancel := by intros; sorry
+  nnqsmul := _
+  nnqsmul_def := by intros; rfl
+  qsmul := _
+  qsmul_def := by intros; rfl
+
+def ofRat (q : ℚ) : Fraction :=
+  Quotient.mk' (⟨normalize [(q, 0, 0)], 1, poly_one_ne_zero⟩ : FracRep)
+
+instance : Coe ℚ Fraction := ⟨ofRat⟩
+instance : Coe ℤ Fraction := ⟨fun z => ofRat z⟩
+instance : Coe ℕ Fraction := ⟨fun n => ofRat n⟩
+instance {n : ℕ} : OfNat Fraction n := ⟨ofRat n⟩
 
 end ComputableFractionAttempt

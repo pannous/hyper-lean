@@ -1,4 +1,5 @@
 import Hyper.HyperFieldOfFractions
+import Hyper.ComputableFractionAttempt
 
 /-!
 Single selection point for the standard coefficient field.
@@ -12,7 +13,7 @@ the one-line change documented below.
 namespace CoefficientBackend
 
 abbrev Rational := ℚ
-abbrev PiE := RFrac
+abbrev PiE := ComputableFractionAttempt.Fraction
 
 /- Change this to `PiE` to select the computable `ℚ(π,e)` representation. -/
 abbrev Active := Rational
