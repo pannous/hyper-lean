@@ -1,5 +1,6 @@
 import Mathlib.Data.EReal.Basic
 import Mathlib.Tactic.NormNum
+import Hyper.CoefficientBackend
 
 def debugMode : Bool := false -- show ε, ω, etc. in output
 -- def debugMode : Bool := true -- [(1,0)]
@@ -13,9 +14,11 @@ notation "∞" => (⊤ : EReal)
 notation "-∞" => (⊥ : EReal)
 namespace Hypers
 section HyperLists
-notation "𝔽" => ℚ
-def Comps := List (𝔽 × 𝔽)
-def HyperList : Type := List (𝔽 × 𝔽)
+notation "𝔽" => CoefficientBackend.Active
+/-- ε/ω exponents remain rational regardless of the coefficient backend. -/
+notation "ℰ" => ℚ
+def Comps := List (𝔽 × ℰ)
+def HyperList : Type := List (𝔽 × ℰ)
 
 notation "R*" => HyperList
 notation "𝔽*" => R*
@@ -36,33 +39,35 @@ instance : Inhabited R* := ⟨zero⟩
 -- coercions of 'sub'fields into 𝔽*
 instance : Coe 𝔽 𝔽* where coe (n:𝔽) : R* := [(n, 0)]
 instance : Coe ℕ 𝔽* where coe (n:ℕ) : R* := [((n:𝔽), 0)]
-instance : Coe ℚ 𝔽* where coe (q:ℚ) : R* := [(q, 0)]
-instance : Coe ℤ 𝔽* where coe (q:ℤ) : R* := [(q, 0)]
-instance : Coe (ℚ×ℚ) 𝔽* where coe (q:ℚ×ℚ) : R* := (q.1, q.2) :: []
-instance : Coe (𝔽×𝔽) 𝔽* where coe (q:𝔽×𝔽) : R* := (q.1, q.2) :: []
+instance : Coe ℚ 𝔽* where coe (q:ℚ) : R* := [((q : 𝔽), 0)]
+instance : Coe ℤ 𝔽* where coe (q:ℤ) : R* := [((q : 𝔽), 0)]
+instance : Coe (ℚ×ℚ) 𝔽* where coe (q:ℚ×ℚ) : R* := ((q.1 : 𝔽), q.2) :: []
+instance : Coe (𝔽×ℰ) 𝔽* where coe (q:𝔽×ℰ) : R* := (q.1, q.2) :: []
 instance : Coe (𝔽 × ℤ) 𝔽* where coe (q:𝔽×ℤ) : R* := (q.1, q.2) :: []
-instance : Coe (ℕ × ℕ) 𝔽* where coe (q: ℕ×ℕ) : R* := (q.1, q.2) :: []
-instance : Coe (ℤ × ℤ) 𝔽* where coe (q: ℤ×ℤ) : R* := (q.1, q.2) :: []
-instance : Coe (ℕ × ℕ) (𝔽 × 𝔽) where coe (q: ℕ×ℕ) : (𝔽 × 𝔽) := ((q.1:𝔽), (q.2:𝔽))
-instance : Coe (ℤ × ℤ) (𝔽 × 𝔽) where coe (q: ℤ×ℤ) : (𝔽 × 𝔽) := ((q.1:𝔽), (q.2:𝔽))
-instance : Coe (ℕ × ℕ) R* where coe x := [x]
+instance : Coe (ℕ × ℕ) 𝔽* where coe (q: ℕ×ℕ) : R* := ((q.1 : 𝔽), (q.2 : ℰ)) :: []
+instance : Coe (ℤ × ℤ) 𝔽* where coe (q: ℤ×ℤ) : R* := ((q.1 : 𝔽), (q.2 : ℰ)) :: []
+instance : Coe (ℕ × ℕ) (𝔽 × ℰ) where coe (q: ℕ×ℕ) : (𝔽 × ℰ) := ((q.1:𝔽), (q.2:ℰ))
+instance : Coe (ℤ × ℤ) (𝔽 × ℰ) where coe (q: ℤ×ℤ) : (𝔽 × ℰ) := ((q.1:𝔽), (q.2:ℰ))
+instance : Coe (ℕ × ℕ) R* where coe x := [((x.1 : 𝔽), (x.2 : ℰ))]
 -- UN-SIMPLIFIED!
-instance : Coe (List (𝔽 × 𝔽)) R* where coe x := x -- simplify x
-instance : Coe (List (ℕ × ℕ)) R* where coe x := x.map (λ (a, b) => ((a : 𝔽), (b : 𝔽)))
-instance : Coe (List (𝔽 × ℤ)) R* where coe x := x.map (λ (a, b) => ((a : 𝔽), (b : 𝔽)))
-instance : Coe (List (ℤ × ℤ)) (List (𝔽 × 𝔽)) where coe x := x.map (λ (a, b) => ((a : 𝔽), (b : 𝔽)))
+instance : Coe (List (𝔽 × ℰ)) R* where coe x := x -- simplify x
+instance : Coe (List (ℚ × ℚ)) R* where
+  coe x := x.map (fun (a, b) => ((a : 𝔽), b))
+instance : Coe (List (ℕ × ℕ)) R* where coe x := x.map (λ (a, b) => ((a : 𝔽), (b : ℰ)))
+instance : Coe (List (𝔽 × ℤ)) R* where coe x := x.map (λ (a, b) => (a, (b : ℰ)))
+instance : Coe (List (ℤ × ℤ)) (List (𝔽 × ℰ)) where coe x := x.map (λ (a, b) => ((a : 𝔽), (b : ℰ)))
 
 --  for the propositional equality x = y, not the boolean equality x == y.
 instance : DecidableEq 𝔽 := inferInstance
-instance [DecidableEq 𝔽] : DecidableEq (𝔽 × 𝔽) := inferInstance
-instance [DecidableEq (𝔽 × 𝔽)] : DecidableEq (List (𝔽 × 𝔽)) := inferInstance
-instance [DecidableEq (List (𝔽 × 𝔽))] : DecidableEq R* := inferInstance
+instance [DecidableEq 𝔽] : DecidableEq (𝔽 × ℰ) := inferInstance
+instance [DecidableEq (𝔽 × ℰ)] : DecidableEq (List (𝔽 × ℰ)) := inferInstance
+instance [DecidableEq (List (𝔽 × ℰ))] : DecidableEq R* := inferInstance
 instance : OfNat R* 0 where ofNat := []
 instance : OfNat R* 1 where ofNat := [(1, 0)]
 instance : OfNat R* n where ofNat := [(n, 0)]
 -- NEEDED FOR COERCIONS r == 0
-instance : OfNat (List (𝔽 × 𝔽)) n where ofNat := [(n, 0)]
-instance : OfNat (List (𝔽 × 𝔽)) 0 where ofNat := [] -- Adding instance for OfNat (List (ℚ × ℚ)) 0
+instance : OfNat (List (𝔽 × ℰ)) n where ofNat := [(n, 0)]
+instance : OfNat (List (𝔽 × ℰ)) 0 where ofNat := [] -- Adding instance for OfNat (List (ℚ × ℚ)) 0
 
 instance {n : ℕ} : OfNat R* n where ofNat := [(n, 0)]
 -- instance : OfNat List 0 where ofNat := []
@@ -78,16 +83,16 @@ instance : EmptyCollection R* where emptyCollection := []
 
 /-- Sum of all coefficients attached to a given exponent `e` — the "true" value
     of a hyperreal at order `e`, independent of how its terms are listed/ordered. -/
-def coeffAt (a : R*) (e : 𝔽) : 𝔽 :=
+def coeffAt (a : R*) (e : ℰ) : 𝔽 :=
   ((a.filter (λ p => p.2 = e)).map Prod.fst).sum
 
-lemma coeffAt_perm {a b : R*} (h : a.Perm b) (e : 𝔽) : coeffAt a e = coeffAt b e := by
+lemma coeffAt_perm {a b : R*} (h : a.Perm b) (e : ℰ) : coeffAt a e = coeffAt b e := by
   unfold coeffAt
   exact List.Perm.sum_eq ((h.filter _).map _)
 
-lemma coeffAt_nil (e : 𝔽) : coeffAt ([] : R*) e = 0 := rfl
+lemma coeffAt_nil (e : ℰ) : coeffAt ([] : R*) e = 0 := rfl
 
-lemma coeffAt_cons (r e : 𝔽) (a : R*) (e' : 𝔽) :
+lemma coeffAt_cons (r : 𝔽) (e : ℰ) (a : R*) (e' : ℰ) :
     coeffAt ((r, e) :: a) e' = (if e = e' then r else 0) + coeffAt a e' := by
   unfold coeffAt
   by_cases h : e = e'
@@ -95,7 +100,7 @@ lemma coeffAt_cons (r e : 𝔽) (a : R*) (e' : 𝔽) :
   · simp [List.filter_cons, h]
 
 /-- Merge consecutive same-exponent terms in an exponent-sorted list, summing coefficients. -/
-def mergeAdjacent : List (𝔽 × 𝔽) → List (𝔽 × 𝔽)
+def mergeAdjacent : List (𝔽 × ℰ) → List (𝔽 × ℰ)
   | [] => []
   | [x] => [x]
   | (r₁, e₁) :: (r₂, e₂) :: rest =>
@@ -105,15 +110,15 @@ termination_by l => l.length
 decreasing_by all_goals (simp_all; try omega)
 
 /-- Comparator for descending order by exponent (highest order first). -/
-def myle (p q : 𝔽 × 𝔽) : Bool := decide (q.2 ≤ p.2)
+def myle (p q : 𝔽 × ℰ) : Bool := decide (q.2 ≤ p.2)
 
 /-- Canonical form: sort descending by exponent, merge duplicate exponents, drop zeros. -/
 def simplify (a : R*) : R* :=
   (mergeAdjacent (a.mergeSort myle))
     |>.filter (λ p => p.1 ≠ 0)
 
-def simplifyOrdered (l : List (𝔽 × 𝔽)) : Prop :=
-  ∀ (a b : ℕ) (r₁ e₁ r₂ e₂ : 𝔽),
+def simplifyOrdered (l : List (𝔽 × ℰ)) : Prop :=
+  ∀ (a b : ℕ) (r₁ r₂ : 𝔽) (e₁ e₂ : ℰ),
     l[a]? = some (r₁, e₁) → l[b]? = some (r₂, e₂) → a < b → e₂ ≤ e₁
 
 def normalize (x : R*) : R* := simplify x
@@ -142,44 +147,44 @@ def merge (x y : R*) : R* := if x = [] then y else if y = [] then x else simplif
 -- HAppend.hAppend
 instance : HAppend R* R* R* where hAppend := merge
 -- via Coercion:
--- instance : HAppend R* (List (𝔽 × 𝔽)) R* where hAppend := merge
--- instance : HAppend R* (𝔽 × 𝔽) R* where hAppend x y := merge x y
+-- instance : HAppend R* (List (𝔽 × ℰ)) R* where hAppend := merge
+-- instance : HAppend R* (𝔽 × ℰ) R* where hAppend x y := merge x y
 -- instance : HAppend R* (List (ℕ × ℕ)) R* where hAppend x y := merge x y
 -- instance : HAppend R* (ℕ × ℕ) R* where hAppend x y := merge x y
-instance : HAppend (List (𝔽 × 𝔽)) R* R* where hAppend := merge -- needed (why?)
--- instance : HAppend (𝔽 × 𝔽) R* R* where hAppend x y := merge x y
+instance : HAppend (List (𝔽 × ℰ)) R* R* where hAppend := merge -- needed (why?)
+-- instance : HAppend (𝔽 × ℰ) R* R* where hAppend x y := merge x y
 -- instance : HAppend (ℕ × ℕ) R* R* where hAppend x y := merge x y
 
 -- HAdd.hAdd
 instance : Add R* where add := merge
 instance : HAdd R* R* R* where hAdd x y := merge x y -- should take care of all coercions?
-instance : HAdd R* (List (𝔽 × 𝔽)) R* where hAdd := merge
+instance : HAdd R* (List (𝔽 × ℰ)) R* where hAdd := merge
 -- instance : HAdd R* (List (ℚ × ℚ)) R* where hAdd := merge
 -- instance : HAdd R* (List (ℕ × ℕ)) R* where hAdd x y := merge x y
-instance : HAdd R* (𝔽 × 𝔽) R* where hAdd x y := merge x y
+instance : HAdd R* (𝔽 × ℰ) R* where hAdd x y := merge x y
 -- instance : HAdd R* (ℚ × ℚ) R* where hAdd x y := merge x y
 -- instance : HAdd R* (ℕ × ℕ) R* where hAdd x y := merge x y
 -- instance : HAdd (List (ℚ × ℚ)) R* R* where hAdd := merge
-instance : HAdd (List (𝔽 × 𝔽)) R* R* where hAdd := merge
+instance : HAdd (List (𝔽 × ℰ)) R* R* where hAdd := merge
 -- instance : HAdd (List (ℕ × ℕ)) R* R* where hAdd x y := merge x y
--- instance : HAdd (𝔽 × 𝔽) R* R* where hAdd x y := merge x y
+-- instance : HAdd (𝔽 × ℰ) R* R* where hAdd x y := merge x y
 -- instance : HAdd (ℚ × ℚ) R* R* where hAdd x y := merge x y
 -- instance : HAdd (ℕ × ℕ) R* R* where hAdd x y := merge x y
--- instance : HAdd (𝔽 × 𝔽) (𝔽 × 𝔽) R* where hAdd x y := merge x y
--- instance : HAdd (𝔽 × 𝔽) (List (𝔽 × 𝔽)) R* where hAdd x y := merge x y
--- instance : HAdd (List (𝔽 × 𝔽)) (𝔽 × 𝔽) R* where hAdd x y := merge x y
-instance : HAdd (List (𝔽 × 𝔽)) (List (𝔽 × 𝔽)) R* where hAdd x y := merge x y
+-- instance : HAdd (𝔽 × ℰ) (𝔽 × ℰ) R* where hAdd x y := merge x y
+-- instance : HAdd (𝔽 × ℰ) (List (𝔽 × ℰ)) R* where hAdd x y := merge x y
+-- instance : HAdd (List (𝔽 × ℰ)) (𝔽 × ℰ) R* where hAdd x y := merge x y
+instance : HAdd (List (𝔽 × ℰ)) (List (𝔽 × ℰ)) R* where hAdd x y := merge x y
 -- instance : HAdd (ℕ × ℕ) (ℕ × ℕ) R* where hAdd x y := merge x y
 -- instance : HAdd (ℕ × ℕ) (List (ℕ × ℕ)) R* where hAdd x y := merge x y
 -- instance : HAdd (List (ℕ × ℕ)) (ℕ × ℕ) R* where hAdd x y := merge x y
 -- instance : HAdd (List (ℕ × ℕ)) (List (ℕ × ℕ)) R* where hAdd x y := merge x y
 
 instance : Neg R* where neg x := x.map λ (r, e) => (-r, e)
-instance : Neg (List (𝔽 × 𝔽)) where neg x := x.map λ (r, e) => (-r, e)
+instance : Neg (List (𝔽 × ℰ)) where neg x := x.map λ (r, e) => (-r, e)
 -- instance : Neg R* where neg x := if x = [] then [] else normalize (x.map λ (r, e) => (-r, e))
 instance : Sub R* where sub x y := x + -y
 
--- instance : HAppend (List (𝔽 × 𝔽)) R* R* where hAppend := merge -- needed (why?)
+-- instance : HAppend (List (𝔽 × ℰ)) R* R* where hAppend := merge -- needed (why?)
 -- HSMul.hSMul
 
 -- tweaking the definition breaks usual scalar theorems: (1 - 1) • x = x - x ≠ 0 ?
@@ -272,12 +277,12 @@ lemma standard_one : st 1 = 1 := by native_decide
 -- coefficient dominates. Matches the Readme's "Order Axiom".
 -- ═══════════════════════════════════════════════════════════════════════════
 
-lemma myle_trans : ∀ p q r : 𝔽 × 𝔽, myle p q → myle q r → myle p r := by
+lemma myle_trans : ∀ p q r : 𝔽 × ℰ, myle p q → myle q r → myle p r := by
   intro p q r hpq hqr
   simp only [myle, decide_eq_true_eq] at *
   exact hqr.trans hpq
 
-lemma myle_total : ∀ p q : 𝔽 × 𝔽, myle p q || myle q p := by
+lemma myle_total : ∀ p q : 𝔽 × ℰ, myle p q || myle q p := by
   intro p q
   simp only [myle, decide_eq_true_eq, Bool.or_eq_true]
   rcases le_total p.2 q.2 with h | h
@@ -295,7 +300,7 @@ lemma myle_total : ∀ p q : 𝔽 × 𝔽, myle p q || myle q p := by
 -- ═══════════════════════════════════════════════════════════════════════════
 
 /-- Merging never invents a new exponent, only combines existing ones. -/
-theorem mergeAdjacent_exponent_mem (l : List (𝔽 × 𝔽)) :
+theorem mergeAdjacent_exponent_mem (l : List (𝔽 × ℰ)) :
     ∀ p ∈ mergeAdjacent l, ∃ q ∈ l, p.2 = q.2 := by
   induction l using mergeAdjacent.induct
   · simp [mergeAdjacent]
@@ -317,7 +322,7 @@ theorem mergeAdjacent_exponent_mem (l : List (𝔽 × 𝔽)) :
 
 /-- `mergeAdjacent` preserves the total coefficient at every exponent: combining
 adjacent same-exponent entries can't change any exponent's running sum. -/
-theorem mergeAdjacent_coeffAt (l : List (𝔽 × 𝔽)) (e : 𝔽) :
+theorem mergeAdjacent_coeffAt (l : List (𝔽 × ℰ)) (e : ℰ) :
     coeffAt (mergeAdjacent l) e = coeffAt l e := by
   induction l using mergeAdjacent.induct
   · simp [mergeAdjacent, coeffAt]
@@ -334,7 +339,7 @@ theorem mergeAdjacent_coeffAt (l : List (𝔽 × 𝔽)) (e : 𝔽) :
 
 /-- `mergeAdjacent` turns a weakly-descending list into a strictly-descending one:
 grouping merges away every duplicate exponent. -/
-theorem mergeAdjacent_pairwise_lt (l : List (𝔽 × 𝔽))
+theorem mergeAdjacent_pairwise_lt (l : List (𝔽 × ℰ))
     (hp : l.Pairwise (fun p q => q.2 ≤ p.2)) :
     (mergeAdjacent l).Pairwise (fun p q => q.2 < p.2) := by
   induction l using mergeAdjacent.induct
@@ -363,7 +368,7 @@ theorem mergeAdjacent_pairwise_lt (l : List (𝔽 × 𝔽))
     rw [hzq]
     exact hstrict q hq
 
-theorem coeffAt_filter_ne_zero (l : List (𝔽 × 𝔽)) (e : 𝔽) :
+theorem coeffAt_filter_ne_zero (l : List (𝔽 × ℰ)) (e : ℰ) :
     coeffAt (l.filter (fun p => p.1 ≠ 0)) e = coeffAt l e := by
   induction l with
   | nil => rfl
@@ -378,13 +383,13 @@ theorem coeffAt_filter_ne_zero (l : List (𝔽 × 𝔽)) (e : 𝔽) :
     · simp only [List.filter_cons, ne_eq, hr, not_false_eq_true, decide_true, if_true]
       rw [coeffAt_cons, coeffAt_cons, ih]
 
-theorem coeffAt_mergeSort (l : List (𝔽 × 𝔽)) (e : 𝔽) :
+theorem coeffAt_mergeSort (l : List (𝔽 × ℰ)) (e : ℰ) :
     coeffAt (l.mergeSort myle) e = coeffAt l e :=
   coeffAt_perm (List.mergeSort_perm l myle) e
 
 /-- `simplify` doesn't change a hyperreal's value at any exponent — only its
 representation. -/
-theorem coeffAt_simplify (a : R*) (e : 𝔽) : coeffAt (simplify a) e = coeffAt a e := by
+theorem coeffAt_simplify (a : R*) (e : ℰ) : coeffAt (simplify a) e = coeffAt a e := by
   unfold simplify
   rw [coeffAt_filter_ne_zero, mergeAdjacent_coeffAt, coeffAt_mergeSort]
 
@@ -396,13 +401,13 @@ theorem simplify_pairwise_lt (a : R*) :
   exact (List.pairwise_mergeSort myle_trans myle_total a).imp
     (fun {p q} h => by simpa [myle] using h)
 
-theorem simplify_nonzero (a : R*) : ∀ p : 𝔽 × 𝔽, List.Mem p (simplify a) → p.1 ≠ 0 := by
+theorem simplify_nonzero (a : R*) : ∀ p : 𝔽 × ℰ, List.Mem p (simplify a) → p.1 ≠ 0 := by
   unfold simplify
   intro p hp
   have := List.of_mem_filter hp
   simpa using this
 
-theorem coeffAt_eq_zero_of_forall_ne {l : List (𝔽 × 𝔽)} {e : 𝔽} (h : ∀ p ∈ l, p.2 ≠ e) :
+theorem coeffAt_eq_zero_of_forall_ne {l : List (𝔽 × ℰ)} {e : ℰ} (h : ∀ p ∈ l, p.2 ≠ e) :
     coeffAt l e = 0 := by
   unfold coeffAt
   have hnil : l.filter (fun p => p.2 = e) = [] := by
@@ -414,7 +419,7 @@ theorem coeffAt_eq_zero_of_forall_ne {l : List (𝔽 × 𝔽)} {e : 𝔽} (h : �
 
 /-- Canonical uniqueness: two strictly exponent-sorted, all-nonzero-coefficient lists
 with the same `coeffAt` everywhere are literally the same list. -/
-theorem canonical_unique : ∀ (a b : List (𝔽 × 𝔽)),
+theorem canonical_unique : ∀ (a b : List (𝔽 × ℰ)),
     a.Pairwise (fun p q => q.2 < p.2) → b.Pairwise (fun p q => q.2 < p.2) →
     (∀ p ∈ a, p.1 ≠ 0) → (∀ p ∈ b, p.1 ≠ 0) →
     (∀ e, coeffAt a e = coeffAt b e) → a = b
@@ -501,12 +506,12 @@ theorem simplify_idempotent (a : R*) : simplify (simplify a) = simplify a :=
 
 theorem simplify_nil : simplify ([] : R*) = [] := by native_decide
 
-theorem coeffAt_append (l₁ l₂ : List (𝔽 × 𝔽)) (e : 𝔽) :
+theorem coeffAt_append (l₁ l₂ : List (𝔽 × ℰ)) (e : ℰ) :
     coeffAt (List.append l₁ l₂) e = coeffAt l₁ e + coeffAt l₂ e := by
   unfold coeffAt
   rw [List.append_eq, List.filter_append, List.map_append, List.sum_append]
 
-theorem coeffAt_merge (x y : R*) (e : 𝔽) :
+theorem coeffAt_merge (x y : R*) (e : ℰ) :
     coeffAt (merge x y) e = coeffAt x e + coeffAt y e := by
   unfold merge
   split_ifs with hx hy
@@ -514,8 +519,8 @@ theorem coeffAt_merge (x y : R*) (e : 𝔽) :
   · subst hy; rw [coeffAt_nil]; ring
   · rw [coeffAt_simplify, coeffAt_append]
 
-theorem coeffAt_neg_map (x : R*) (e : 𝔽) :
-    coeffAt (x.map (fun (p : 𝔽 × 𝔽) => (-p.1, p.2))) e = -coeffAt x e := by
+theorem coeffAt_neg_map (x : R*) (e : ℰ) :
+    coeffAt (x.map (fun (p : 𝔽 × ℰ) => (-p.1, p.2))) e = -coeffAt x e := by
   induction x with
   | nil => simp [coeffAt]
   | cons p rest ih =>
@@ -526,7 +531,7 @@ theorem coeffAt_neg_map (x : R*) (e : 𝔽) :
 
 /-- A two-element list, sorted descending by exponent (strict), is a fixed point of mergeSort
     regardless of which order the two elements were given in. -/
-lemma mergeSort_pair (p q : 𝔽 × 𝔽) (h : q.2 < p.2) :
+lemma mergeSort_pair (p q : 𝔽 × ℰ) (h : q.2 < p.2) :
     [p, q].mergeSort myle = [p, q] ∧ [q, p].mergeSort myle = [p, q] := by
   have hsorted : [p, q].Pairwise (fun a b => myle a b) := by
     rw [List.pairwise_cons]
@@ -549,11 +554,11 @@ lemma mergeSort_pair (p q : 𝔽 × 𝔽) (h : q.2 < p.2) :
   · exact (List.mergeSort_perm [q, p] myle).trans (List.Perm.swap p q [])
 
 /-- Canonical form of a strictly-sorted two-term hyperreal: unchanged (assuming nonzero coeffs). -/
-lemma simplify_pair {r₁ r₂ e₁ e₂ : 𝔽} (h : e₂ < e₁) (h₁ : r₁ ≠ 0) (h₂ : r₂ ≠ 0) :
+lemma simplify_pair {r₁ r₂ : 𝔽} {e₁ e₂ : ℰ} (h : e₂ < e₁) (h₁ : r₁ ≠ 0) (h₂ : r₂ ≠ 0) :
     simplify [(r₁, e₁), (r₂, e₂)] = [(r₁, e₁), (r₂, e₂)] ∧
     simplify [(r₂, e₂), (r₁, e₁)] = [(r₁, e₁), (r₂, e₂)] := by
   obtain ⟨h1, h2⟩ := mergeSort_pair (r₁, e₁) (r₂, e₂) h
-  have step : ∀ l : List (𝔽 × 𝔽), l.mergeSort myle = [(r₁, e₁), (r₂, e₂)] →
+  have step : ∀ l : List (𝔽 × ℰ), l.mergeSort myle = [(r₁, e₁), (r₂, e₂)] →
       simplify l = [(r₁, e₁), (r₂, e₂)] := by
     intro l hl
     unfold simplify
@@ -578,14 +583,14 @@ instance (a b : R*) : Decidable (a ≤ b) :=
 
 /-- The concrete positivity/order fact behind everything else: a two-term difference
     with a dominant (higher-exponent) term of known sign determines `<`. -/
-lemma lt_of_lead_pair {a b : R*} {r₁ r₂ e₁ e₂ : 𝔽} (hab : a - b = [(r₁, e₁), (r₂, e₂)])
+lemma lt_of_lead_pair {a b : R*} {r₁ r₂ : 𝔽} {e₁ e₂ : ℰ} (hab : a - b = [(r₁, e₁), (r₂, e₂)])
     (h : e₂ < e₁) (h₁ : r₁ ≠ 0) (h₂ : r₂ ≠ 0) (hneg : r₁ < 0) : a < b := by
   show leadSign (a - b) = Ordering.lt
   rw [hab, leadSign, (simplify_pair h h₁ h₂).1]
   simp [not_lt.mpr hneg.le]
 
 /-- Single-term variant: `a - b` reduces to one nonzero term whose sign decides `a < b`. -/
-lemma lt_of_lead_single {a b : R*} {r e : 𝔽} (hab : a - b = ([(r, e)] : R*)) (hneg : r < 0) :
+lemma lt_of_lead_single {a b : R*} {r : 𝔽} {e : ℰ} (hab : a - b = ([(r, e)] : R*)) (hneg : r < 0) :
     a < b := by
   show leadSign (a - b) = Ordering.lt
   rw [hab]
@@ -749,7 +754,7 @@ lemma simplify_preserves_eq {x y : R*} (h : x = y) : simplify x = simplify y := 
 
 -- ⚠️ we FORCE equality even if x and y were originally different!?! inconsistency? IDK ⚠️
 axiom eq_of_simplify_eq (x y : R*) : simplify x = simplify y → x = y
--- instance [DecidableEq (List (𝔽 × 𝔽))] : Decidable (x ≈ y) := inferInstanceAs (Decidable (simplify x = simplify y))
+-- instance [DecidableEq (List (𝔽 × ℰ))] : Decidable (x ≈ y) := inferInstanceAs (Decidable (simplify x = simplify y))
 instance : DecidableEq R* :=
   fun x y =>
     match decEq (simplify x) (simplify y) with
@@ -759,25 +764,25 @@ instance : DecidableEq R* :=
 
 -- standard == equality  would this to recursion: (simplify x) == (simplify y) ?
 instance : BEq R* where beq x y := (simplify x) = (simplify y)
-instance : BEq (List (𝔽 × 𝔽)) where beq x y := (simplify x) = (simplify y)
-instance : BEq (List (ℚ × ℚ)) where beq x y := (simplify x) = (simplify y)
+instance : BEq (List (𝔽 × ℰ)) where beq x y := (simplify x) = (simplify y)
+instance : BEq (List (ℚ × ℚ)) where beq x y := (simplify (x : R*)) = (simplify (y : R*))
 instance : BEq (List (ℤ × ℤ)) where beq x y := (simplify (x:R*)) = (simplify (y:R*))
 instance : BEq (List (ℕ × ℕ)) where beq x y := (simplify (x:R*)) = (simplify (y:R*))
 
 
 -- standard ≈ equality
--- ⚠️ R* IS `List (𝔽 × 𝔽)` (`HyperList` is a plain `def`, not a wrapper type), and Lean core
+-- ⚠️ R* IS `List (𝔽 × ℰ)` (`HyperList` is a plain `def`, not a wrapper type), and Lean core
 -- registers a global `Setoid (List α)` (`List.isSetoid`, permutation-based) for every list type.
--- List-literal elaboration reduces the expected type `R*` to `List (𝔽 × 𝔽)` BEFORE typeclass
+-- List-literal elaboration reduces the expected type `R*` to `List (𝔽 × ℰ)` BEFORE typeclass
 -- search runs, so `≈`/`HasEquiv`/`Setoid` get resolved against that reduced type. That means:
 --  (a) an instance for `List.isSetoid` (permutation-based) would win over one we declare for
 --      `R*` unless disabled — its `Decidable` goal then fails since the permutation-`Decidable`
 --      instance lives in `Mathlib.Data.Multiset.Defs`, which we don't import; and
---  (b) our own instance must ALSO be stated for the reduced type `List (𝔽 × 𝔽)`, not `R*`,
+--  (b) our own instance must ALSO be stated for the reduced type `List (𝔽 × ℰ)`, not `R*`,
 --      or instance search (keyed on the reduced type) will simply never find it.
 attribute [-instance] List.isSetoid
 
-instance : HasEquiv (List (𝔽 × 𝔽)) where Equiv x y := HyperEq x y
+instance : HasEquiv (List (𝔽 × ℰ)) where Equiv x y := HyperEq x y
 infix:50 " ≅ " => HyperEq  -- alias, NOT NEEDED now that ≈ works directly
 
 instance HyperSetoid : Setoid R* :=
@@ -788,7 +793,7 @@ instance HyperSetoid : Setoid R* :=
     (by intro x y z hxy hyz; unfold HyperEq at hxy hyz ⊢; rw [hxy, hyz])
   ⟩ }
 
-instance decidableHyperEquiv (x y : List (𝔽 × 𝔽)) : Decidable (x ≈ y) :=
+instance decidableHyperEquiv (x y : List (𝔽 × ℰ)) : Decidable (x ≈ y) :=
   decEq (simplify x) (simplify y)
 
 #eval (simplify [(0,0)] == simplify (0 : R*)) -- true (simplify drops zero coefficients)
@@ -860,13 +865,13 @@ def fieldZsmul : ℤ → R* → R*
   | Int.ofNat n, x => fieldNsmul n x
   | Int.negSucc n, x => fieldNeg (fieldNsmul (n + 1) x)
 
-def fieldQsmul (q : ℚ) (x : R*) : R* := fieldMul (embedQ q) x
-def fieldNNQsmul (q : ℚ≥0) (x : R*) : R* := fieldMul (embedQ (q : ℚ)) x
+def fieldQsmul (q : ℚ) (x : R*) : R* := fieldMul (embedQ (q : 𝔽)) x
+def fieldNNQsmul (q : ℚ≥0) (x : R*) : R* := fieldMul (embedQ ((q : ℚ) : 𝔽)) x
 
 instance : NatCast R* := ⟨fun n => embedQ n⟩
 instance : IntCast R* := ⟨fun n => embedQ n⟩
-instance : RatCast R* := ⟨embedQ⟩
-instance : NNRatCast R* := ⟨fun q => embedQ (q : ℚ)⟩
+instance : RatCast R* := ⟨fun q => embedQ (q : 𝔽)⟩
+instance : NNRatCast R* := ⟨fun q => embedQ ((q : ℚ) : 𝔽)⟩
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- MUL-SIDE CONVOLUTION: `coeffAt (fieldMul x y) e` is the convolution
@@ -878,7 +883,7 @@ instance : NNRatCast R* := ⟨fun q => embedQ (q : ℚ)⟩
 -- needing a `List.product` swap-permutation lemma (Mathlib doesn't have one).
 -- ═══════════════════════════════════════════════════════════════════════════
 
-theorem coeffAt_flatMap {α : Type} (l : List α) (g : α → List (𝔽 × 𝔽)) (e : 𝔽) :
+theorem coeffAt_flatMap {α : Type} (l : List α) (g : α → List (𝔽 × ℰ)) (e : ℰ) :
     coeffAt (l.flatMap g) e = (l.map (fun a => coeffAt (g a) e)).sum := by
   induction l with
   | nil => rfl
@@ -887,8 +892,8 @@ theorem coeffAt_flatMap {α : Type} (l : List α) (g : α → List (𝔽 × 𝔽
     show coeffAt (List.append (g a) (t.flatMap g)) e = (List.map (fun a => coeffAt (g a) e) (a :: t)).sum
     rw [coeffAt_append, ih, List.map_cons, List.sum_cons]
 
-theorem coeffAt_scale_shift (y : List (𝔽 × 𝔽)) (r1 e1 e : 𝔽) :
-    coeffAt (y.map (fun (p : 𝔽 × 𝔽) => (r1 * p.1, e1 + p.2))) e = r1 * coeffAt y (e - e1) := by
+theorem coeffAt_scale_shift (y : List (𝔽 × ℰ)) (r1 : 𝔽) (e1 e : ℰ) :
+    coeffAt (y.map (fun (p : 𝔽 × ℰ) => (r1 * p.1, e1 + p.2))) e = r1 * coeffAt y (e - e1) := by
   induction y with
   | nil => simp [coeffAt]
   | cons p rest ih =>
@@ -903,7 +908,7 @@ theorem coeffAt_scale_shift (y : List (𝔽 × 𝔽)) (r1 e1 e : 𝔽) :
       simp [h, h']
 
 /-- `coeffAt` of a product, in terms of `x`'s raw entries and `y`'s `coeffAt`. -/
-theorem coeffAt_mul (x y : R*) (e : 𝔽) :
+theorem coeffAt_mul (x y : R*) (e : ℰ) :
     coeffAt (fieldMul x y) e = (x.map (fun p => p.1 * coeffAt y (e - p.2))).sum := by
   unfold fieldMul normalize
   rw [coeffAt_simplify]
@@ -925,13 +930,13 @@ theorem coeffAt_mul (x y : R*) (e : 𝔽) :
   intro p hp
   exact coeffAt_scale_shift y p.1 p.2 e
 
-theorem coeffAt_fieldAdd (x y : R*) (e : 𝔽) : coeffAt (fieldAdd x y) e = coeffAt x e + coeffAt y e := by
+theorem coeffAt_fieldAdd (x y : R*) (e : ℰ) : coeffAt (fieldAdd x y) e = coeffAt x e + coeffAt y e := by
   unfold fieldAdd normalize
   rw [coeffAt_simplify]
   show coeffAt (merge x y) e = _
   exact coeffAt_merge x y e
 
-theorem sum_indicator_scale (y : List (𝔽 × 𝔽)) (r c : 𝔽) :
+theorem sum_indicator_scale (y : List (𝔽 × ℰ)) (r : 𝔽) (c : ℰ) :
     (y.map (fun q => if q.2 = c then r * q.1 else 0)).sum = r * coeffAt y c := by
   induction y with
   | nil => simp [coeffAt]
@@ -946,7 +951,7 @@ theorem sum_indicator_scale (y : List (𝔽 × 𝔽)) (r c : 𝔽) :
 /-- The convolution sum is symmetric in `x`/`y` (proved directly by induction,
 avoiding the need for a `List.product x y ~ List.product y x` permutation
 lemma, which Mathlib doesn't provide). -/
-theorem mul_sum_symm (x y : R*) (e : 𝔽) :
+theorem mul_sum_symm (x y : R*) (e : ℰ) :
     (x.map (fun p => p.1 * coeffAt y (e - p.2))).sum
       = (y.map (fun q => q.1 * coeffAt x (e - q.2))).sum := by
   induction x with
@@ -962,13 +967,13 @@ theorem mul_sum_symm (x y : R*) (e : 𝔽) :
       intro q _
       rw [coeffAt_cons]
     rw [hstep]
-    rw [show (fun q : 𝔽 × 𝔽 => q.1 * ((if e1 = e - q.2 then r else 0) + coeffAt rest (e - q.2)))
-        = (fun q : 𝔽 × 𝔽 => q.1 * (if e1 = e - q.2 then r else 0) + q.1 * coeffAt rest (e - q.2))
+    rw [show (fun q : 𝔽 × ℰ => q.1 * ((if e1 = e - q.2 then r else 0) + coeffAt rest (e - q.2)))
+        = (fun q : 𝔽 × ℰ => q.1 * (if e1 = e - q.2 then r else 0) + q.1 * coeffAt rest (e - q.2))
         from funext (fun q => by ring)]
     rw [List.sum_map_add]
     congr 1
-    rw [show (fun q : 𝔽 × 𝔽 => q.1 * (if e1 = e - q.2 then r else 0))
-        = (fun q : 𝔽 × 𝔽 => if q.2 = e - e1 then r * q.1 else 0) from
+    rw [show (fun q : 𝔽 × ℰ => q.1 * (if e1 = e - q.2 then r else 0))
+        = (fun q : 𝔽 × ℰ => if q.2 = e - e1 then r * q.1 else 0) from
       funext (fun q => by
         by_cases h : e1 = e - q.2
         · have h' : q.2 = e - e1 := by linarith
@@ -979,7 +984,7 @@ theorem mul_sum_symm (x y : R*) (e : 𝔽) :
 
 /-- `coeffAt_mul` with the roles swapped (iterating over the second argument
 instead of the first). -/
-theorem coeffAt_mul_symm (x y : R*) (e : 𝔽) :
+theorem coeffAt_mul_symm (x y : R*) (e : ℰ) :
     coeffAt (fieldMul x y) e = (y.map (fun q => q.1 * coeffAt x (e - q.2))).sum := by
   rw [coeffAt_mul, mul_sum_symm]
 
@@ -1088,8 +1093,8 @@ instance : Field R* := {
     · rw [if_neg h, if_neg h],
   ratCast_def := by
     intro q
-    show embedQ q = fieldMul (embedQ (q.num : 𝔽)) ((embedQ (q.den : 𝔽)).map (fun (p : 𝔽 × 𝔽) => (p.1⁻¹, -p.2)))
-    have hinv : (embedQ (q.den : 𝔽)).map (fun (p : 𝔽 × 𝔽) => (p.1⁻¹, -p.2)) = embedQ ((q.den : 𝔽)⁻¹) := by
+    show embedQ q = fieldMul (embedQ (q.num : 𝔽)) ((embedQ (q.den : 𝔽)).map (fun (p : 𝔽 × ℰ) => (p.1⁻¹, -p.2)))
+    have hinv : (embedQ (q.den : 𝔽)).map (fun (p : 𝔽 × ℰ) => (p.1⁻¹, -p.2)) = embedQ ((q.den : 𝔽)⁻¹) := by
       simp [embedQ]
     rw [hinv]
     apply eq_of_simplify_eq
@@ -1111,8 +1116,8 @@ instance : Field R* := {
   nnratCast_def := by
     intro q
     show embedQ (q : 𝔽) = fieldMul (embedQ (q.num : 𝔽))
-      ((embedQ (q.den : 𝔽)).map (fun (p : 𝔽 × 𝔽) => (p.1⁻¹, -p.2)))
-    have hinv : (embedQ (q.den : 𝔽)).map (fun (p : 𝔽 × 𝔽) => (p.1⁻¹, -p.2)) = embedQ ((q.den : 𝔽)⁻¹) := by
+      ((embedQ (q.den : 𝔽)).map (fun (p : 𝔽 × ℰ) => (p.1⁻¹, -p.2)))
+    have hinv : (embedQ (q.den : 𝔽)).map (fun (p : 𝔽 × ℰ) => (p.1⁻¹, -p.2)) = embedQ ((q.den : 𝔽)⁻¹) := by
       simp [embedQ]
     rw [hinv]
     apply eq_of_simplify_eq
@@ -1132,8 +1137,8 @@ instance : Field R* := {
       linarith [heq]
     · rw [if_neg h, if_neg h]; ring,
   sub_eq_add_neg := fun x y => by
-    show merge x (List.map (fun p : 𝔽 × 𝔽 => (-p.1, p.2)) y)
-      = normalize (merge x (normalize (List.map (fun p : 𝔽 × 𝔽 => (-p.1, p.2)) y)))
+    show merge x (List.map (fun p : 𝔽 × ℰ => (-p.1, p.2)) y)
+      = normalize (merge x (normalize (List.map (fun p : 𝔽 × ℰ => (-p.1, p.2)) y)))
     apply eq_of_simplify_eq
     unfold normalize
     rw [simplify_idempotent]
@@ -1154,7 +1159,7 @@ instance : Field R* := {
   zero_mul := fun x => by
     show normalize ((List.product (0 : R*) x).map
       (fun ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2))) = 0
-    have hp : List.product (0 : R*) x = ([] : List ((𝔽 × 𝔽) × 𝔽 × 𝔽)) := rfl
+    have hp : List.product (0 : R*) x = ([] : List ((𝔽 × ℰ) × 𝔽 × ℰ)) := rfl
     rw [hp]
     show simplify ([] : R*) = 0
     rw [simplify_nil]
@@ -1162,8 +1167,8 @@ instance : Field R* := {
   mul_zero := fun x => by
     show normalize ((List.product x (0 : R*)).map
       (fun ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2))) = 0
-    have hp : List.product x (0 : R*) = ([] : List ((𝔽 × 𝔽) × 𝔽 × 𝔽)) := by
-      show List.flatMap (fun a => List.map (Prod.mk a) ([] : List (𝔽 × 𝔽))) x = []
+    have hp : List.product x (0 : R*) = ([] : List ((𝔽 × ℰ) × 𝔽 × ℰ)) := by
+      show List.flatMap (fun a => List.map (Prod.mk a) ([] : List (𝔽 × ℰ))) x = []
       induction x with
       | nil => rfl
       | cons a t ih => simp [List.flatMap_cons, ih]
@@ -1174,7 +1179,7 @@ instance : Field R* := {
   exists_pair_ne := ⟨0, 1, by native_decide⟩,
   inv_zero := rfl,
   neg_add_cancel := fun x => by
-    show normalize (merge (normalize (x.map (fun (p : 𝔽 × 𝔽) => (-p.1, p.2)))) x) = ([] : R*)
+    show normalize (merge (normalize (x.map (fun (p : 𝔽 × ℰ) => (-p.1, p.2)))) x) = ([] : R*)
     unfold normalize
     rw [← simplify_nil]
     apply simplify_eq_of_coeffAt_eq
@@ -1206,11 +1211,11 @@ instance : Field R* := {
     intro e
     show coeffAt (fieldMul x (fieldAdd y z)) e = coeffAt (fieldAdd (fieldMul x y) (fieldMul x z)) e
     rw [coeffAt_mul, coeffAt_fieldAdd, coeffAt_mul, coeffAt_mul]
-    rw [show (fun p : 𝔽 × 𝔽 => p.1 * coeffAt (fieldAdd y z) (e - p.2))
-        = (fun p : 𝔽 × 𝔽 => p.1 * (coeffAt y (e - p.2) + coeffAt z (e - p.2))) from
+    rw [show (fun p : 𝔽 × ℰ => p.1 * coeffAt (fieldAdd y z) (e - p.2))
+        = (fun p : 𝔽 × ℰ => p.1 * (coeffAt y (e - p.2) + coeffAt z (e - p.2))) from
       funext (fun p => by rw [coeffAt_fieldAdd])]
-    rw [show (fun p : 𝔽 × 𝔽 => p.1 * (coeffAt y (e - p.2) + coeffAt z (e - p.2)))
-        = (fun p : 𝔽 × 𝔽 => p.1 * coeffAt y (e - p.2) + p.1 * coeffAt z (e - p.2)) from
+    rw [show (fun p : 𝔽 × ℰ => p.1 * (coeffAt y (e - p.2) + coeffAt z (e - p.2)))
+        = (fun p : 𝔽 × ℰ => p.1 * coeffAt y (e - p.2) + p.1 * coeffAt z (e - p.2)) from
       funext (fun p => by ring)]
     exact List.sum_map_add,
   right_distrib := fun x y z => by
@@ -1221,8 +1226,8 @@ instance : Field R* := {
     rw [coeffAt_fieldAdd]
     rw [coeffAt_mul_symm, coeffAt_mul_symm, coeffAt_mul_symm]
     simp only [coeffAt_fieldAdd]
-    rw [show (fun q : 𝔽 × 𝔽 => q.1 * (coeffAt x (e - q.2) + coeffAt y (e - q.2)))
-        = (fun q : 𝔽 × 𝔽 => q.1 * coeffAt x (e - q.2) + q.1 * coeffAt y (e - q.2)) from
+    rw [show (fun q : 𝔽 × ℰ => q.1 * (coeffAt x (e - q.2) + coeffAt y (e - q.2)))
+        = (fun q : 𝔽 × ℰ => q.1 * coeffAt x (e - q.2) + q.1 * coeffAt y (e - q.2)) from
       funext (fun q => by ring)]
     exact List.sum_map_add,
   mul_assoc := fun x y z => by
@@ -1232,11 +1237,11 @@ instance : Field R* := {
     show coeffAt (fieldMul (fieldMul x y) z) e = coeffAt (fieldMul x (fieldMul y z)) e
     rw [coeffAt_mul_symm (fieldMul x y) z e, coeffAt_mul x (fieldMul y z) e]
     simp only [coeffAt_mul, coeffAt_mul_symm y z]
-    rw [show (fun r : 𝔽 × 𝔽 => r.1 * (x.map (fun p => p.1 * coeffAt y (e - r.2 - p.2))).sum)
-        = (fun r : 𝔽 × 𝔽 => (x.map (fun p => r.1 * (p.1 * coeffAt y (e - r.2 - p.2)))).sum) from
+    rw [show (fun r : 𝔽 × ℰ => r.1 * (x.map (fun p => p.1 * coeffAt y (e - r.2 - p.2))).sum)
+        = (fun r : 𝔽 × ℰ => (x.map (fun p => r.1 * (p.1 * coeffAt y (e - r.2 - p.2)))).sum) from
       funext (fun r => sum_mul_left r.1 x _)]
-    rw [show (fun p : 𝔽 × 𝔽 => p.1 * (z.map (fun r => r.1 * coeffAt y (e - p.2 - r.2))).sum)
-        = (fun p : 𝔽 × 𝔽 => (z.map (fun r => p.1 * (r.1 * coeffAt y (e - p.2 - r.2)))).sum) from
+    rw [show (fun p : 𝔽 × ℰ => p.1 * (z.map (fun r => r.1 * coeffAt y (e - p.2 - r.2))).sum)
+        = (fun p : 𝔽 × ℰ => (z.map (fun r => p.1 * (r.1 * coeffAt y (e - p.2 - r.2)))).sum) from
       funext (fun p => sum_mul_left p.1 z _)]
     rw [sum_map_sum_comm z x (fun r p => r.1 * (p.1 * coeffAt y (e - r.2 - p.2)))]
     congr 1
@@ -1257,7 +1262,7 @@ instance : Field R* := {
       rw [List.flatMap_singleton]
     rw [hp, List.map_map]
     have hid : ((fun ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2)) ∘
-        fun q : 𝔽 × 𝔽 => (((1 : 𝔽), (0 : 𝔽)), q)) = id := by
+        fun q : 𝔽 × ℰ => (((1 : 𝔽), (0 : 𝔽)), q)) = id := by
       funext q
       obtain ⟨r, e⟩ := q
       simp
@@ -1275,7 +1280,7 @@ instance : Field R* := {
       | cons a t ih => simp [List.flatMap_cons, ih]
     rw [hp, List.map_map]
     have hid : ((fun ((r1, e1), (r2, e2)) => (r1 * r2, e1 + e2)) ∘
-        fun p : 𝔽 × 𝔽 => (p, ((1 : 𝔽), (0 : 𝔽)))) = id := by
+        fun p : 𝔽 × ℰ => (p, ((1 : 𝔽), (0 : 𝔽)))) = id := by
       funext p
       obtain ⟨r, e⟩ := p
       simp
@@ -1315,4 +1320,3 @@ instance : Field R* := {
 
 end HyperLists
 end Hypers
-

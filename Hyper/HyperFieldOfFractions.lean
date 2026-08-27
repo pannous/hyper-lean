@@ -58,6 +58,14 @@ instance : Mul RFrac := ⟨mul⟩
 instance : Inv RFrac := ⟨inv⟩
 instance : One RFrac := ⟨(1, 1)⟩
 instance : Zero RFrac := ⟨(0, 1)⟩
+instance : DecidableEq RFrac := inferInstance
+
+def ofRat (q : ℚ) : RFrac := ([(q, 0, 0)], 1)
+
+instance : Coe ℚ RFrac := ⟨ofRat⟩
+instance : Coe ℤ RFrac := ⟨fun z => ofRat z⟩
+instance : Coe ℕ RFrac := ⟨fun n => ofRat n⟩
+instance {n : ℕ} : OfNat RFrac n := ⟨ofRat n⟩
 
 /-- The correct notion of equality for a fraction: cross-multiplication, not
     structural `=` of the `(num, den)` pair. Decidable directly — checking
