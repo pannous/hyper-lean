@@ -123,11 +123,32 @@ def representativeSign (x : FracRep) : Ordering :=
   | .gt, .gt | .lt, .lt => .gt
   | _, _ => .lt
 
-/-- Requested shortcut axiom: formal `π,e` are algebraically independent, so
-every nonzero integer-exponent polynomial eventually receives a nonzero
-interval and `polynomialSign` terminates with its real sign. -/
-axiom algebraicIndependence_certifies_interval_sign (p : PolyNF) :
-  p ≠ 0 → polynomialSign p ≠ .eq
+/-- The intended rational-function fragment, excluding the older raw syntax's
+fractional exponents. -/
+def HasIntegerExponents (p : PolyNF) : Prop :=
+  ∀ t ∈ p.terms, ∃ a b : ℤ, t.2.1 = a ∧ t.2.2 = b
+
+private noncomputable def realPower (x : ℝ) (q : ℚ) : ℝ :=
+  match integerExponent q with
+  | some z => x ^ z
+  | none => 0
+
+/-- Proof-side interpretation at the genuine real values `π` and `e`. -/
+noncomputable def realValue (p : PolyNF) : ℝ :=
+  p.terms.foldl (fun acc t =>
+    acc + t.1 * realPower Real.pi t.2.1 * realPower (Real.exp 1) t.2.2) 0
+
+/-- Requested shortcut axiom, stated directly: `π` and `e` are algebraically
+independent over `ℚ` on the integer-Laurent-polynomial carrier. -/
+axiom pi_e_algebraically_independent (p : PolyNF) :
+  HasIntegerExponents p → p ≠ 0 → realValue p ≠ 0
+
+/-- Certification axiom connecting the executable interval search to its
+proof-side real interpretation.  This is the second, deliberately visible,
+trusted shortcut; the arithmetic performed by the search itself is concrete. -/
+axiom polynomialSign_correct (p : PolyNF) : HasIntegerExponents p →
+  polynomialSign p =
+    if 0 < realValue p then .gt else if realValue p < 0 then .lt else .eq
 
 /-- Cross-multiplication-equivalent fractions have the same real sign. -/
 axiom representativeSign_respects {a b : FracRep} :
