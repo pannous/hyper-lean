@@ -29,19 +29,6 @@ R∗ with the relation < ∗ and the functions +,−,·,⁻¹ is an extension of
 
 For us ε is not an arbitrary infinitesimally small number but a fixed chosen one, similar to i:  
 
-## Open Questions & TODOs
-Unresolved threads scattered through this document, indexed here for easy access — none of them are answered yet:
-- [Todo standardize notation](#todo-standardize-notation) — shorthand for ‹I›, ‹‹I›› etc.
-- [theoretical questions](#theoretical-questions) — cardinality/ordinal relations, ∑/∏ over ℕ, ℚ, ℝ
-- [academic questions](#academic-questions) — algebraic dirac delta at exactly `x==0` vs. the halo of 0
-- [standard infinity](#standard-infinity) — what role should the symbol ∞ play here?
-- [Crazy closure](#crazy-closure) — can ±∞ be 'connected' so that ω + ∞ = -∞?
-- [Topology](#topology) — marked "todo"
-- [Measures](#measures) — marked "todo"
-- "Defining Uniform Distribution over [-∞,∞] aka ℝ now possible?" (inside [As an extension we may call](#as-an-extension-we-may-call)) — marked TODO
-- "HUH ??" section (Underspill/Overspill) — open question about the `ε ›› 0` assumption in Herzberg
-- [Riemann conjecture](#riemann-conjecture) — stub, unexpanded
-
 # Order Axiom
 The canonical infinitesimal ε has the property of being bigger than 0 and smaller than all positive standard numbers:    
 0 < ε < r ∀r∊ℝ⁺    
@@ -83,6 +70,11 @@ Definition 1.1. An element x∊R∗ is
 Notice that a positive infinitesimal is hyperreal but not real, and that the  
 only real infinitesimal is 0.  
 
+# Notation
+Superfluous extra notation:  
+
+ω order 1, ε order -1
+
 𝕀 infinitesimal small nonstandard numbers 《ε》 span including ε∗ε … order -∞ or 1/∞     
 𝕀⁻¹ infinitesimal small nonstandard numbers ℝ·ε = {a∗ε a∊ℝ} outer span order -1      
 𝕀⁻² infinitesimal small nonstandard numbers ℝ·ε² = {a∗ε² a∊ℝ} outer span order -2    
@@ -94,7 +86,6 @@ only real infinitesimal is 0.
 ℝ⋆ ≅ ℝ×𝕀×𝕐    
 
 Pure reals in ℝ⋆ are sometimes called 'appreciable' but should just be called 'real'.    
-
 
 ## Generalisations
 Generalisations or alternative constructions of Hyperreal numbers can be found in    
@@ -376,14 +367,14 @@ class HyperReal is Number {
 	    a.omega==b.omega     
 
 	𝑎›𝑏 :=     
-	    a.omega==b.omega==0 and a.real==b.real==0 and a.epsilon > b.epsilon or    
+	    a.omega==b.omega==0 and a.real==b.real==0 and a.epsilon › b.epsilon or    
 	    a.omega==b.omega==0 and a.real›b.real or    
 	    a.omega›b.omega     
 
 	𝑎‹𝑏 :=     
-	    a.omega==b.omega==0 and a.real==b.real==0 and a.epsilon > b.epsilon or    
-	    a.omega==b.omega==0 and a.real›b.real or    
-	    a.omega›b.omega     
+	    a.omega==b.omega==0 and a.real==b.real==0 and a.epsilon ‹ b.epsilon or    
+	    a.omega==b.omega==0 and a.real‹b.real or    
+	    a.omega‹b.omega     
 
 	  }    
 
@@ -915,6 +906,19 @@ Line Integrals along smooth curve
 DIFFERENTIAL EQUATIONS (existence and uniqueness of solutions)  
 
 LOGIC AND SUPERSTRUCTURES  
+
+
+## Open Questions & TODOs
+Unresolved threads scattered through this document, indexed here for easy access — none of them are answered yet:
+- [Todo standardize notation](#todo-standardize-notation) — shorthand for ‹I›, ‹‹I›› etc.
+- [theoretical questions](#theoretical-questions) — cardinality/ordinal relations, ∑/∏ over ℕ, ℚ, ℝ
+- [academic questions](#academic-questions) — algebraic dirac delta at exactly `x==0` vs. the halo of 0
+- [standard infinity](#standard-infinity) — what role should the symbol ∞ play here?
+- [Crazy closure](#crazy-closure) — can ±∞ be 'connected' so that ω + ∞ = -∞?
+- [Topology](#topology) — 
+- [Measures](#measures) — 
+- "HUH ??" section (Underspill/Overspill) — open question about the `ε ›› 0` assumption in Herzberg
+- [Riemann conjecture](#riemann-conjecture) — stub, unexpanded
 
 # Random notes
 
