@@ -915,8 +915,12 @@ LOGIC AND SUPERSTRUCTURES
 Maclaurin expansion coefficient of e^{x/2} ??  
 
 # Code
-The github repository for this project is at 
-https://github.com/pannous/hyper-lean
-The main file is under 
-Hyper/HyperReal.lean itself a façade for the decisive choice implementation 
-Hyper/HyperList.lean
+The github repository for this project is at   
+https://github.com/pannous/hyper-lean  
+The main file is under   
+Hyper/HyperReal.lean itself a façade for the decisive choice implementation   
+Hyper/HyperList.lean  
+
+Implementation besides the lean proves as a Julia file [hyper.jl](https://github.com/pannous/hyper-lean/blob/main/hyper.jl)
+Together with some small tests showing that the library behaves as expected and we can take the derivative of the step function and integrate our ω like dirac: [hyper_tests.jl](https://github.com/pannous/hyper-lean/blob/main/hyper_tests.jl)
+
