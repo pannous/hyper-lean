@@ -20,7 +20,7 @@ There are several motivations why ε should be taught in school: Simple derivati
 
 In 1960 Abraham Robinson (1918–1974) solved the three hundred year old problem of giving a rigorous development of the calculus based on infinitesimals.  
 
-The simple set of axioms for the hyperreal number system given here (and in Elementary Calculus) make it possible to present infinitesimal calculus at the college freshman level, avoiding concepts from mathematical logic. (It is shown in Chapter 15 of [hkeisler] that these axioms are equivalent to Robinson’s approach.)  
+The simple set of axioms for the hyperreal number system given here (and soon in Elementary Calculus?) make it possible to present infinitesimal calculus at the college freshman level, avoiding concepts from mathematical logic. (It is shown in Chapter 15 of [hkeisler] that these axioms are equivalent to Robinson’s approach.)  
 
 The following axioms are slightly different to Keislers, in that R∗ being an ordered field extension of R follows from the basic axioms: 
 
