@@ -29,6 +29,19 @@ R∗ with the relation < ∗ and the functions +,−,·,⁻¹ is an extension of
 
 For us ε is not an arbitrary infinitesimally small number but a fixed chosen one, similar to i:  
 
+## Open Questions & TODOs
+Unresolved threads scattered through this document, indexed here for easy access — none of them are answered yet:
+- [Todo standardize notation](#todo-standardize-notation) — shorthand for ‹I›, ‹‹I›› etc.
+- [theoretical questions](#theoretical-questions) — cardinality/ordinal relations, ∑/∏ over ℕ, ℚ, ℝ
+- [academic questions](#academic-questions) — algebraic dirac delta at exactly `x==0` vs. the halo of 0
+- [standard infinity](#standard-infinity) — what role should the symbol ∞ play here?
+- [Crazy closure](#crazy-closure) — can ±∞ be 'connected' so that ω + ∞ = -∞?
+- [Topology](#topology) — marked "todo"
+- [Measures](#measures) — marked "todo"
+- "Defining Uniform Distribution over [-∞,∞] aka ℝ now possible?" (inside [As an extension we may call](#as-an-extension-we-may-call)) — marked TODO
+- "HUH ??" section (Underspill/Overspill) — open question about the `ε ›› 0` assumption in Herzberg
+- [Riemann conjecture](#riemann-conjecture) — stub, unexpanded
+
 # Order Axiom
 The canonical infinitesimal ε has the property of being bigger than 0 and smaller than all positive standard numbers:    
 0 < ε < r ∀r∊ℝ⁺    
@@ -443,7 +456,7 @@ F=∫p   ( meaning F(x)=P([-∞,x])=∫(-∞,x)p(y)dy just as in case of steady 
 
 π(x)=a ‹› p(x)=a·ω =› F(x)= a + P([-∞,x[)    
 
-# algebraic δ
+## algebraic δ
 The δ dirac delta "function/distribution"   
 Since δ behaves similarly as a "spike":  
 ∫(-ε,ε)(δ) = 1   
@@ -457,14 +470,14 @@ Dirac Delta as Derivative of Heaviside Step Function
 H(x) := x ›= 0      # True ≈ 1  
 δ(x) := dH(x)/dx  
 
-# As an extension we may call
-∫(-ε,0)(ω) = 1  "left-dirac"  
-∫( 0,ε)(ω) = 1  "right-dirac"  
-
-# [[step-numbers]]
-δ dirac delta "function/distribution"  
+## [[step-numbers]]
+*(restates [algebraic δ](#algebraic-δ) above: δ dirac delta "function/distribution")*
 
 practical aspects see ~/wasp/lib/hyperreals.wasp  
+
+## As an extension we may call
+∫(-ε,0)(ω) = 1  "left-dirac"  
+∫( 0,ε)(ω) = 1  "right-dirac"  
 
 ### Defining Uniform Distribution over [-∞,∞] aka ℝ now possible?
 "TODO: Probability of hitting an exact number in the interval [-∞,∞] aka ℝ with Uniform Distribution"    
@@ -474,22 +487,8 @@ P(x=y)=εᵚ
 
 
 
-# Limes
-"replace limes with algebraic expressions!"    
-e = lim(n=›∞) (1+1/n)^n    
-e = (1+1/ω)^ω = (1+ε)^ω    
-e^ω = [1,2,…,ω] least common multiplier e = lim(n-›∞) [1,2,…,n]¹ʼⁿ    
-
-sign x = tanh ω·x !    
-
-H(x) = ½ + ½·tanh ω·x  Heaviside see [[step-numbers]] step function with H(0)=1/2    
-H(x) = ½ + ½·erf ω·x     
-H(x) = 1/(1+e^(-2ω·x))    
-H(x) = ½ + 1/π · arctanh ω·x      
-H(x) = 1/(2πi) ∫e^(i·x·t)/(t+i·ε) dt    
-
-# periods    
-## desired theorem:    
+## periods    
+### desired theorem:    
 ε == 1 - 0.9̂     
 ⚠️ careful 1 == 0.9̅ still holds and is usually not of concern https://arxiv.org/abs/1007.3018    
 the above statement strongly depends on exact meaning / notation 0.9̅ vs 0.9̂ vs .999… vs .999…;…999    
@@ -507,13 +506,13 @@ so
 
 ∑𝑖∈ℕ 9/10^𝑖 does not have a supremum and thus does not make sense in nonstandard analysis.    
 
-# academic questions
+## academic questions
  we are only interested in axiomatic algebraic applications    
 
  what if we consider for the algebraic dirac delta  
 ω₀(x):= ω iff x==0  # only directly at 0, instead of the halo x≈0 ?  
 
-# standard infinity
+## standard infinity
 What would the role of the symbol ∞ be in our theory?  
 
 ∫(-ω,ω)(ε) = 2   # 'infinite' line AND/OR    
@@ -523,18 +522,18 @@ What would a name for ω be? Since it's not infinity, one has to stick with omeg
 
 Note how infinite is an attribute of ω but infinity is an absolute term not applying to ω. Unless we can talk about ω as (partial)"omega-infinity".  
 
-# First order analysis
+## First order analysis
 To simplify some calculations, we may want to restrict ourselves to  
 simple elements of the closure ℝ ω ε, putting all ε² ω² … into an extra bucket called  
 inner and outer 'zone' (rest border of higher orders).  
 
 “partial quasifield” ≠ Teilkörper ≠ Schiefkörper (nicht kommutativ) ≠ Halbkörper  
 
-# Topology
+## Topology
 • all halos are open  
 … todo  
 
-# power
+## power
 
 to define hˣ for arbitrary real numbers we can use exp and log  
 hˣ = exp(x·log(h))    
@@ -542,7 +541,7 @@ we need h² ≈ h ∗ h as expected
 
 This works in the julia implementation https://github.com/pannous/hyper-lean/blob/main/hyper.jl  
 
-# exponentiation
+## exponentiation
 
 exp(h::Hyper) = ∑(0,∞) hⁿ/n!    
 log(h::Hyper) = ∫(1,h) 1/x dx # or if we don't have integral yet:  
@@ -552,7 +551,7 @@ log(h::Hyper) = ∑(1,h) (1-x)/x
 ## Crazy closure:
 Is it under some cirumstances possible to 'connect' ±∞ in such a way ω + ∞ = -∞ ?    
 
-# L'Hôpital rule
+## L'Hôpital rule
 f(x+ε) ≈ g(x+ε) ≈ 0 or ±∞ and g'(x)≠0 =›    
 f/g=f'/g' at x    
 
@@ -640,9 +639,9 @@ b + c is limited (possibly infinitesimal) H +ε  and H +bare unlimited
 
 n! = ∫tⁿ/eᵗ = Γ(n+1) = ∮1/τi·tⁿeᵗ  
 
-see  
+see [Riemann conjecture](#riemann-conjecture)  
 
-# [[Riemann]] conjecture
+## [[Riemann]] conjecture
 
 # Gauge Theory
 
@@ -804,7 +803,22 @@ Proposition 1.18. Assume Axioms A, C, D, E, and also that R∗ with the
 relation ‹∗ and the functions +,− ,· ,−1 is an extension of R which satisfies  
 the Trichotomy Law. Then R∗ is an ordered field, so Axiom B holds.  
 
-# Limes via ≈
+# Limes
+"replace limes with algebraic expressions!"    
+e = lim(n=›∞) (1+1/n)^n    
+e = (1+1/ω)^ω = (1+ε)^ω    
+e^ω = [1,2,…,ω] least common multiplier e = lim(n-›∞) [1,2,…,n]¹ʼⁿ    
+
+sign x = tanh ω·x !    
+
+H(x) = ½ + ½·tanh ω·x  Heaviside see [step-numbers](#step-numbers) step function with H(0)=1/2    
+H(x) = ½ + ½·erf ω·x     
+H(x) = 1/(1+e^(-2ω·x))    
+H(x) = ½ + 1/π · arctanh ω·x      
+H(x) = 1/(2πi) ∫e^(i·x·t)/(t+i·ε) dt    
+
+## Limes via ≈
+*(ε,δ formulation of [Limes](#limes) above, from Keisler's Foundations)*
 
 Definition 3.1. Let L, c be real numbers. L is the limit of f(x) as x approaches c, in symbols  
 L = lim x→c f(x), if whenever x≈c but x̸≠c, we have f(x)≈L.  
