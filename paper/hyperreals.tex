@@ -50,10 +50,15 @@ infinitesimal $\eps$ and an infinite $\omega$, linked by the single
 definition of the derivative, an algebraic Riemann integral, and an
 algebraic Dirac delta, and use them to resolve the classical puzzle of
 ``probability zero but not impossible'' events (the \emph{probabilistic
-dart}). Every construction here has an executable, machine-checked
-counterpart in a Lean~4 formalization of the same axioms (the
-\texttt{HyperList} model), so the paper can double as the mathematical
-documentation for that code.
+dart}), generalized to a codimension-indexed replacement for Kolmogorov
+measure that needs no $\sigma$-algebra for internal reasoning. Every
+construction here has an executable, machine-checked counterpart in a
+Lean~4 formalization of the same axioms (the \texttt{HyperList} model), so
+the paper can double as the mathematical documentation for that code. We
+are explicit about what this reformulation does not yet reach: a general
+expectation operator, conditional probability across mixed-codimension
+events, and the classical limit theorems (LLN, CLT) are honestly scoped as
+open rather than claimed.
 \end{abstract}
 
 \tableofcontents
@@ -468,6 +473,123 @@ model, with area and length taken as rational rather than real
 parameters, matching that model's scalar field.)
 
 % =====================================================================
+\section{Generalization: a codimension-indexed replacement for measure}\label{sec:general-prob}
+% =====================================================================
+
+Section~4's dart example generalizes cleanly, and the generalization is the
+paper's central claim about probability theory as a whole: \emph{a
+Kolmogorov measure can be replaced, for internal hyperreal reasoning, by an
+algebraic unit conversion indexed by codimension, with no $\sigma$-algebra
+required.}
+
+\begin{definition}[Codimension-indexed atom mass]\label{def:regionmass}
+Fix an ambient space of ordinary total content $A>0$ (a length, area,
+count, \ldots). A region of \emph{codimension} $k$ (i.e.\ $k$ dimensions
+``thinner'' than the ambient space) with ordinary content $c$ has
+hyperreal probability
+\[
+\operatorname{regionMass}(c,k,A) \;:=\; \frac{c\,\eps^{k}}{A}.
+\]
+\end{definition}
+
+Taking $k=2,A=$ disc area recovers $\mathrm{pointMass}$; $k=1$ recovers
+$\mathrm{lineMass}$; $k=0$ recovers the whole space's own probability $A/A=1$.
+
+\begin{theorem}[Monotone in codimension]\label{thm:regionmass-mono}
+For $k_2 < k_1$ and $c_1,c_2,A>0$:
+\[
+\operatorname{regionMass}(c_1,k_1,A) \;<\; \operatorname{regionMass}(c_2,k_2,A).
+\]
+\end{theorem}
+
+That is: \emph{no amount of ordinary content can compensate for one extra
+order of infinitesimal smallness} — a codimension-$3$ region of content
+$3$ still loses to a codimension-$2$ region of content $1$
+(Theorem~\ref{thm:regionmass-mono} is proved, with no unproven gaps, as
+\texttt{regionMass\_mono} in \texttt{Hyper/HyperProbability.lean}, and
+verified against the point/line special case of Section~4 there as a
+sanity check). Where classical measure theory has one flat class
+(``measure zero'') for every one of these events, $\Rstar$ supplies a
+genuine \emph{total order of infinitesimal-smallness classes}, one per
+codimension, and every classically-invisible event lands in exactly one,
+comparably.
+
+\subsection{Why $\sigma$-algebras become unnecessary}
+
+A $\sigma$-algebra earns its place in Kolmogorov's theory for two reasons:
+not every set has a consistent size (so measurability is restricted to a
+closed family), and countable additivity needs a family closed under
+countable unions. Neither problem survives translation into $\Rstar$:
+every region considered here is given by an ordinary geometric or
+combinatorial description (a point, a segment, a finite union of such
+things), never by an unconstructive choice-theoretic construction, so there
+is no pathological set to guard against; and every union actually formed
+is a \emph{finite} union, so additivity is just $+$ in the field $\Rstar$,
+already total and already computable. A $\sigma$-algebra re-enters only if
+one wants to push a hyperreal result back down to a classical probability
+measure via $\st$ — this is exactly the content of \textbf{Loeb's theorem}
+\cite{loeb}: the standard part of a hyperfinite counting measure is
+itself countably additive, on a $\sigma$-algebra generated automatically by
+the construction, never hand-picked. We do not formalize Loeb's theorem
+here (Theorem~\ref{thm:dart-shadow} already proves the $\st=0$ half needed
+for the dart example); the point is that $\sigma$-algebras are a
+classical-side artifact of the standard-part map, not a prerequisite for
+defining hyperreal probabilities in the first place.
+
+\subsection{Discrete and continuous distributions as one object}
+
+Classical probability needs two separate mechanisms: a density for the
+continuous part of a distribution, and ad hoc point weights bolted on for
+atoms. Here, an atom of classical mass $a$ at a point $x$ is simply a
+\emph{density spike of order $\omega$}: $p(x) = a\cdot\omega$, using
+exactly the algebraic Dirac delta of Section~3. Every distribution ---
+discrete, continuous, or mixed --- is then $F = \int p$ for a single,
+uniformly typed density $p : \Rstar \to \Rstar$, with no case split between
+``discrete'' and ``continuous'' probability theory.
+
+\subsection{Honest scope: what is not yet built}\label{sec:gaps}
+
+Three gaps are real and deliberately left open rather than glossed over:
+
+\begin{itemize}
+\item \textbf{Expectation.} Computing $E[X] = \sum_x x\,p(x)$ in general
+needs a genuine Riemann-sum operator $\sum(f : \Rstar\to\Rstar)$ over an
+arbitrary function, parametrized by a hyperfinite count that can be
+instantiated at $\omega$-order values. The current model has only the
+\emph{term-level} shift used for $\int x\,dx = x^2/2$ (Section~3), not a
+general summation operator; this is the single largest piece needed to go
+from ``probabilities of individual regions'' to ``expectation of a random
+variable,'' and it is scoped but not attempted here.
+\item \textbf{Conditional probability across mixed-order events.}
+$P(A\mid B) = P(A\cap B)/P(B)$ needs division, and the \texttt{HyperList}
+field instance inverts a general multi-term element only up to a
+documented gap (\texttt{mul\_inv\_cancel} is unproven in general, since
+finite-support Laurent series genuinely do not form a field under the
+obvious inverse). This is not a problem when $B$'s probability is a pure
+$\eps^{k}$-order value, which covers the common symmetric cases (a single
+point, a single line, a single codimension-$k$ cell); it becomes a real
+open problem when $B$ is a union across codimensions, whose mass is a
+genuine multi-term element. Two ways forward, neither attempted: condition
+on $B$'s leading order only, or extend the field structure further.
+\item \textbf{Limit theorems.} The Law of Large Numbers and the Central
+Limit Theorem are the hardest results in classical probability, and their
+nonstandard proofs (via Nelson's radically elementary probability theory or
+full Loeb measure) need machinery --- internal set theory, a genuine
+transfer principle, hyperfinite index sets larger than any \texttt{Fin n}
+--- that the concrete \texttt{List}-of-monomials model of
+Section~\ref{sec:model} does not have and is not intended to have; it is a
+formal-algebra model, not a nonstandard-universe ultrapower. We flag LLN/CLT
+as out of scope for this model rather than attempt a proof against
+foundations that cannot support it.
+\end{itemize}
+
+Independence, by contrast, is not a gap: $P(A\cap B) = P(A)\cdot P(B)$ for
+regions built from independent grids is ordinary field multiplication in
+$\Rstar$, and the underlying atom-counting argument is finite combinatorics
+--- arguably simpler than the classical product-measure construction, not
+harder.
+
+% =====================================================================
 \section{Worked exercises}
 % =====================================================================
 
@@ -526,6 +648,13 @@ construction is more general (it supports full transfer for
 \emph{all} first-order statements) but is not computable; see
 Remark on \S\ref{sec:model}.
 \end{itemize}
+
+% =====================================================================
+\section*{Code Availability}
+The full Lean~4 formalization (the \texttt{HyperList} model, the dart and
+\texttt{regionMass} probability results, and the supporting derivative and
+integral machinery) is available at
+\url{https://github.com/pannous/hyper-lean}.
 
 % =====================================================================
 \begin{thebibliography}{9}
