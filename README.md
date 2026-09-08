@@ -16,6 +16,8 @@ ln ~/Documents/notes/hyperreals.md ~/dev/script/lean4/hyper/Readme.md
 
 In mathematics, the system of hyperreal numbers is a way of treating infinite and infinitesimal (infinitely small but non-zero) quantities. The hyperreals, or nonstandard reals ℝ⋆ are an extension of the real numbers ℝ with algebraic spanning elements ω ≈ ∞ and ε ≈ 1/∞.    
 
+There are several motivations why ε should be taught in school: Simple derivatives without limes, derivatives of step functions (dirac in physics), avoiding 0 probability for likely events.
+
 In 1960 Abraham Robinson (1918–1974) solved the three hundred year old problem of giving a rigorous development of the calculus based on infinitesimals.  
 
 The simple set of axioms for the hyperreal number system given here (and in Elementary Calculus) make it possible to present infinitesimal calculus at the college freshman level, avoiding concepts from mathematical logic. (It is shown in Chapter 15 of [hkeisler] that these axioms are equivalent to Robinson’s approach.)  
