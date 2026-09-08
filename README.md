@@ -342,7 +342,6 @@ Definition without variable 𝑖
 #𝕀 infinitesimal numbers    
 𝕀 = span field ‹ε, ω›    
 	ℝ∗    
-ℝ⋆ = ℝ(ε, ω)  # ordered field extension    
 ℝ⋆ = ℝ(ε)     # because ω := 1/ε     
 ℝ⋆ = ℝ×𝕀       
 ℝ∗ = ℝ⋆    
@@ -408,7 +407,6 @@ simplify(hyper y) =
 	times(number x,hyper y) = Hyper(x∗y.real,x∗y.epsilon, x∗y.omega)    
 times(hyper x,hyper y) = Hyper(x.real∗y.real,x.real∗y.epsilon+y.real∗x.epsilon, hyper.omega)    
 times(hyper x,ε) = Hyper(0, x.real, 0)    
-times(hyper x,ε) = Hyper(0, x.real, 0)    
 
 epsilon := Hyper(0,1,0)    
 omega   := Hyper(0,0,1)    
@@ -444,9 +442,7 @@ real derivative (f) = st(∂f)
 "Probability of hitting an exact number in the Uniform Distribution over an interval e.g. [0,1]"    
 P(x=y)=ε for y in [0,1] # classically "'0' but not impossible"    
 
-⚠️ different zero-sets can result in different (multiplier / exponent ) variants of ε    
-⚠️ εᵚ for each σ-algebra Ω such that ∫εᵚ=1 over uncountable and ∑εᵚ=1 for countable Ω  
-⚠️ If the context is clear we emit εᵚ and just write ε  
+⚠️ different zero-sets can result in different (multiplier / exponent ) variants of ε — see the εᵚ convention under [integral ε = 1 or 2](#integral-ε--1-or-2) above  
 
 2. No pointweight    
 As an ad-hoc mechanism to deal with steps in probability distributions, classical theory introduced point weights.    
@@ -895,9 +891,6 @@ Proposition 10.2.
 standard part  
 st(A) is defined as the real vector(!) st(A) = st(a1)j1 +···+ st(an)jn , j real basis  
 Thus st(A) is the unique real vector infinitely close to A.  
-
-Two nonzero hyperreal vectors A and B are said to be almost parallel if their  
-unit vectors U and V are such that either U≈V or U≈−V.  
 
 Ai almost linearly dependent if there is a c such that ∑cAi≈[0]  
 
