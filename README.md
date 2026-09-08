@@ -162,8 +162,8 @@ x≈ε ‹=› x=a·ε for some a in ℝ⁺
 x≈0 ‹=› x=0 or x≈±ε      
 x≈y ‹=› x-y≈0      
 
-⚠️ one MAY define '~' so that x~ε =› x~0 !    
-⚠️ some authors define ~ very differently as x~y ‹› x-y limited "of the same order"    
+⚠️ one MAY define `~` so that `x~ε =› x~0` !    
+⚠️ some authors define `~` very differently as `x~y ‹› x-y` limited "of the same order"    
 
 # dot ≈ halo ≈ monad
 The dot / halo around a point x is the set of all nonstandard numbers near x    
