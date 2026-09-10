@@ -4,6 +4,9 @@
 import Hyper.HyperReal
 import Hyper.AlgebraicProbability
 import Hyper.HyperProbability
+import Hyper.AlgebraicStochasticsBasic
+import Hyper.AlgebraicStochasticsIntermediate
+import Hyper.AlgebraicStochasticsAdvanced
 
 open Hypers
 
@@ -51,6 +54,12 @@ section AlgebraicProbabilityTests
     simpa using
       conditional_independent ⟨⟨1, -1⟩, one_ne_zero⟩ (monomial (1 / 3) 0)
 end AlgebraicProbabilityTests
+
+section AlgebraicStochasticsSolutionTests
+  #check Hypers.HyperLists.AlgebraicStochasticsBasic.exercise7_rare_event_conditioning
+  #check Hypers.HyperLists.AlgebraicStochasticsIntermediate.uniform_grid_variance_correction
+  #check Hypers.HyperLists.AlgebraicStochasticsAdvanced.lan_finite_coefficient
+end AlgebraicStochasticsSolutionTests
 
 -- Success message
 #check "✅ All Hyper modules compile successfully with Lean 4.27 stable!"

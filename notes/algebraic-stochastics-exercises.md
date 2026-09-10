@@ -40,6 +40,26 @@ implementation:
 - **Research:** the exercise deliberately requires a substantive extension of
   the framework.
 
+## Checked Lean solutions
+
+Every exercise now has a checked algebraic solution kernel:
+
+- Exercises 1–7: `Hyper/AlgebraicStochasticsBasic.lean`
+- Exercises 8–14: `Hyper/AlgebraicStochasticsIntermediate.lean`
+- Exercises 15–20: `Hyper/AlgebraicStochasticsAdvanced.lean`
+
+The modules use coefficient-wise algebraic equality and explicitly proved
+monomial quotients. Their headline theorems have been audited with
+`#print axioms` and do not use `sorryAx`, the unsafe raw-list equality axiom,
+or unrestricted mixed-order inversion.
+
+For a **Partial** exercise, “checked solution kernel” means that the displayed
+closed-form algebra is proved, while the reusable event or random-variable
+abstraction remains to be built. For a **Research** exercise, the exact
+finite algebra and a proof-carrying interface for the missing analytic or
+hyperfinite fact are checked; constructing an instance of that interface is
+intentionally not passed off as solved.
+
 ## Exercise 1 — One exact outcome
 
 **Problem.** Let `Omega = {0, 1, ..., omega - 1}` be uniform, and let `j` be
@@ -582,53 +602,128 @@ Expanding both factors further would expose explicit corrections in powers of
 closeness, and standard part. **Research:** this needs hyperfinite indexing and
 transcendental functions compatible with `st`.
 
-## Exercise 20 — Local asymptotic likelihood in one algebraic scale
+## Exercise 20 — Uniform local asymptotic statistics in one algebraic scale
 
-**Problem.** Let `N=omega` Bernoulli observations have null parameter
-`theta0 in (0,1)`. Compare the null with the local alternative
-`theta1=theta0+h*sqrt(epsilon)`, where `h` is standard. Suppose the observed
-success count satisfies
-
-\[
-S=N\theta_0+z\sqrt{N\theta_0(1-\theta_0)}
-\]
-
-for standard finite `z` and a compatible hyperfinite count `S`. Find the
-standard part of the log-likelihood ratio of
-`theta1` against `theta0`.
-
-**Why this framework.** The two parameters have the same ordinary shadow, yet
-`omega` observations accumulate their `sqrt(epsilon)` separation into finite
-evidence. Classical local-asymptotic-normality proofs express this through a
-limit of experiments; the algebraic version exposes the balancing scales in
-one calculation.
-
-**Solution.** Write `delta=h*sqrt(epsilon)` and expand
+**Problem.** Fix standard `p in (0,1)` and put
+`v=p(1-p)`, `sigma=sqrt(v)`, `N=omega`, and `epsilon=N^-1`. For standard
+`h`, let `p_h=p+h*sqrt(epsilon)`. On the hyperfinite Bernoulli experiment let
 
 \[
-\log R
-=S\log\left(1+\frac\delta{\theta_0}\right)
- +(N-S)\log\left(1-\frac\delta{1-\theta_0}\right).
+Z=\frac{S-Np}{\sqrt{Nv}},\qquad
+L_h=\left(\frac{p_h}{p}\right)^S
+    \left(\frac{1-p_h}{1-p}\right)^{N-S},\qquad
+\ell_h=\log L_h.
 \]
 
-The order-`sqrt(N)` terms cancel at the null center. Since
-`N*delta^2=h^2`, the surviving finite terms give
+Solve the following increasingly strong tasks.
+
+1. For fixed standard `h` and finite `Z`, find `st(ell_h)`.
+2. Fix standard `H>0`, choose unlimited `R` with
+   `1 << R << sqrt(N)`, and prove uniformly for `|h|<=H`, `|Z|<=R` that
+
+   \[
+   \ell_h=\frac{hZ}{\sigma}-\frac{h^2}{2v}
+   +\sqrt\epsilon(1-2p)
+      \left(\frac{h^3}{3v^2}-\frac{h^2Z}{2v^{3/2}}\right)
+   +\rho_h,
+   \quad |\rho_h|\le C_{p,H}\epsilon(1+|Z|).
+   \]
+
+3. Prove the good event `G_R={|Z|<=R}` has probability infinitesimally
+   close to one uniformly on `|h|<=H`, prove `E_0[L_h]=1`, and establish
+   mutual contiguity of the null and each fixed local alternative.
+4. Prove the algebraic CLT, derive Le Cam's third-lemma shift
+   `Z => N(h/sigma,1)` under `p_h`, and find the asymptotic power of the
+   one-sided level-`alpha` test.
+5. Optional refinement: obtain the first continuity-corrected Bernoulli
+   Edgeworth term and explain why omitting the half-cell correction leaves a
+   lattice term of order `sqrt(epsilon)`.
+
+**Why this framework.** The null and local alternative have the same ordinary
+parameter, but `omega` observations turn their `sqrt(epsilon)` separation
+into finite evidence. The first coefficient cancellation is short; the real
+difficulty is constructing the entire experiment, proving a uniform analytic
+remainder, changing probability algebraically, and retaining the first
+finite-grid correction beyond Gaussian power.
+
+**Solution.** Put `delta=h/sqrt(N)` and use the cubic Taylor expansions
 
 \[
-\operatorname{st}(\log R)
-=\frac{hz}{\sqrt{\theta_0(1-\theta_0)}}
- -\frac{h^2}{2\theta_0(1-\theta_0)}.
+\log(1+\delta/p)=\frac\delta p-\frac{\delta^2}{2p^2}
+ +\frac{\delta^3}{3p^3}+O(\delta^4),
 \]
 
-With `u=h/sqrt(theta0(1-theta0))`, this is `u*z-u^2/2`, the Gaussian local
-likelihood form. A complete proof must also bound the discarded
-infinitesimal remainder uniformly for finite `z`.
+\[
+\log(1-\delta/(1-p))=-\frac\delta{1-p}
+ -\frac{\delta^2}{2(1-p)^2}-\frac{\delta^3}{3(1-p)^3}
+ +O(\delta^4).
+\]
 
-**Ingredients and readiness.** Rational powers such as `sqrt(epsilon)`,
-hyperfinite products, logarithm and its controlled expansion, finite/random
-decomposition of `S`, standard part, and a remainder theorem. **Research:**
-this is a capstone specification for hyperfinite random sequences, analytic
-functions on `R*`, and rigorous asymptotic control.
+Substituting `S=Np+Z*sqrt(Nv)` cancels the order-`sqrt(N)` terms. The finite
+coefficient and first correction are
+
+\[
+\operatorname{st}(\ell_h)=\frac{hZ}{\sigma}-\frac{h^2}{2v},
+\]
+
+\[
+\sqrt\epsilon(1-2p)
+\left(\frac{h^3}{3v^2}-\frac{h^2Z}{2v^{3/2}}\right).
+\]
+
+Uniform fourth-derivative bounds for `|h|<=H` give the stated remainder.
+Because `R/sqrt(N)` is infinitesimal,
+`sup |rho_h|/sqrt(epsilon)` is infinitesimal on `G_R`.
+
+Under `p_h`, `E[Z]=h/sigma` and
+`Var(Z)=p_h(1-p_h)/v`, which is finite and infinitesimally close to one.
+Chebyshev's inequality therefore proves the uniform good-event claim. The
+binomial theorem gives `E_0[L_h]=1`. Moreover,
+
+\[
+E_0[L_h^2]=\left(1+\frac{h^2}{Nv}\right)^N,
+\qquad
+E_h[L_h^{-2}]=\left(1+\frac{h^2}{N p_h(1-p_h)}\right)^N.
+\]
+
+Their finite standard parts, together with Cauchy--Schwarz, give mutual
+contiguity (uniformly over bounded `h` in the forward direction).
+
+The algebraic CLT and uniform LAN yield, with `u=h/sigma`,
+
+\[
+(Z,\ell_h)\Longrightarrow(G,uG-u^2/2),\qquad G\sim N(0,1).
+\]
+
+Tilting by `exp(uG-u^2/2)` changes the law to `N(u,1)`. Thus a test rejecting
+when `Z>c_alpha`, where `c_alpha=Phi^-1(1-alpha)`, has local power
+
+\[
+\operatorname{st}P_h(Z>c_\alpha)
+=1-\Phi(c_\alpha-u)=\Phi(u-c_\alpha).
+\]
+
+For the optional refinement, set
+`a_N=(k+1/2-Np)/sqrt(Nv)`. Uniformly for bounded `a_N`,
+
+\[
+P_0(S\le k)=\Phi(a_N)
++\sqrt\epsilon\frac{1-2p}{6\sigma}(1-a_N^2)\phi(a_N)
++O(\epsilon).
+\]
+
+The `1/2` is the continuity correction; without it the Bernoulli lattice
+contributes another order-`sqrt(epsilon)` term.
+
+**Ingredients and readiness.** `lan_sqrtOmega_cancellation`,
+`lan_finite_coefficient`, and `lan_with_remainder_interface` in
+`Hyper/AlgebraicStochasticsAdvanced.lean` check the exact coefficient algebra
+of Part 1. **Research:** Parts 2–5 are the deliberately harder capstone. They
+require a genuine hyperfinite Bernoulli product experiment, uniform Taylor
+bounds, hyperfinite expectation, exact likelihood normalization, an algebraic
+CLT, contiguity/change-of-probability laws, normal quantiles, and a lattice
+local-limit theorem. These prerequisites are not hidden as assumptions in the
+current concrete backend.
 
 ## Suggested framework development order
 
