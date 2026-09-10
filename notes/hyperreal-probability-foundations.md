@@ -1,238 +1,197 @@
-# Reformulating probability theory on `R*`, without measure theory
+# Algebraic hyperreal probability from symbolic counts
 
-Written 2026-08-26, prompted by: "think deeply how we can reformulate the whole
-basis of probability theory with this mechanism... avoid the whole notion of
-measure and replace it with the simple algebraic hyper approach... we don't
-care too much about Sigma algebra but maybe they're still necessary."
+Revised 2026-09-10 after the design correction that probability values in
+this project are to be treated directly as algebraic ratios. The primitive idea is
+normalized algebraic counting:
 
-Concrete anchor: `Hyper/DartPointProbZero.lean` (point/line-in-a-disc, proved)
-and its new generalization `Hyper/HyperProbability.lean` (`regionMass`,
-arbitrary codimension `k`, proved for all `k` not just 1 and 2). The abstract
-axiomatic sketch this replaces is `Hyper/old/HyperProbability.lean`.
-
-## 1. What the dart example actually demonstrates
-
-Classically, a dart landing uniformly on a disc: `P(hits exact point) = 0`,
-`P(hits exact line through the disc) = 0`. Both are "measure zero", both get
-treated as impossible — but a point and a line are not equally impossible.
-A line is obviously, combinatorially, far more likely to be hit than one
-exact point. Classical measure theory has **no vocabulary** for this: `0 = 0`,
-end of story. That's the real defect, not just the philosophical discomfort
-of calling a possible event "impossible."
-
-The hyperreal fix already proved in this repo: `pointMass A = ε²/A`,
-`lineMass L A = L·ε/A`. Both are positive (genuinely possible), both have
-standard part 0 (classical theory recovered as the "shadow"), and critically
-`pointMass A < lineMass L A` for any `L, A > 0` — the order structure of `R*`
-recovers the lost information. `Hyper/HyperProbability.lean` now proves this
-**for every codimension gap, not just point-vs-line**: `regionMass_mono` says
-a higher-codimension region loses to a lower-codimension one regardless of
-how much bigger its ordinary content is. So instead of a flat classical
-`{measure zero, positive measure}` split, you get a genuine **total order of
-infinitesimal-smallness classes** — order 0 (appreciable), order 1, order 2,
-... — and every classically-"impossible" event lands in exactly one class,
-comparably.
-
-## 2. The core primitive: codimension-indexed atom mass, not a measure
-
-A classical measure `μ : Σ → [0,1]` is a *function on sets*, built by
-integrating a density (or defined directly), satisfying countable additivity.
-The hyperreal replacement here is not another such function — it's an
-algebraic **unit conversion**: fix an ambient space of "dimension" `n`
-(equivalently, a resolution `ω = 1/ε`, per the Readme's `ωⁿ·εⁿ = 1` gauging
-law), and say that a region of codimension `k` (i.e. `n - k`-dimensional)
-and ordinary content `c` — a length, an area, a count, computed by whatever
-ordinary standard-real geometry or combinatorics fits the region — has
-probability
-
-```
-regionMass c k A = c · εᵏ / A
+```text
+P(E) = count(E) / count(Ω).
 ```
 
-`A` is the ambient space's own total ordinary content (so the whole space,
-`k = 0`, gets probability `A/A = 1`, appreciable — as it must). This is
-*constructed*, not posited: `εᵏ` really is `ε * ε * ⋯ * ε` (`hpow` in the
-Lean file), so "atom mass" literally means "one cell of a hyperfinite grid
-with `ωᵏ` cells packed into the codim-`k` slice." No integral, no σ-algebra,
-no limit — just ordinary real-valued geometric/combinatorial content,
-multiplied by a fixed infinitesimal unit determined by codimension. This is
-exactly the Readme's `εᵚ` idea (*"εᵚ for each σ-algebra Ω such that ∫εᵚ=1
-over uncountable Ω and ∑εᵚ=1 for countable Ω"*), made concrete: the "Ω" that
-matters is not a σ-algebra, it's just the ambient dimension/resolution.
+The companion curriculum is
+[`algebraic-stochastics-exercises.md`](algebraic-stochastics-exercises.md):
+20 worked problems progressing from elementary outcomes to research-level
+hyperfinite asymptotics, each labeled by current framework readiness.
 
-## 3. Do we still need σ-algebras? — No, not for internal reasoning
+The counts may contain powers of the canonical infinite number `ω`; their
+quotient is a hyperreal probability containing powers of `ε`, with
+`εω = 1`. This gives direct algebraic calculations with probabilities,
+including positive infinitesimal values for elementary outcomes.
 
-A σ-algebra earns its keep in classical theory for two reasons:
+## 1. The Dart calculation is a count ratio
 
-1. **Not every set has an obvious "size."** Under choice, pathological sets
-   (Vitali sets) exist with no consistent measure at all — so you restrict
-   attention to a closed family (the σ-algebra) on which a measure *can* be
-   defined.
-2. **Countable additivity needs a home.** Limits of countable unions have to
-   land back inside the family you're allowed to measure.
+Choose an algebraic grid convention for a two-dimensional region. If the
+region has normalization coefficient `A`, write its number of elementary
+outcomes as
 
-Neither problem survives translation into this algebraic setting:
+```text
+count(Ω) = Aω².
+```
 
-- **Every region here is defined by an ordinary geometric/combinatorial
-  description** (a point, a segment of length `L`, a disc of radius `r`,
-  a finite union of such things) — never by an unconstructive
-  choice-theoretic diagonalization. `c` is just "the ordinary content of this
-  region," computed the normal way; there is no pathological case to guard
-  against inside a Lean formalization that never invokes choice to construct
-  the set in the first place. This mirrors Nelson/Loeb nonstandard analysis:
-  **every internal subset of a hyperfinite set is automatically
-  "measurable"** — measurability stops being a separate condition to check
-  and becomes automatic from the construction.
-- **You never take a literal countable limit inside `R*`.** Every union of
-  regions you'd actually form (finitely many points, finitely many line
-  segments, ...) is a *finite* union, and finite additivity is just `+` on
-  `R*` — already proved, already computable (`merge` in
-  `Hyper/HyperList.lean`). Countable additivity as a *separate axiom* is a
-  classical-analysis requirement for handling genuine infinite limits; it has
-  no work to do here because the infinitesimal/infinite structure is carried
-  by `ε`/`ω` *algebraically*, not by a limiting process.
+A particular elementary outcome has count `1`, while a line containing `Lω`
+grid outcomes has count `Lω`. Therefore
 
-So: **inside `R*`, skip σ-algebras entirely.** Replace "measurable set" with
-"region with an ordinary-geometry content `c`", and finite additivity is
-free. A σ-algebra only re-enters if/when you want to push a result **back
-down** to classical probability — e.g. to say "the standard part of this
-hyperreal probability is a genuine Kolmogorov probability measure." That's
-exactly the content of **Loeb's theorem**: the standard part of a hyperfinite
-counting measure *is* countably additive, and the σ-algebra it lives on (the
-Loeb σ-algebra) is *generated automatically* by that construction — you never
-hand-pick it. `st` is already implemented (`Hyper/HyperList.lean`); a full
-Loeb-measure formalization is not attempted here (see §6), but the point
-that matters for design purposes: **σ-algebras are a classical-side
-artifact of the standard-part map, not a prerequisite for defining
-hyperreal probabilities in the first place.**
+```text
+P(point) = 1 / (Aω²)    = ε²/A,
+P(line)  = Lω / (Aω²) = Lε/A,
+P(line) / P(point) = Lω.
+```
 
-## 4. Discrete and continuous distributions become the same object
+Both probabilities are positive and have zero standard coefficient, but they
+are not equal. A classically null event need not be logically impossible;
+the gain here is more precise: ordered infinitesimals retain comparative
+information among events that receive the same classical value `0`.
 
-The Readme's own "No pointweight" section already has the key unification
-insight, worth stating plainly: classical theory needs two separate
-mechanisms — a density function for the continuous part of a distribution,
-and ad hoc point weights bolted on for atoms (e.g. "P(X=0) = 0.3, and
-otherwise X is uniform on [0,1]"). Here, a classical atom of mass `a` at
-point `x` is nothing but **a density spike of order `ω`** at `x`:
-`p(x) = a·ω`, and every distribution — discrete, continuous, or mixed — is
-just `F = ∫p` for a single, uniformly-typed density function `p : R* → R*`.
-No case split. The algebraic Dirac delta and Heaviside step already exist
-(`Hyper/probes/EvalsDerivatives.lean`'s `H`/`spike`/`deriv`), so the atoms of
-this picture are not a future task — they're a fact about the derivative
-operator already proved.
+The grid convention is part of the model. `ω` cells and `ω + 1` endpoints
+are different choices, and assigning probability `ε` to every one of
+`ω + 1` outcomes would total `1 + ε`, not `1`. Every example must state a
+normalization convention and prove `P(Ω) = 1`.
 
-## 5. What a full build-out needs — scoped honestly
+## 2. General uniform-event formula
 
-- **Region algebra and `regionMass` (done).** `Hyper/HyperProbability.lean`:
-  `regionMass c k A`, generalizing `pointMass`/`lineMass`, with the general
-  monotonicity theorem proved for all codimension gaps. Finite additivity
-  over disjoint regions of the *same* codimension is immediate from `R*`'s
-  `+` (e.g. two disjoint points: `pointMass A + pointMass A` is just
-  `2 · pointMass A` by `HSMul`) — worth a follow-up lemma, but mechanical.
+For an `n`-dimensional uniform algebraic grid, let
 
-- **Expectation, and hence random variables, needs a general `∑`/`∫`
-  operator over functions — still missing.** `hyper.jl` has one
-  (`∑(f::Function) = ...`), and `Hyper/HyperList.lean` has the *term-level*
-  `hint`/`hderiv` (shifting one monomial's exponent — correct for `∫x = x²/2`
-  but not a Riemann-sum operator over an arbitrary function). This is the
-  single biggest missing piece to go from "probabilities of individual
-  regions" to "expectation of a random variable," and it's a real, scoped
-  task: define `∑ (f : R* → R*) (n : ℕ) : R*` as a finite sum with `n` a
-  parameter that can be instantiated at genuinely large values (up to
-  whatever `ω`-order behavior you want to exhibit), then `E[X] := ∑ x · p(x)`
-  over the grid, matching `hyper.jl`'s own construction. Flagged, not
-  attempted here — this conversation was scoped to design, not a multi-day
-  formalization sprint.
+```text
+count(Ω) = Aωⁿ,
+count(E) = cωᵈ,   with d ≤ n.
+```
 
-- **Independence is easy, algebraically**: `P(A ∩ B) = P(A) · P(B)` is just
-  `R*` multiplication, and for regions built as products of independent
-  grids (e.g. two independent darts), the atom-mass counting argument that
-  proves it is finite combinatorics — arguably *easier* than the classical
-  product-measure construction, not harder.
+Then the event has rarity order `k = n - d` and
 
-- **Conditional probability has a genuine open problem: `R*`'s `Field`
-  instance is incomplete.** `P(A|B) = P(A∩B)/P(B)` needs division, and
-  `Hyper/HyperList.lean`'s `Inv`/`Field` instance is exact only for
-  single-monomial values (`mul_inv_cancel := sorry` for general multi-term
-  `R*`, documented as structurally hard — finite-support "Laurent series"
-  genuinely aren't a field). This is fine whenever `P(B)` happens to be a
-  pure `εᵏ`-order value (the common case for symmetric problems — a single
-  point, a single line, a single codimension-`k` cell), which is exactly
-  where `Inv` already works. It breaks for `B` a *mixed-order* union (e.g.
-  "hit this point or this line") because summing a `εᵏ` term and an `εʲ`
-  term produces a genuine two-term `R*` value, and dividing by that isn't
-  well-defined here. Two ways forward, neither attempted yet: (a) work with
-  **leading-order conditional probability** — condition using only `B`'s
-  dominant term, which is what a working mathematician does anyway when
-  eyeballing "to leading order, given a rare event, ..." — or (b) chip away
-  further at the `Field R*` gap (already flagged as hard in
-  `Hyper/HyperList.lean`'s own comments, not something to reopen casually).
+```text
+P(E) = (c/A)εᵏ.
+```
 
-- **Limit theorems (LLN, CLT) are out of scope for now.** These are
-  genuinely the hardest part of classical probability, and the nonstandard
-  route to them (Nelson's "Radically Elementary Probability Theory", or full
-  Loeb measure) is real, substantial machinery — internal set theory,
-  hyperfinite index sets distinct from any Lean `Fin n`, and a transfer
-  principle this project's concrete `List (ℚ × ℚ)` model doesn't have (it's
-  a formal-algebra model, not a genuine nonstandard-universe ultrapower — see
-  §7). The Readme itself flags Herzberg's radically-elementary approach as
-  *"too general, waste of precision"* for this project's goals; that verdict
-  still seems right. Recommendation: don't attempt LLN/CLT against this
-  concrete model — they'd need a different, heavier foundation than `R*`'s
-  `List (ℚ × ℚ)` term list.
+Thus the familiar codimension expression is a theorem about symbolic counts,
+not the definition of probability. A larger `k` is strictly rarer than a
+smaller `k` when both coefficients are positive. Events of equal rarity
+order compare by their rational coefficients.
 
-## 6. Loeb measure, deliberately not built
+The current reference backend uses rational coefficients, so `A` and `c` are
+rational normalization/count coefficients. It does not yet represent a
+literal disc area `πr²` in this path.
 
-Loeb's construction — push a hyperfinite counting measure on an *internal*
-algebra down through `st` to get a genuine countably-additive measure on a
-σ-algebra generated by that process — is the standard way nonstandard
-analysis recovers classical probability theory as a special case, and it's
-the rigorous justification for treating `st(regionMass ...) = 0` as "this
-really does recover classical measure theory," not just a suggestive
-coincidence (`point_prob_standard_zero`/`line_prob_standard_zero` already
-prove the `st = 0` half). A full formalization is a serious undertaking
-(internal sets, an actual ultrafilter/transfer principle) and isn't
-warranted unless a concrete question needs it — the design conclusion in §3
-(σ-algebras are unnecessary *for reasoning inside `R*`*) doesn't depend on
-formalizing Loeb's theorem, only on citing that it exists as the reason
-pushing back down to classical theory is safe.
+## 3. Probability algebra
 
-## 7. A honesty check on what `R*` actually is
+Once event probabilities are normalized, ordinary finite probability rules
+are algebraic identities in `R*`:
 
-Worth being explicit about, since it bounds what's realistically buildable:
-`Hyper/HyperList.lean`'s `R*` is a concrete algebraic gadget — finite lists
-of `(coefficient, rational exponent)` pairs, with `ε`/`ω` as formal
-generators satisfying `ε·ω = 1`. It is **not** a nonstandard-universe
-ultrapower `*ℝ` with a genuine transfer principle, internal sets, or
-hyperfinite index sets bigger than any Lean `Fin n`. Everything in §§1–4
-above works *because it only needs ordinary algebra on this concrete
-structure* (comparing exponents, multiplying formal series, `st` as a
-plain filter) — it never needs "for every internal formula φ, φ holds
-standardly iff it holds nonstandardly," which is the actual content of
-transfer and is not available here. That's precisely why §5's LLN/CLT item
-is marked out of scope rather than merely hard: those results are proved
-*using* transfer/internal-set machinery in the nonstandard literature, and
-porting them would mean building that machinery first, not extending `R*`.
-Region-mass-style results (comparing infinitesimal orders, finite sums,
-finite products) stay comfortably inside what `R*` actually provides.
+```text
+P(not A)              = 1 - P(A)
+P(A or B)             = P(A) + P(B)              when A and B are disjoint
+P(A and B)            = P(A) P(B)                when A and B are independent
+P(A | B)              = P(A and B) / P(B)        when the quotient is defined
+E[X]                  = Σ x P(X = x)
+Var(X)                = E[(X - E[X])²]
+```
 
-## 8. Bottom line
+These equations need an event representation to justify when events are
+disjoint, overlap, or are independent. Codimension by itself is insufficient:
+a point on a line is already included in the line, whereas an off-line point
+creates a probability with two rarity orders. A future Boolean event algebra
+should make these distinctions explicit and derive complement,
+inclusion-exclusion, and monotonicity from a small set of finite axioms.
 
-- Kolmogorov's axioms (σ-algebra + countably-additive measure) get replaced
-  by: ordinary real-valued content `c` for a region, times `εᵏ` for its
-  codimension `k`, divided by the ambient total content `A`. Finite
-  additivity is free (`R*`'s `+`); countable additivity's job (coherence
-  under limits) is absorbed into the algebra of `ε`/`ω` and never separately
-  needed inside `R*`.
-- σ-algebras are not necessary for defining or computing probabilities this
-  way. They reappear only as the classical-side σ-algebra Loeb's theorem
-  generates when you push a result down via `st` — which is a fact you can
-  cite, not a structure you need to build, unless a specific question
-  requires the classical-recovery direction to be airtight.
-- The framework scales cleanly to arbitrary codimension (proved, this
-  session) and unifies discrete/continuous distributions via density spikes
-  (already implicit in the existing `∂`/Dirac-delta machinery). Expectation
-  (needs a general `∑`/`∫`), conditional probability across mixed-order
-  events (blocked on `Field R*` completeness), and limit theorems (need
-  machinery `R*` doesn't have) are the honestly-scoped remaining gaps, not
-  glossed over.
+Finite weighted sums are enough to formalize expectation, moments, variance,
+and covariance for explicitly listed outcomes. They do not turn a Lean
+`Fin n` into a genuinely hyperfinite index type.
+
+## 4. Conditional probability and exact division
+
+Same-order conditioning is especially clean. If
+
+```text
+P(A and B) = aεᵏ,
+P(B)       = bεᵏ,
+```
+
+then `P(A | B) = a/b`: the infinitesimal factor cancels. This supports, for
+example, Bayes calculations after an exact continuous-like observation.
+
+Mixed-order denominators are different. The current `HyperList` inverse maps
+each term separately, so it is exact for one monomial but not for a sum such
+as `Lε + ε²`. A correct calculation such as
+
+```text
+Lε / (Lε + ε²) = 1 - ε/L + O(ε²)
+```
+
+requires either a fraction-field/completed-series backend or a certified
+truncated inverse with an explicit remainder theorem. The initial API must
+therefore expose exact monomial division only and must not route mixed-order
+conditioning through the aspirational `Field R*` instance.
+
+## 5. Statistics that the algebra makes visible
+
+The framework is useful beyond geometric examples:
+
+- An exact tie of two uniform `ω`-way observations has probability `ε`.
+- For fixed sample size `m`, a collision among `ω` equally likely labels
+  begins at order `choose(m,2)ε`; higher collision patterns occupy higher
+  powers of `ε`.
+- A geometric waiting-time recurrence with success probability `ε` gives
+  expected wait `1/ε = ω`.
+- Posterior odds after an exact observation can remain ordinary because a
+  common infinitesimal likelihood factor cancels.
+- Estimators with the same classical limiting error can still be compared by
+  the leading coefficients and orders in their hyperreal MSE expressions.
+
+These are algebraic calculations. Statements about infinite sequences,
+almost-sure convergence, laws of large numbers, central limit theorems, or
+Loeb constructions require substantially more structure.
+
+## 6. Honest boundary of the current Lean model
+
+`Hyper/HyperList.lean` represents a hyperreal expression as a finite list of
+rational coefficient/exponent pairs. It is a useful executable algebra of
+formal `ε`/`ω` orders, but it is not an ultrapower and currently provides no
+transfer principle, internal sets, saturation, or genuinely hyperfinite index
+types.
+
+Two existing implementation shortcuts are outside the trusted probability
+path:
+
+1. `eq_of_simplify_eq` identifies raw lists from equality of normal forms,
+   although differently shaped lists can normalize alike. The durable repair
+   is a canonical subtype or quotient, not an axiom equating raw lists.
+2. The bundled `Field R*` admits `mul_inv_cancel` even though termwise inverse
+   is not an inverse for multi-term expressions. Exact probability division
+   must use a proved monomial operation until a true fraction-field or series
+   representation replaces it.
+
+Consequently, importing `HyperList` does not by itself justify calling a new
+theorem axiom-free. Headline probability results should be checked with
+`#print axioms`, and their proofs should avoid both shortcuts.
+
+## 7. Framework roadmap
+
+1. Define symbolic monomial counts and proved exact monomial quotients.
+2. Define normalized uniform probability from favorable and total counts;
+   prove `P(Ω)=1`, positivity, and the general rarity-order formula.
+3. Rename the Dart and codimension APIs around `pointProbability`,
+   `lineProbability`, and `uniformEventProbability`.
+4. Add finite event expressions with complement, conjunction, disjoint union,
+   and explicit independence evidence.
+5. Add finite random variables and weighted sums for expectation and moments.
+6. Replace raw `HyperList` equality by a sound canonical representation.
+7. Add a correct fraction/completed-series representation or certified
+   truncation before supporting mixed-order conditional probabilities.
+8. Only then consider a separate nonstandard-universe development for
+   transfer-based limit theorems.
+
+## 8. Verification discipline
+
+For every probability construction:
+
+- prove the sample-space normalization explicitly;
+- distinguish exact equality from leading-order or truncated equality;
+- check disjointness before adding event probabilities;
+- restrict exact division to proved denominator classes;
+- restrict standard-coefficient claims to finite expressions;
+- use `#print axioms` on headline theorems;
+- never infer transfer, internality, or countable probability laws from this
+  finite Laurent representation.
+
+This scope is narrower than a complete nonstandard probability theory, but it
+is strong enough for a substantial progression of exact algebraic exercises
+while keeping every claimed result honest.
