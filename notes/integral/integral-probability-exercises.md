@@ -7,11 +7,12 @@ may take the infinite value `omega` at an atom. Nothing is counted, and no
 hyperfinite sample space is constructed.
 
 Two rules generate almost everything below. The integral is the hyperfinite
-left-endpoint Riemann sum with `dx = epsilon`,
+Riemann sum with `dx = epsilon` and sample offset `s`, canonically the midpoint
+`s = 1/2`:
 
 \[
 \int_{[a,b)} f(x)\,dx
-:=\sum_{k=0}^{(b-a)\omega-1} f(a+k\epsilon)\,\epsilon ,
+:=\sum_{k=0}^{(b-a)\omega-1} f\big(a+(k+s)\epsilon\big)\,\epsilon ,
 \]
 
 and a probability is the integral of a density over the event,
@@ -41,10 +42,22 @@ The readiness labels say what the present Lean~4 development supports:
 - **Research:** additionally needs transcendental densities, a proved
   `st`-compatibility theorem, or a genuine conditional-law construction.
 
-⚠️ No part of this framework is formalized in Lean yet. Unlike the counting
-curriculum in `notes/counting/`, these exercises have **no checked solution
-kernels**; the labels describe distance from the current code, not achieved
-proofs.
+The integral itself is implemented: `Hyper/HyperIntegral.lean` evaluates it
+exactly for elementary densities (a polynomial part plus `omega`-spikes) over
+hyperreal bounds, including the whole line `[-omega, omega)`. It does not sum
+term by term — there is still no index type of size `omega` — but evaluates the
+hyperfinite sum in closed form through the power-sum recursion, so polynomial
+densities of any degree integrate exactly, `epsilon`-corrections included.
+`Hyper/probes/IntegralExamples.lean` checks the results below that are marked
+**Now**; run it with
+
+```sh
+lake env lean Hyper/probes/IntegralExamples.lean
+```
+
+⚠️ Still missing, so still honestly labelled: products (hence no genuine
+two-dimensional integral), transcendental densities, and any proof that `st` of
+this integral is the classical one.
 
 ## Exercise 1 — The probability of hitting an exact number
 
@@ -109,7 +122,8 @@ and with `c = 0`, `d = 1` this is `omega*epsilon = 1`. The gauging axiom is
 exactly what makes the total mass come out without an error term.
 
 **Ingredients and readiness.** A hyperfinite sum of a constant over the dots
-of an interval, and `epsilon*omega = 1`. **Partial.**
+of an interval, and `epsilon*omega = 1`. **Now:** checked as
+`integral (constant 1) 0 1 = 1` and `prob (1/4) (3/4) = 1/2`.
 
 ## Exercise 4 — Half-open versus closed, and what a normalization costs
 
@@ -172,9 +186,9 @@ Verify the normalization, compute `P(X = y)`, and compare two points `y1` and
 zero" hides that some points are more likely than others. Here the likelihood
 ratio of two points is finite, visible, and equal to the density ratio.
 
-**Solution.** Normalization is Exercise 13's sum with a factor `2`, giving
-`1 - epsilon`; on the half-open convention the exactly normalized triangular
-density is `p(x) = 2x/(1-epsilon)`. In either case
+**Solution.** Under the canonical midpoint rule the normalization is exact,
+`integral of 2x over [0,1) = 1`; under the left rule it would be `1 - epsilon`,
+requiring `p(x) = 2x/(1-epsilon)` instead. In either case
 
 \[
 P(X=y)=p(y)\,\epsilon,
@@ -186,8 +200,9 @@ Every point still has infinitesimal probability, but their ratios are ordinary
 real numbers.
 
 **Ingredients and readiness.** Single-dot integration and division of
-infinitesimals of equal order. **Now** for the ratio; **Partial** for the exact
-normalizing constant.
+infinitesimals of equal order. **Now:** under the canonical midpoint rule the
+triangular density is exactly normalized, and both the normalization and
+`P({y}) = 2y*epsilon` are checked.
 
 ## Exercise 7 — An atom is a density value, not a second mechanism
 
@@ -219,8 +234,13 @@ The atom is infinitely more likely than an ordinary point, which is the exact
 algebraic content of the word "atom".
 
 **Ingredients and readiness.** An `omega`-valued density, splitting an
-integral over disjoint regions, and order comparison. **Now** for the two point
-values; **Partial** for the normalization integral.
+integral over disjoint regions, and order comparison. **Now:** the mixed law is
+checked end to end, including that its total mass is exactly `1`.
+
+⚠️ The atom here is `a*omega` on the *single* dot at `0`, not the symmetric
+`delta = omega_0/2` of Exercise 8. Both integrate to their mass, but only the
+one-dot form returns the whole mass to `P({y}) = p(y)*epsilon`. The two are
+separate constructors in the implementation for exactly this reason.
 
 ## Exercise 8 — The Dirac delta is the derivative of the step, exactly
 
@@ -362,15 +382,22 @@ over the one-sided convention must be stated, not derived.
 exact values record, in addition, the bias of the integral convention that
 produced them.
 
-**Solution.** With `x = k*epsilon` and the finite power-sum identities,
+**Solution.** The finite power-sum identities give exact values, and the
+sampling convention is visible in them. Under the left rule,
 
 \[
 E[X]=\sum_{k<\omega}k\epsilon\cdot\epsilon
 =\epsilon^{2}\frac{\omega(\omega-1)}2=\frac12-\frac\epsilon2,
+\qquad
+E[X^{2}]=\frac13-\frac\epsilon2+\frac{\epsilon^{2}}6 ,
 \]
 
+while under the canonical midpoint rule the first-order bias disappears:
+
 \[
-E[X^{2}]=\frac13-\frac\epsilon2+\frac{\epsilon^{2}}6,
+E[X]=\frac12 \ \text{exactly},
+\qquad
+E[X^{2}]=\frac13-\frac{\epsilon^{2}}{12},
 \qquad
 \operatorname{Var}(X)=\frac1{12}-\frac{\epsilon^{2}}{12}.
 \]
@@ -379,9 +406,9 @@ Taking `st` recovers `1/2` and `1/12` only after the exact corrections have
 been displayed.
 
 **Ingredients and readiness.** Hyperfinite power sums and substitution
-`omega = 1/epsilon`. **Research:** an index genuinely ranging over `omega`
-dots does not exist in the current Lean model, even though the closed forms
-are ordinary `R*` values.
+`omega = 1/epsilon`. **Now:** the power-sum recursion evaluates these exactly
+without an index type; the left-rule values above and the midpoint values
+`E[X] = 1/2`, `E[X^2] = 1/3 - epsilon^2/12` are both checked.
 
 ## Exercise 14 — The integral convention is visible at order `epsilon`
 
@@ -405,8 +432,9 @@ Conclusion: "the integral" is not one object in this framework. A convention
 must be fixed, and every exercise above uses the left-endpoint one.
 
 **Ingredients and readiness.** Telescoping of a hyperfinite sum and
-`st`-invariance. **Research** for the general statement; **Now** for the
-`f(x) = x` instance, whose three values are explicit `R*` numbers.
+`st`-invariance. **Now** for the `f(x) = x` instance: all three rules and their
+exact difference `epsilon` are checked. **Research** for the general
+statement.
 
 ## Exercise 15 — A mixed law needs no case split
 

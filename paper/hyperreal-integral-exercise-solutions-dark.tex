@@ -136,7 +136,7 @@ P(A)=r\epsilon,\qquad \frac{P(A)}{P(\{y\})}=r .
 cancellation of $\eps$. \textbf{Now.}
 
 
-\subsection*{Exercise 3 --- Intervals are unharmed, and the total is exactly one \hfill \normalfont\small[Partial]}
+\subsection*{Exercise 3 --- Intervals are unharmed, and the total is exactly one \hfill \normalfont\small[Now]}
 
 \textbf{Problem.} For $X$ uniform on $[0,1)$ and standard $0 \le  c < d \le  1$,
 compute $P([c,d))$ and verify $P([0,1)) = 1$ exactly.
@@ -152,7 +152,8 @@ and with $c = 0$, $d = 1$ this is $\omega\cdot \eps = 1$. The gauging axiom is
 exactly what makes the total mass come out without an error term.
 
 \textbf{Ingredients and readiness.} A hyperfinite sum of a constant over the dots
-of an interval, and $\eps\cdot \omega = 1$. \textbf{Partial.}
+of an interval, and $\eps\cdot \omega = 1$. \textbf{Now:} checked as
+$integral (constant 1) 0 1 = 1$ and $prob (1/4) (3/4) = 1/2$.
 
 
 \subsection*{Exercise 4 --- Half-open versus closed, and what a normalization costs \hfill \normalfont\small[Partial]}
@@ -198,15 +199,15 @@ should give.
 division of $\eps$ by a nonzero standard number. \textbf{Now.}
 
 
-\subsection*{Exercise 6 --- A nonuniform density is read off at the point \hfill \normalfont\small[Now/Partial]}
+\subsection*{Exercise 6 --- A nonuniform density is read off at the point \hfill \normalfont\small[Now]}
 
 \textbf{Problem.} Let $X$ have the triangular density $p(x) = 2x$ on $[0,1)$.
 Verify the normalization, compute $P(X = y)$, and compare two points $y1$ and
 $y2$.
 
-\textbf{Solution.} Normalization is Exercise 13's sum with a factor $2$, giving
-$1 - \eps$; on the half-open convention the exactly normalized triangular
-density is $p(x) = 2x/(1-\eps)$. In either case
+\textbf{Solution.} Under the canonical midpoint rule the normalization is exact,
+$integral of 2x over [0,1) = 1$; under the left rule it would be $1 - \eps$,
+requiring $p(x) = 2x/(1-\eps)$ instead. In either case
 
 \[
 P(X=y)=p(y)\,\epsilon,
@@ -218,11 +219,12 @@ Every point still has infinitesimal probability, but their ratios are ordinary
 real numbers.
 
 \textbf{Ingredients and readiness.} Single-dot integration and division of
-infinitesimals of equal order. \textbf{Now} for the ratio; \textbf{Partial} for the exact
-normalizing constant.
+infinitesimals of equal order. \textbf{Now:} under the canonical midpoint rule the
+triangular density is exactly normalized, and both the normalization and
+$P(\{y\}) = 2y\cdot \eps$ are checked.
 
 
-\subsection*{Exercise 7 --- An atom is a density value, not a second mechanism \hfill \normalfont\small[Now/Partial]}
+\subsection*{Exercise 7 --- An atom is a density value, not a second mechanism \hfill \normalfont\small[Now]}
 
 \textbf{Problem.} Let $p$ be the density that equals $\omega/2$ on the dot at $0$
 and $1/2$ on $(0,1)$. Show that $p$ is a probability density, compute
@@ -248,8 +250,13 @@ The atom is infinitely more likely than an ordinary point, which is the exact
 algebraic content of the word ``atom''.
 
 \textbf{Ingredients and readiness.} An $\omega$-valued density, splitting an
-integral over disjoint regions, and order comparison. \textbf{Now} for the two point
-values; \textbf{Partial} for the normalization integral.
+integral over disjoint regions, and order comparison. \textbf{Now:} the mixed law is
+checked end to end, including that its total mass is exactly $1$.
+
+\textbf{Caution:} The atom here is $a\cdot \omega$ on the \emph{single} dot at $0$, not the symmetric
+$\delta = \omega_0/2$ of Exercise 8. Both integrate to their mass, but only the
+one-dot form returns the whole mass to $P(\{y\}) = p(y)\cdot \eps$. The two are
+separate constructors in the implementation for exactly this reason.
 
 
 \subsection*{Exercise 8 --- The Dirac delta is the derivative of the step, exactly \hfill \normalfont\small[Now]}
@@ -369,20 +376,27 @@ $2\cdot \omega$, and order comparison. \textbf{Partial;} the choice of $[-\omega
 over the one-sided convention must be stated, not derived.
 
 
-\subsection*{Exercise 13 --- Exact moments of the uniform law \hfill \normalfont\small[Research]}
+\subsection*{Exercise 13 --- Exact moments of the uniform law \hfill \normalfont\small[Now]}
 
 \textbf{Problem.} For $X$ uniform on $[0,1)$, compute $E[X]$, $E[X^2]$, and
 $\Var(X)$ from the integral, without taking any limit.
 
-\textbf{Solution.} With $x = k\cdot \eps$ and the finite power-sum identities,
+\textbf{Solution.} The finite power-sum identities give exact values, and the
+sampling convention is visible in them. Under the left rule,
 
 \[
 E[X]=\sum_{k<\omega}k\epsilon\cdot\epsilon
 =\epsilon^{2}\frac{\omega(\omega-1)}2=\frac12-\frac\epsilon2,
+\qquad
+E[X^{2}]=\frac13-\frac\epsilon2+\frac{\epsilon^{2}}6 ,
 \]
 
+while under the canonical midpoint rule the first-order bias disappears:
+
 \[
-E[X^{2}]=\frac13-\frac\epsilon2+\frac{\epsilon^{2}}6,
+E[X]=\frac12 \ \text{exactly},
+\qquad
+E[X^{2}]=\frac13-\frac{\epsilon^{2}}{12},
 \qquad
 \operatorname{Var}(X)=\frac1{12}-\frac{\epsilon^{2}}{12}.
 \]
@@ -391,12 +405,12 @@ Taking $st$ recovers $1/2$ and $1/12$ only after the exact corrections have
 been displayed.
 
 \textbf{Ingredients and readiness.} Hyperfinite power sums and substitution
-$\omega = 1/\eps$. \textbf{Research:} an index genuinely ranging over $\omega$
-dots does not exist in the current Lean model, even though the closed forms
-are ordinary $\Rstar$ values.
+$\omega = 1/\eps$. \textbf{Now:} the power-sum recursion evaluates these exactly
+without an index type; the left-rule values above and the midpoint values
+$E[X] = 1/2$, $E[X^2] = 1/3 - \eps^2/12$ are both checked.
 
 
-\subsection*{Exercise 14 --- The integral convention is visible at order $\eps$ \hfill \normalfont\small[Research/Now]}
+\subsection*{Exercise 14 --- The integral convention is visible at order $\eps$ \hfill \normalfont\small[Now/Research]}
 
 \textbf{Problem.} For a standard $f$ on $[0,1)$, compare the left-endpoint,
 right-endpoint, and midpoint sums. Apply the result to $f(x) = x$.
@@ -414,8 +428,9 @@ Conclusion: ``the integral'' is not one object in this framework. A convention
 must be fixed, and every exercise above uses the left-endpoint one.
 
 \textbf{Ingredients and readiness.} Telescoping of a hyperfinite sum and
-$st$-invariance. \textbf{Research} for the general statement; \textbf{Now} for the
-$f(x) = x$ instance, whose three values are explicit $\Rstar$ numbers.
+$st$-invariance. \textbf{Now} for the $f(x) = x$ instance: all three rules and their
+exact difference $\eps$ are checked. \textbf{Research} for the general
+statement.
 
 
 \subsection*{Exercise 15 --- A mixed law needs no case split \hfill \normalfont\small[Research]}
