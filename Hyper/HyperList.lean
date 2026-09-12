@@ -247,11 +247,15 @@ instance : Repr R* where
 -- scoped notation:max a "³" => a * a * a
 -- scoped notation:max a "⁴" => a * a * a * a
 -- scoped notation:1 n "ε" => (n * ε)  -- Explicit multiplication instead of •
-scoped notation:max n "ε" => (n • ε)
-scoped notation:max n "ε²" => (n • ε*ε)
+-- ⚠️ `n` is restricted to a *numeral written without a space* (2ε, 3ω²).
+-- With an unrestricted `notation:max n "ε"`, any term followed by ε matched:
+-- `f ε` silently parsed as `f • ε`, so passing ε as a function argument broke
+-- with a baffling "expected ℚ" error. `num noWs` makes that unparseable again.
+scoped macro:max n:num noWs "ε" : term => `($n • epsilon)
+scoped macro:max n:num noWs "ε²" : term => `($n • (epsilon * epsilon))
 -- scoped notation:1 a "²" => (a) * (a)
-scoped notation:max n "ω" => (n • ω)
-scoped notation:max n "ω²" => (n • ω*ω)
+scoped macro:max n:num noWs "ω" : term => `($n • omega)
+scoped macro:max n:num noWs "ω²" : term => `($n • (omega * omega))
 scoped notation:max "√" a => a^(1/2)
 scoped notation:max "∛" a => a^(1/3)
 scoped notation:max "∜" a => a^(1/4)
