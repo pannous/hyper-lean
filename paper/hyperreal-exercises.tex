@@ -1,0 +1,348 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Rstar}{\mathbb{R}^{\star}}
+\newcommand{\eps}{\varepsilon}
+\let\straightepsilon\epsilon
+\renewcommand{\epsilon}{\varepsilon}
+\newcommand{\st}{\operatorname{st}}
+\newcommand{\Var}{\operatorname{Var}}
+
+\setlist[description]{leftmargin=0pt, style=unboxed, font=\normalfont\bfseries}
+
+\title{Twenty Exercises in Algebraic Probability\\
+\large Algebraic Stochastics and Statistics over $\Rstar$}
+\author{Exercises for engineers, with a machine-checked Lean~4 companion}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+
+\section*{The one rule you need}
+
+A probability is an ordinary algebraic value in the hyperreal field $\Rstar$,
+not a real number obtained by a limit. Fix a positive infinitesimal $\eps$ and
+put $\omega = 1/\eps$, so that
+\[
+  \eps \cdot \omega = 1,
+  \qquad 0 < \eps < r \quad\text{for every real } r > 0 .
+\]
+On a uniform hyperfinite sample space $\Omega$ the probability of an event is a
+plain counting ratio,
+\[
+  P(A) = \frac{\#A}{\#\Omega},
+\]
+so if the experiment has $A\omega^{n}$ outcomes and the event has $c\omega^{d}$
+favorable ones, then
+\[
+  P(E) = \frac{c\,\omega^{d}}{A\,\omega^{n}} = \frac{c}{A}\,\eps^{\,n-d}.
+\]
+Everything else is built from these ratios by addition, multiplication,
+complement and division. The standard part $\st$ is applied only when the
+ordinary real shadow of an answer is explicitly wanted --- which is exactly the
+step that classically destroys the information these exercises are about.
+
+\paragraph{Theory.} The axioms, the model, and the underlying calculus are
+\emph{not} repeated here. They are developed in the companion paper,
+\href{https://files.pannous.com/hyperreals.pdf}{\emph{Hyperreal Numbers: $\eps\cdot\omega=1$ --- An
+Algebraic, Computable Introduction to Infinitesimal Calculus}}
+(\url{https://files.pannous.com/hyperreals.pdf}), with the machine-checked Lean~4 development at
+\url{https://github.com/pannous/hyper-lean}.
+
+\paragraph{Readiness labels.} Each exercise is tagged by what the present
+Lean~4 formalization already supports.
+\begin{description}
+\item[Now] reduces to arithmetic and order facts already available for the
+concrete $\Rstar$ representation, even if a polished event API is still absent.
+\item[Partial] the scalar answer is representable now, but reusable random
+variables, hyperfinite counts, or finite-sum infrastructure are missing.
+\item[Research] deliberately requires a substantive extension of the framework.
+\end{description}
+
+
+\section*{Exercises}
+
+
+\subsection*{Exercise 1 --- One exact outcome \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} Let $\Omega = \{0, 1, ..., \omega - 1\}$ be uniform, and let $j$ be
+one specified outcome. Compute $P(\{j\})$, prove that it is positive, and compute
+its standard part.
+
+\textbf{Why this framework.} An ordinary continuum model records only the shadow
+$P(\{j\}) = 0$. Hyperfinite counting records simultaneously that the outcome is
+possible and that its ordinary shadow is zero.
+
+
+\subsection*{Exercise 2 --- A finite target \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} In the same $\Omega$, let $A$ contain exactly $r$ specified
+outcomes, where $r$ is a positive standard natural number. Find $P(A)$ and
+compare it with a singleton probability.
+
+\textbf{Why this framework.} The ordinary shadow assigns zero to both events. The
+algebraic answer retains the finite likelihood ratio between them.
+
+
+\subsection*{Exercise 3 --- Union and overlap without collapsing to zero \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} Suppose finite events $A,B\subset \Omega$ satisfy $\#A = a$,
+$\#B = b$, and $\#(A\cap B) = c$, with standard finite $a,b,c$. Compute
+the probability of their union.
+
+\textbf{Why this framework.} Taking standard parts first turns all four small-event
+probabilities into zero, hiding the overlap correction. Algebra in $\Rstar$ keeps
+ordinary inclusion-exclusion informative at infinitesimal scale.
+
+
+\subsection*{Exercise 4 --- The dart: point versus segment \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} Discretize the unit square by an $\omega$ by $\omega$ uniform grid.
+A specified point occupies one grid site. A horizontal segment of standard
+length $L > 0$ contains $L\cdot \omega$ sites (choose a compatible hyperfinite grid).
+Compute both probabilities and their ratio.
+
+\textbf{Why this framework.} In the ordinary square both events have probability
+zero, so their very different rarity orders become indistinguishable. The
+algebraic grid explains the distinction by counting, without introducing a
+separate set-valued foundation.
+
+
+\subsection*{Exercise 5 --- Coefficients cannot defeat a rarity order \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} On the same square, let $A$ consist of $M = 10^{100}$ specified
+points and let $B$ be one complete row, disjoint from $A$. Compare $P(A)$ and
+$P(B)$, and compute $P(A\cup B)$.
+
+\textbf{Why this framework.} Both events again have ordinary shadow zero. Merely
+saying that $A$ has an enormous finite number of outcomes misses that one full
+row belongs to a strictly larger infinitesimal order.
+
+
+\subsection*{Exercise 6 --- Near certainty with visible failure \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} From the one-dimensional $\Omega$, choose uniformly after marking
+$r$ excluded outcomes. Find the probability $G$ of choosing an allowed
+outcome and the probability of failure.
+
+\textbf{Why this framework.} The ordinary shadow reports $P(G)=1$ and failure
+probability zero. The algebraic value distinguishes certainty from an event
+that can fail in exactly $r$ exceptional ways.
+
+
+\subsection*{Exercise 7 --- Conditioning on a finite rare event \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} Let $C$ consist of $k > 0$ specified outcomes of the
+one-dimensional $\Omega$, and let $j\in C$. Compute $P(\{j\}\mid C)$ using the
+algebraic definition $P(A\mid B) = P(A\cap B)/P(B)$.
+
+\textbf{Why this framework.} After taking ordinary shadows, numerator and
+denominator are both zero and the elementary ratio is unavailable. The
+infinitesimal factors cancel before any information is discarded.
+
+
+\subsection*{Exercise 8 --- Conditioning a point on a line \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} In the $\omega$ by $\omega$ square, let $R$ be a specified complete
+row and let $p$ be one specified point on it. Find $P(\{p\}\mid R)$.
+
+\textbf{Why this framework.} The ordinary two-dimensional shadows of both $R$ and
+$\{p\}$ are zero, so a direct real-valued quotient reads $0/0$. Algebraic
+probability retains their codimension difference and cancels it correctly.
+
+
+\subsection*{Exercise 9 --- Independence of coordinate events \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} Choose $(X,Y)$ uniformly from the $\omega$ by $\omega$ grid. Let
+$A = \{X=x0\}$ and $B = \{Y=y0\}$. Verify independence algebraically.
+
+\textbf{Why this framework.} Ordinary shadows turn $P(A)$, $P(B)$, and
+$P(A\cap B)$ into zero, so the equation $0 = 0\cdot 0$ cannot explain the
+finite-grid structure. The infinitesimal equality is nontrivial.
+
+
+\subsection*{Exercise 10 --- Dependence among equally rare events \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} Work on the toroidal $\omega$ by $\omega$ grid. Let
+$D_{0} = \{Y=X\}$ and $D_{1} = \{Y=X+1\}$, and put $A=D_{0}$, $B=D_{0}\cup D_{1}$. Are $A$ and
+$B$ independent? Compute $P(A\mid B)$.
+
+\textbf{Why this framework.} All of $A$, $B$, and their intersection have ordinary
+shadow zero. Those shadows erase both the strong dependence and the exact
+conditional probability.
+
+
+\subsection*{Exercise 11 --- Moments of a rare Bernoulli variable \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} Let $X$ equal $1$ with probability $q=c\cdot \eps$ and $0$
+otherwise, for a positive standard $c$. Compute $E[X]$ and $\Var(X)$ exactly.
+
+\textbf{Why this framework.} Replacing $q$ by its ordinary shadow makes $X$
+identically zero and deletes its first- and second-order behavior. Algebraic
+moments retain both.
+
+
+\subsection*{Exercise 12 --- An infinitesimal chance with finite expectation \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} A payoff $Y$ equals $\omega/c$ when the rare event from Exercise 11
+occurs and equals zero otherwise. Compute its expectation and variance.
+
+\textbf{Why this framework.} Sending the event probability to zero before
+multiplying by the infinite payoff gives an indeterminate or misleading
+picture. The gauged algebra performs the cancellation exactly and also shows
+that finite expectation need not imply finite variance.
+
+
+\subsection*{Exercise 13 --- Exact finite-resolution corrections to uniform moments \hfill \normalfont\small[Partial]}
+
+\textbf{Problem.} Let $J$ be uniform on $\{0,...,\omega-1\}$ and set
+$X=J/\omega$. Compute $E[X]$, $E[X^2]$, and $\Var(X)$ without taking a limit.
+
+\textbf{Why this framework.} The ordinary uniform law gives only $1/2$ and $1/12$.
+The algebraic result also records how the chosen grid convention approaches
+those values.
+
+
+\subsection*{Exercise 14 --- Collision statistic \hfill \normalfont\small[Partial]}
+
+\textbf{Problem.} Draw $n$ independent labels uniformly from an $\omega$-element
+set, where $n$ is standard and finite. Let $C$ count equal unordered pairs.
+Find $E[C]$ and $\Var(C)$.
+
+\textbf{Why this framework.} A continuous classical shadow says that ties never
+occur and makes both answers zero. The algebraic answer retains the leading
+collision rate and its correction, which matters when comparing rare data
+quality failures.
+
+
+\subsection*{Exercise 15 --- An estimator with infinitesimal contamination \hfill \normalfont\small[Partial]}
+
+\textbf{Problem.} Let $X_{1},...,X_{n}$ be independent Bernoulli variables with
+$P(X_{i}=1)=q=\theta+a\cdot \eps$, where $0<\theta<1$, $a$ is standard, and $n$ is
+standard and positive. For the sample mean $T$, compute its expectation and
+variance through order $\eps^2$.
+
+\textbf{Why this framework.} The ordinary shadow cannot distinguish contamination
+$+a\cdot \eps$ from none at all. Algebraic statistics retains its direction and
+its effect on both bias and uncertainty.
+
+
+\subsection*{Exercise 16 --- An infinitesimal likelihood comparison \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} A Bernoulli sample has $s$ successes and $f$ failures, both
+standard finite. Compare the candidate parameters $q$ and $q+\eps$, where
+$0<q<1$, by their exact likelihood ratio. Which candidate wins when the first
+nonzero infinitesimal coefficient is of order $\eps$?
+
+\textbf{Why this framework.} Their real shadows are the same parameter $q$, so a
+classical parameter representation declares an immediate tie. The algebraic
+likelihood orders candidates that differ below ordinary resolution.
+
+
+\subsection*{Exercise 17 --- Bayes conditioning when every observed route is rare \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} A condition $D$ has probability $\eps$. A test is always
+positive under $D$ and has false-positive probability $c\cdot \eps$ under
+$D^c$, for standard $c>0$. Compute $P(D\mid +)$ exactly and find its
+standard part.
+
+\textbf{Why this framework.} If both prevalence and false-positive probability are
+replaced by zero first, the elementary Bayes quotient loses their relative
+scale. Keeping them algebraic produces a finite, informative posterior from
+two rare routes to the observation.
+
+
+\subsection*{Exercise 18 --- An extreme exact test with $\omega$ trials \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} Under a fair Bernoulli null hypothesis, conduct $\omega$ trials
+and observe success every time. Give the exact one-sided probability of an
+outcome at least this extreme and compare it with $\eps^k$ for every
+standard natural $k$.
+
+\textbf{Why this framework.} The usual infinite-trial limit reports zero. An
+algebraic extension should retain a strictly positive value and show that
+exponential rarity is smaller than every fixed polynomial order of
+$\eps$.
+
+
+\subsection*{Exercise 19 --- Poisson probabilities from one hyperfinite experiment \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} Perform $\omega$ independent Bernoulli trials with success
+probability $\lambda\cdot \eps$, where $\lambda>0$ is standard. For fixed standard
+$k$, compute $P(K=k)$ algebraically and identify its standard part.
+
+\textbf{Why this framework.} Classical derivations introduce a sequence of
+binomial experiments and then take a limit. The hyperfinite formulation puts
+the large count and tiny probability into one experiment, with
+$\omega\cdot \eps=1$, and retains corrections beyond the limiting law.
+
+
+\subsection*{Exercise 20 --- Uniform local asymptotic statistics in one algebraic scale \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} Fix standard $p\in (0,1)$ and put
+$v=p(1-p)$, $\sigma=\sqrt{v}$, $N=\omega$, and $\eps=N^{-1}$. For standard
+$h$, let $p_h=p+h\cdot \sqrt{\eps}$. On the hyperfinite Bernoulli experiment let
+
+\[
+Z=\frac{S-Np}{\sqrt{Nv}},\qquad
+L_h=\left(\frac{p_h}{p}\right)^S
+    \left(\frac{1-p_h}{1-p}\right)^{N-S},\qquad
+\ell_h=\log L_h.
+\]
+
+Solve the following increasingly strong tasks.
+
+\begin{enumerate}[leftmargin=*]
+\item For fixed standard $h$ and finite $Z$, find $\st(\ell_h)$.
+\item Fix standard $H>0$, choose unlimited $R$ with
+   $1 \ll  R \ll  \sqrt{N}$, and prove uniformly for $|h|\le H$, $|Z|\le R$ that
+
+   \[
+   \ell_h=\frac{hZ}{\sigma}-\frac{h^2}{2v}
+   +\sqrt\epsilon(1-2p)
+      \left(\frac{h^3}{3v^2}-\frac{h^2Z}{2v^{3/2}}\right)
+   +\rho_h,
+   \quad |\rho_h|\le C_{p,H}\epsilon(1+|Z|).
+   \]
+
+\item Prove the good event $G_R=\{|Z|\le R\}$ has probability infinitesimally
+   close to one uniformly on $|h|\le H$, prove $E_0[L_h]=1$, and establish
+   mutual contiguity of the null and each fixed local alternative.
+\item Prove the algebraic CLT, derive Le Cam's third-lemma shift
+   $Z \Rightarrow  N(h/\sigma,1)$ under $p_{h}$, and find the asymptotic power of the
+   one-sided level-$\alpha$ test.
+\item Optional refinement: obtain the first continuity-corrected Bernoulli
+   Edgeworth term and explain why omitting the half-cell correction leaves a
+   lattice term of order $\sqrt{\eps}$.
+\end{enumerate}
+
+\textbf{Why this framework.} The null and local alternative have the same ordinary
+parameter, but $\omega$ observations turn their $\sqrt{\eps}$ separation
+into finite evidence. The first coefficient cancellation is short; the real
+difficulty is constructing the entire experiment, proving a uniform analytic
+remainder, changing probability algebraically, and retaining the first
+finite-grid correction beyond Gaussian power.
+
+
+\section*{Where the solutions are}
+
+Worked solutions, with the corresponding checked Lean~4 kernels, are in the
+companion booklet \href{https://files.pannous.com/hyperreal-exercise-solutions.pdf}{\emph{Twenty Exercises in Algebraic Probability ---
+Solutions}}:
+\begin{center}\small\url{https://files.pannous.com/hyperreal-exercise-solutions.pdf}\end{center}
+Try the exercises first: the algebra is short, and the point of each one is
+what survives that a real-valued shadow would have deleted.
+
+
+\end{document}

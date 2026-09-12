@@ -1,0 +1,725 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Rstar}{\mathbb{R}^{\star}}
+\newcommand{\eps}{\varepsilon}
+\let\straightepsilon\epsilon
+\renewcommand{\epsilon}{\varepsilon}
+\newcommand{\st}{\operatorname{st}}
+\newcommand{\Var}{\operatorname{Var}}
+
+\setlist[description]{leftmargin=0pt, style=unboxed, font=\normalfont\bfseries}
+
+\title{Twenty Exercises in Algebraic Probability: Solutions\\
+\large Algebraic Stochastics and Statistics over $\Rstar$}
+\author{Exercises for engineers, with a machine-checked Lean~4 companion}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+
+\section*{The one rule you need}
+
+A probability is an ordinary algebraic value in the hyperreal field $\Rstar$,
+not a real number obtained by a limit. Fix a positive infinitesimal $\eps$ and
+put $\omega = 1/\eps$, so that
+\[
+  \eps \cdot \omega = 1,
+  \qquad 0 < \eps < r \quad\text{for every real } r > 0 .
+\]
+On a uniform hyperfinite sample space $\Omega$ the probability of an event is a
+plain counting ratio,
+\[
+  P(A) = \frac{\#A}{\#\Omega},
+\]
+so if the experiment has $A\omega^{n}$ outcomes and the event has $c\omega^{d}$
+favorable ones, then
+\[
+  P(E) = \frac{c\,\omega^{d}}{A\,\omega^{n}} = \frac{c}{A}\,\eps^{\,n-d}.
+\]
+Everything else is built from these ratios by addition, multiplication,
+complement and division. The standard part $\st$ is applied only when the
+ordinary real shadow of an answer is explicitly wanted --- which is exactly the
+step that classically destroys the information these exercises are about.
+
+\paragraph{Theory.} The axioms, the model, and the underlying calculus are
+\emph{not} repeated here. They are developed in the companion paper,
+\href{https://files.pannous.com/hyperreals.pdf}{\emph{Hyperreal Numbers: $\eps\cdot\omega=1$ --- An
+Algebraic, Computable Introduction to Infinitesimal Calculus}}
+(\url{https://files.pannous.com/hyperreals.pdf}), with the machine-checked Lean~4 development at
+\url{https://github.com/pannous/hyper-lean}.
+
+\paragraph{Readiness labels.} Each exercise is tagged by what the present
+Lean~4 formalization already supports.
+\begin{description}
+\item[Now] reduces to arithmetic and order facts already available for the
+concrete $\Rstar$ representation, even if a polished event API is still absent.
+\item[Partial] the scalar answer is representable now, but reusable random
+variables, hyperfinite counts, or finite-sum infrastructure are missing.
+\item[Research] deliberately requires a substantive extension of the framework.
+\end{description}
+
+\paragraph{Exercises.} The problems are stated in full in the companion
+booklet \href{https://files.pannous.com/hyperreal-exercises.pdf}{\emph{Twenty Exercises in Algebraic Probability}}:
+\begin{center}\small\url{https://files.pannous.com/hyperreal-exercises.pdf}\end{center}
+Each problem is restated below, so this booklet is self-contained.
+
+\paragraph{Checked Lean solutions.} Every exercise has a checked algebraic
+solution kernel:
+\begin{itemize}[nosep, leftmargin=2em]
+\item exercises 1--7: \texttt{Hyper/AlgebraicStochasticsBasic.lean}
+\item exercises 8--14: \texttt{Hyper/AlgebraicStochasticsIntermediate.lean}
+\item exercises 15--20: \texttt{Hyper/AlgebraicStochasticsAdvanced.lean}
+\end{itemize}
+The modules use
+coefficient-wise algebraic equality and explicitly proved monomial quotients;
+their headline theorems have been audited with \texttt{\#print axioms} and use
+neither \texttt{sorryAx}, nor the unsafe raw-list equality axiom, nor
+unrestricted mixed-order inversion. For a \textbf{Partial} exercise, a checked
+kernel means the displayed closed-form algebra is proved while the reusable
+event or random-variable abstraction remains to be built. For a
+\textbf{Research} exercise, the exact finite algebra and a proof-carrying
+interface for the missing analytic or hyperfinite fact are checked;
+constructing an instance of that interface is deliberately not passed off as
+solved.
+
+
+\section*{Exercises}
+
+
+\subsection*{Exercise 1 --- One exact outcome \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} Let $\Omega = \{0, 1, ..., \omega - 1\}$ be uniform, and let $j$ be
+one specified outcome. Compute $P(\{j\})$, prove that it is positive, and compute
+its standard part.
+
+\textbf{Solution.} There is one favorable outcome among $\omega$, so
+
+\[
+P(\{j\})=\frac1\omega=\epsilon>0,
+\qquad \operatorname{st}(P(\{j\}))=0.
+\]
+
+\textbf{Ingredients and readiness.} Hyperfinite cardinality, $\eps \cdot  \omega = 1$,
+positivity, and $\st(\eps) = 0$. \textbf{Now} for the scalar theorem; a literal
+$\Omega$ with $\omega$ elements still needs a hyperfinite-set interface.
+
+
+\subsection*{Exercise 2 --- A finite target \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} In the same $\Omega$, let $A$ contain exactly $r$ specified
+outcomes, where $r$ is a positive standard natural number. Find $P(A)$ and
+compare it with a singleton probability.
+
+\textbf{Solution.} Direct counting gives
+
+\[
+P(A)=\frac r\omega=r\epsilon,
+\qquad \frac{P(A)}{P(\{j\})}=r.
+\]
+
+Thus $A$ is exactly $r$ times as probable as a specified singleton even though
+both standard parts vanish.
+
+\textbf{Ingredients and readiness.} Embedding standard naturals into $\Rstar$, scalar
+multiplication, monomial inversion, and standard part. \textbf{Now.}
+
+
+\subsection*{Exercise 3 --- Union and overlap without collapsing to zero \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} Suppose finite events $A,B\subset \Omega$ satisfy $\#A = a$,
+$\#B = b$, and $\#(A\cap B) = c$, with standard finite $a,b,c$. Compute
+the probability of their union.
+
+\textbf{Solution.} Since $\#(A\cup B) = a + b - c$,
+
+\[
+P(A\cup B)=(a+b-c)\epsilon
+=P(A)+P(B)-P(A\cap B).
+\]
+
+For disjoint $A$ and $B$, this becomes $(a+b)\eps$.
+
+\textbf{Ingredients and readiness.} Event cardinalities, addition and subtraction
+in $\Rstar$, and finite inclusion-exclusion. \textbf{Now} for the algebra; \textbf{Partial}
+as a reusable theorem about encoded events.
+
+
+\subsection*{Exercise 4 --- The dart: point versus segment \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} Discretize the unit square by an $\omega$ by $\omega$ uniform grid.
+A specified point occupies one grid site. A horizontal segment of standard
+length $L > 0$ contains $L\cdot \omega$ sites (choose a compatible hyperfinite grid).
+Compute both probabilities and their ratio.
+
+\textbf{Solution.} The square has $\omega^2$ sites, hence
+
+\[
+P(\text{point})=\epsilon^2,
+\qquad
+P(\text{segment})=L\epsilon,
+\qquad
+\frac{P(\text{segment})}{P(\text{point})}=L\omega.
+\]
+
+The ratio is positive infinite, so the segment is infinitely more probable
+than the point.
+
+\textbf{Ingredients and readiness.} Products of hyperfinite grids, powers of
+$\eps$ and $\omega$, monomial division, and order comparison by leading
+exponent. \textbf{Now;} this is the counting interpretation of the existing dart
+theorems.
+
+
+\subsection*{Exercise 5 --- Coefficients cannot defeat a rarity order \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} On the same square, let $A$ consist of $M = 10^{100}$ specified
+points and let $B$ be one complete row, disjoint from $A$. Compare $P(A)$ and
+$P(B)$, and compute $P(A\cup B)$.
+
+\textbf{Solution.} Counting yields
+
+\[
+P(A)=M\epsilon^2,
+\qquad P(B)=\epsilon,
+\qquad P(A\cup B)=\epsilon+M\epsilon^2.
+\]
+
+Moreover $P(B)/P(A) = \omega/M$, which is infinite because $M$ is standard.
+Thus $P(A) < P(B)$ regardless of the size of the standard coefficient $M$.
+
+\textbf{Ingredients and readiness.} Multi-term addition, lexicographic order by
+exponent, and comparison of $\omega$ with every standard number. \textbf{Now.}
+
+
+\subsection*{Exercise 6 --- Near certainty with visible failure \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} From the one-dimensional $\Omega$, choose uniformly after marking
+$r$ excluded outcomes. Find the probability $G$ of choosing an allowed
+outcome and the probability of failure.
+
+\textbf{Solution.} There are $\omega-r$ allowed outcomes, so
+
+\[
+P(G)=\frac{\omega-r}{\omega}=1-r\epsilon<1,
+\qquad P(G^c)=r\epsilon>0.
+\]
+
+The identity $P(G)+P(G^c)=1$ holds exactly in $\Rstar$.
+
+\textbf{Ingredients and readiness.} Complements, subtraction, gauging, positivity,
+and finite additivity. \textbf{Now.}
+
+
+\subsection*{Exercise 7 --- Conditioning on a finite rare event \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} Let $C$ consist of $k > 0$ specified outcomes of the
+one-dimensional $\Omega$, and let $j\in C$. Compute $P(\{j\}\mid C)$ using the
+algebraic definition $P(A\mid B) = P(A\cap B)/P(B)$.
+
+\textbf{Solution.} Since $P(\{j\}) = \eps$ and $P(C) = k\cdot \eps$,
+
+\[
+P(\{j\}\mid C)=\frac{\epsilon}{k\epsilon}=\frac1k.
+\]
+
+Rare-event conditioning recovers the expected uniform law on $C$.
+
+\textbf{Ingredients and readiness.} Intersection, conditional probability as field
+division, and cancellation of a nonzero monomial. \textbf{Now} because the present
+inverse handles a single monomial denominator.
+
+
+\subsection*{Exercise 8 --- Conditioning a point on a line \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} In the $\omega$ by $\omega$ square, let $R$ be a specified complete
+row and let $p$ be one specified point on it. Find $P(\{p\}\mid R)$.
+
+\textbf{Solution.} We have $P(\{p\}\cap R)=\eps^2$ and $P(R)=\eps$.
+Therefore
+
+\[
+P(\{p\}\mid R)=\frac{\epsilon^2}{\epsilon}=\epsilon.
+\]
+
+Conditioning reduces the ambient grid dimension by one, exactly as counting
+the $\omega$ sites in the row predicts.
+
+\textbf{Ingredients and readiness.} Product grids, intersections, monomial
+division, and exponent arithmetic. \textbf{Now.}
+
+
+\subsection*{Exercise 9 --- Independence of coordinate events \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} Choose $(X,Y)$ uniformly from the $\omega$ by $\omega$ grid. Let
+$A = \{X=x0\}$ and $B = \{Y=y0\}$. Verify independence algebraically.
+
+\textbf{Solution.} Each coordinate slice contains $\omega$ points and their
+intersection contains one:
+
+\[
+P(A)=\epsilon,
+\quad P(B)=\epsilon,
+\quad P(A\cap B)=\epsilon^2
+=P(A)P(B).
+\]
+
+Equivalently, $P(A\mid B)=\eps=P(A)$.
+
+\textbf{Ingredients and readiness.} Cartesian counts, multiplication, intersection,
+and conditional probability. \textbf{Now} for the algebraic theorem; \textbf{Partial}
+for a generic independence API.
+
+
+\subsection*{Exercise 10 --- Dependence among equally rare events \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} Work on the toroidal $\omega$ by $\omega$ grid. Let
+$D_{0} = \{Y=X\}$ and $D_{1} = \{Y=X+1\}$, and put $A=D_{0}$, $B=D_{0}\cup D_{1}$. Are $A$ and
+$B$ independent? Compute $P(A\mid B)$.
+
+\textbf{Solution.} The two diagonals are disjoint and each contains $\omega$ points:
+
+\[
+P(A)=\epsilon,
+\quad P(B)=2\epsilon,
+\quad P(A\cap B)=\epsilon.
+\]
+
+Since $\eps \neq  2\eps^2$, the product criterion fails. Also
+
+\[
+P(A\mid B)=\frac{\epsilon}{2\epsilon}=\frac12,
+\]
+
+whereas $P(A)=\eps$.
+
+\textbf{Ingredients and readiness.} Disjoint unions, products, monomial division,
+and equality/order in $\Rstar$. \textbf{Now.}
+
+
+\subsection*{Exercise 11 --- Moments of a rare Bernoulli variable \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} Let $X$ equal $1$ with probability $q=c\cdot \eps$ and $0$
+otherwise, for a positive standard $c$. Compute $E[X]$ and $\Var(X)$ exactly.
+
+\textbf{Solution.} Since $X^2=X$,
+
+\[
+E[X]=c\epsilon,
+\qquad
+\operatorname{Var}(X)=E[X^2]-E[X]^2
+=c\epsilon-c^2\epsilon^2.
+\]
+
+The leading variance order is $\eps$, with a visible order-$\eps^2$
+correction.
+
+\textbf{Ingredients and readiness.} A finite-valued random variable, finite sums,
+products, and subtraction. \textbf{Now} as an explicit two-outcome calculation;
+\textbf{Partial} as a generic expectation/variance library.
+
+
+\subsection*{Exercise 12 --- An infinitesimal chance with finite expectation \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} A payoff $Y$ equals $\omega/c$ when the rare event from Exercise 11
+occurs and equals zero otherwise. Compute its expectation and variance.
+
+\textbf{Solution.} Using $\eps\cdot \omega=1$,
+
+\[
+E[Y]=(c\epsilon)\frac{\omega}{c}=1,
+\]
+
+while
+
+\[
+E[Y^2]=(c\epsilon)\frac{\omega^2}{c^2}=\frac{\omega}{c},
+\qquad
+\operatorname{Var}(Y)=\frac{\omega}{c}-1.
+\]
+
+Thus the mean is exactly finite and the variance is positive infinite.
+
+\textbf{Ingredients and readiness.} Random-variable scaling, $\eps\cdot \omega=1$,
+negative exponents, and moment arithmetic. \textbf{Now} as a scalar calculation;
+\textbf{Partial} for the random-variable definitions.
+
+
+\subsection*{Exercise 13 --- Exact finite-resolution corrections to uniform moments \hfill \normalfont\small[Partial]}
+
+\textbf{Problem.} Let $J$ be uniform on $\{0,...,\omega-1\}$ and set
+$X=J/\omega$. Compute $E[X]$, $E[X^2]$, and $\Var(X)$ without taking a limit.
+
+\textbf{Solution.} Substitute the finite identities for $sum j$ and $sum j^2$,
+then simplify algebraically:
+
+\[
+E[X]=\frac{\omega-1}{2\omega}
+=\frac12-\frac\epsilon2,
+\]
+
+\[
+E[X^2]=\frac{(\omega-1)(2\omega-1)}{6\omega^2}
+=\frac13-\frac\epsilon2+\frac{\epsilon^2}{6},
+\]
+
+\[
+\operatorname{Var}(X)=\frac1{12}-\frac{\epsilon^2}{12}.
+\]
+
+Taking $st$ recovers the familiar continuous answers only after the exact
+corrections have been displayed.
+
+\textbf{Ingredients and readiness.} Hyperfinite sums, polynomial sum identities,
+substitution $\omega=\eps^{-1}$, and standard part. \textbf{Partial:} the final
+$\Rstar$ expressions are available, but an index genuinely ranging to $\omega$
+is not present in the current Lean model.
+
+
+\subsection*{Exercise 14 --- Collision statistic \hfill \normalfont\small[Partial]}
+
+\textbf{Problem.} Draw $n$ independent labels uniformly from an $\omega$-element
+set, where $n$ is standard and finite. Let $C$ count equal unordered pairs.
+Find $E[C]$ and $\Var(C)$.
+
+\textbf{Solution.} Write
+$C = sum_(i<j) 1_\{X_{i}=X_{j}\}$. Each indicator has probability $\eps$ and
+variance $\eps(1-\eps)$. Two distinct pair indicators have zero
+covariance: for a shared index the triple-match probability is $\eps^2$,
+equal to the product, and disjoint pairs are independent. Hence
+
+\[
+E[C]={n\choose2}\epsilon,
+\qquad
+\operatorname{Var}(C)={n\choose2}\epsilon(1-\epsilon).
+\]
+
+\textbf{Ingredients and readiness.} Indicator variables, finite linearity of
+expectation, covariance, and independent product counts. \textbf{Partial:} every
+fixed $n$ reduces to current arithmetic, but general finite sums and a random
+variable API are missing.
+
+
+\subsection*{Exercise 15 --- An estimator with infinitesimal contamination \hfill \normalfont\small[Partial]}
+
+\textbf{Problem.} Let $X_{1},...,X_{n}$ be independent Bernoulli variables with
+$P(X_{i}=1)=q=\theta+a\cdot \eps$, where $0<\theta<1$, $a$ is standard, and $n$ is
+standard and positive. For the sample mean $T$, compute its expectation and
+variance through order $\eps^2$.
+
+\textbf{Solution.} Independence and Bernoulli arithmetic give
+
+\[
+E[T]=\theta+a\epsilon,
+\]
+
+and
+
+\[
+\operatorname{Var}(T)
+=\frac{q(1-q)}n
+=\frac{\theta(1-\theta)}n
+ +\frac{a(1-2\theta)}n\epsilon
+ -\frac{a^2}{n}\epsilon^2.
+\]
+
+Thus $\st(E[T])=\theta$, but the full expectation exposes the signed
+infinitesimal bias $a\cdot \eps$.
+
+\textbf{Ingredients and readiness.} Independent Bernoulli variables, finite sums,
+expectation, variance scaling, and multi-term normalization. \textbf{Partial:} the
+scalar identity is within the current algebra; the statistical abstractions
+are not yet implemented.
+
+
+\subsection*{Exercise 16 --- An infinitesimal likelihood comparison \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} A Bernoulli sample has $s$ successes and $f$ failures, both
+standard finite. Compare the candidate parameters $q$ and $q+\eps$, where
+$0<q<1$, by their exact likelihood ratio. Which candidate wins when the first
+nonzero infinitesimal coefficient is of order $\eps$?
+
+\textbf{Solution.} The exact ratio is
+
+\[
+R=\left(\frac{q+\epsilon}{q}\right)^s
+  \left(\frac{1-q-\epsilon}{1-q}\right)^f.
+\]
+
+Its first correction is
+
+\[
+R=1+\left(\frac{s}{q}-\frac{f}{1-q}\right)\epsilon
+  +\text{terms of order }\epsilon^2\text{ and smaller}.
+\]
+
+Therefore $q+\eps$ wins if the displayed score is positive and loses if it
+is negative. If it vanishes, compare the next nonzero coefficient; at the
+interior maximum $q=s/(s+f)$, moving by $+\eps$ decreases likelihood at
+second order.
+
+\textbf{Ingredients and readiness.} Finite natural powers, division by nonzero
+standard values, normalization, and leading-term order. \textbf{Now} for each fixed
+$s,f$; \textbf{Partial} for a reusable symbolic likelihood and coefficient API.
+
+
+\subsection*{Exercise 17 --- Bayes conditioning when every observed route is rare \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} A condition $D$ has probability $\eps$. A test is always
+positive under $D$ and has false-positive probability $c\cdot \eps$ under
+$D^c$, for standard $c>0$. Compute $P(D\mid +)$ exactly and find its
+standard part.
+
+\textbf{Solution.} We have
+
+\[
+P(D\cap +)=\epsilon
+\]
+
+and
+
+\[
+P(+)=\epsilon+(1-\epsilon)c\epsilon
+=(1+c)\epsilon-c\epsilon^2.
+\]
+
+Thus
+
+\[
+P(D\mid +)=\frac{1}{1+c-c\epsilon},
+\qquad
+\operatorname{st}(P(D\mid +))=\frac1{1+c}.
+\]
+
+As a series, its first correction is
+$1/(1+c) + c\cdot \eps/(1+c)^2 + ...$.
+
+\textbf{Ingredients and readiness.} Bayes' rule as field division, complements,
+mixed-order addition, inversion of $a+b\cdot \eps$, and standard part.
+\textbf{Research:} the present finite Laurent-polynomial representation does not
+have exact general inversion for a multi-term denominator. This exercise is a
+direct specification for extending $\Rstar$ to a suitable series field or adding
+a rigorously scoped leading-order inverse.
+
+
+\subsection*{Exercise 18 --- An extreme exact test with $\omega$ trials \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} Under a fair Bernoulli null hypothesis, conduct $\omega$ trials
+and observe success every time. Give the exact one-sided probability of an
+outcome at least this extreme and compare it with $\eps^k$ for every
+standard natural $k$.
+
+\textbf{Solution.} Only the all-success sequence is at least as extreme, so
+
+\[
+p=2^{-\omega}>0.
+\]
+
+For every standard $k$, exponential growth eventually dominates the
+polynomial $\omega^k$; transferred to the hyperfinite index this gives
+
+\[
+2^{-\omega}<\omega^{-k}=\epsilon^k.
+\]
+
+Thus this exact significance value occupies a rarity class beyond all finite
+powers currently represented by the basic examples.
+
+\textbf{Ingredients and readiness.} Exponentiation at an infinite exponent,
+positivity, comparison with all standard powers, and a transfer or equivalent
+algebraic growth principle. \textbf{Research:} current $\Rstar$ supports finite formal
+powers but not $2^\omega$ or this growth theorem.
+
+
+\subsection*{Exercise 19 --- Poisson probabilities from one hyperfinite experiment \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} Perform $\omega$ independent Bernoulli trials with success
+probability $\lambda\cdot \eps$, where $\lambda>0$ is standard. For fixed standard
+$k$, compute $P(K=k)$ algebraically and identify its standard part.
+
+\textbf{Solution.} Hyperfinite counting gives the exact expression
+
+\[
+P(K=k)={\omega\choose k}(\lambda\epsilon)^k
+       (1-\lambda\epsilon)^{\omega-k}.
+\]
+
+For fixed $k$,
+
+\[
+{\omega\choose k}\epsilon^k\simeq\frac1{k!},
+\qquad
+(1-\lambda\epsilon)^\omega\simeq e^{-\lambda},
+\]
+
+where $simeq$ means equality up to an infinitesimal. Therefore
+
+\[
+\operatorname{st}(P(K=k))=e^{-\lambda}\frac{\lambda^k}{k!}.
+\]
+
+Expanding both factors further would expose explicit corrections in powers of
+$\eps$.
+
+\textbf{Ingredients and readiness.} Hyperfinite binomial coefficients, an
+$\omega$-fold product, exponential/logarithmic algebra, infinitesimal
+closeness, and standard part. \textbf{Research:} this needs hyperfinite indexing and
+transcendental functions compatible with $st$.
+
+
+\subsection*{Exercise 20 --- Uniform local asymptotic statistics in one algebraic scale \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} Fix standard $p\in (0,1)$ and put
+$v=p(1-p)$, $\sigma=\sqrt{v}$, $N=\omega$, and $\eps=N^{-1}$. For standard
+$h$, let $p_h=p+h\cdot \sqrt{\eps}$. On the hyperfinite Bernoulli experiment let
+
+\[
+Z=\frac{S-Np}{\sqrt{Nv}},\qquad
+L_h=\left(\frac{p_h}{p}\right)^S
+    \left(\frac{1-p_h}{1-p}\right)^{N-S},\qquad
+\ell_h=\log L_h.
+\]
+
+Solve the following increasingly strong tasks.
+
+\begin{enumerate}[leftmargin=*]
+\item For fixed standard $h$ and finite $Z$, find $\st(\ell_h)$.
+\item Fix standard $H>0$, choose unlimited $R$ with
+   $1 \ll  R \ll  \sqrt{N}$, and prove uniformly for $|h|\le H$, $|Z|\le R$ that
+
+   \[
+   \ell_h=\frac{hZ}{\sigma}-\frac{h^2}{2v}
+   +\sqrt\epsilon(1-2p)
+      \left(\frac{h^3}{3v^2}-\frac{h^2Z}{2v^{3/2}}\right)
+   +\rho_h,
+   \quad |\rho_h|\le C_{p,H}\epsilon(1+|Z|).
+   \]
+
+\item Prove the good event $G_R=\{|Z|\le R\}$ has probability infinitesimally
+   close to one uniformly on $|h|\le H$, prove $E_0[L_h]=1$, and establish
+   mutual contiguity of the null and each fixed local alternative.
+\item Prove the algebraic CLT, derive Le Cam's third-lemma shift
+   $Z \Rightarrow  N(h/\sigma,1)$ under $p_{h}$, and find the asymptotic power of the
+   one-sided level-$\alpha$ test.
+\item Optional refinement: obtain the first continuity-corrected Bernoulli
+   Edgeworth term and explain why omitting the half-cell correction leaves a
+   lattice term of order $\sqrt{\eps}$.
+\end{enumerate}
+
+\textbf{Solution.} Put $\delta=h/\sqrt{N}$ and use the cubic Taylor expansions
+
+\[
+\log(1+\delta/p)=\frac\delta p-\frac{\delta^2}{2p^2}
+ +\frac{\delta^3}{3p^3}+O(\delta^4),
+\]
+
+\[
+\log(1-\delta/(1-p))=-\frac\delta{1-p}
+ -\frac{\delta^2}{2(1-p)^2}-\frac{\delta^3}{3(1-p)^3}
+ +O(\delta^4).
+\]
+
+Substituting $S=Np+Z\cdot \sqrt{Nv}$ cancels the order-$\sqrt{N}$ terms. The finite
+coefficient and first correction are
+
+\[
+\operatorname{st}(\ell_h)=\frac{hZ}{\sigma}-\frac{h^2}{2v},
+\]
+
+\[
+\sqrt\epsilon(1-2p)
+\left(\frac{h^3}{3v^2}-\frac{h^2Z}{2v^{3/2}}\right).
+\]
+
+Uniform fourth-derivative bounds for $|h|\le H$ give the stated remainder.
+Because $R/\sqrt{N}$ is infinitesimal,
+$sup |\rho_h|/\sqrt{\eps}$ is infinitesimal on $G_{R}$.
+
+Under $p_{h}$, $E[Z]=h/\sigma$ and
+$\Var(Z)=p_h(1-p_h)/v$, which is finite and infinitesimally close to one.
+Chebyshev's inequality therefore proves the uniform good-event claim. The
+binomial theorem gives $E_0[L_h]=1$. Moreover,
+
+\[
+E_0[L_h^2]=\left(1+\frac{h^2}{Nv}\right)^N,
+\qquad
+E_h[L_h^{-2}]=\left(1+\frac{h^2}{N p_h(1-p_h)}\right)^N.
+\]
+
+Their finite standard parts, together with Cauchy--Schwarz, give mutual
+contiguity (uniformly over bounded $h$ in the forward direction).
+
+The algebraic CLT and uniform LAN yield, with $u=h/\sigma$,
+
+\[
+(Z,\ell_h)\Longrightarrow(G,uG-u^2/2),\qquad G\sim N(0,1).
+\]
+
+Tilting by $exp(uG-u^2/2)$ changes the law to $N(u,1)$. Thus a test rejecting
+when $Z>c_\alpha$, where $c_\alpha=\Phi^{-1}(1-\alpha)$, has local power
+
+\[
+\operatorname{st}P_h(Z>c_\alpha)
+=1-\Phi(c_\alpha-u)=\Phi(u-c_\alpha).
+\]
+
+For the optional refinement, set
+$a_N=(k+1/2-Np)/\sqrt{Nv}$. Uniformly for bounded $a_{N}$,
+
+\[
+P_0(S\le k)=\Phi(a_N)
++\sqrt\epsilon\frac{1-2p}{6\sigma}(1-a_N^2)\phi(a_N)
++O(\epsilon).
+\]
+
+The $1/2$ is the continuity correction; without it the Bernoulli lattice
+contributes another order-$\sqrt{\eps}$ term.
+
+\textbf{Ingredients and readiness.} \texttt{lan\_sqrtOmega\_cancellation},
+\texttt{lan\_finite\_coefficient}, and \texttt{lan\_with\_remainder\_interface} in
+\texttt{Hyper/AlgebraicStochasticsAdvanced.lean} check the exact coefficient algebra
+of Part 1. \textbf{Research:} Parts 2–5 are the deliberately harder capstone. They
+require a genuine hyperfinite Bernoulli product experiment, uniform Taylor
+bounds, hyperfinite expectation, exact likelihood normalization, an algebraic
+CLT, contiguity/change-of-probability laws, normal quantiles, and a lattice
+local-limit theorem. These prerequisites are not hidden as assumptions in the
+current concrete backend.
+
+\#\# Suggested framework development order
+
+The exercises point to a practical implementation sequence: first introduce
+events with hyperfinite cardinalities and prove the finite probability laws;
+then add finite-valued random variables, finite sums, expectation, variance,
+and independence; next make mixed-term division exact or explicitly
+leading-order; finally add genuine hyperfinite indices, exponentials,
+logarithms, and controlled standard-part theorems. Exercises 1–12 test the
+algebraic core, 13–16 drive the statistics API, and 17–20 specify the larger
+extensions without pretending that the current representation already proves
+them.
+
+
+\section*{Suggested framework development order}
+
+The exercises point to a practical implementation sequence: first introduce
+events with hyperfinite cardinalities and prove the finite probability laws;
+then add finite-valued random variables, finite sums, expectation, variance,
+and independence; next make mixed-term division exact or explicitly
+leading-order; finally add genuine hyperfinite indices, exponentials,
+logarithms, and controlled standard-part theorems. Exercises 1--12 test the
+algebraic core, 13--16 drive the statistics API, and 17--20 specify the larger
+extensions without pretending that the current representation already proves
+them.
+
+
+\end{document}
