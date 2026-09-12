@@ -35,6 +35,6 @@ Thus there are two separate developments:
    be recovered.
 
 The first scope is enough for the exercise progression in
-`notes/algebraic-stochastics-exercises.md`. The second remains future work.
-See `notes/hyperreal-probability-foundations.md` for the precise framework
+`notes/counting/algebraic-stochastics-exercises.md`. The second remains future work.
+See `notes/counting/hyperreal-probability-foundations.md` for the precise framework
 boundary and implementation roadmap.

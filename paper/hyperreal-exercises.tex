@@ -21,7 +21,7 @@
 \setlist[description]{leftmargin=0pt, style=unboxed, font=\normalfont\bfseries}
 
 \title{Twenty Exercises in Algebraic Probability\\
-\large Algebraic Stochastics and Statistics over $\Rstar$}
+\large The hyperfinite counting model over $\Rstar$}
 \author{Exercises for engineers, with a machine-checked Lean~4 companion}
 \date{\today}
 
@@ -52,6 +52,12 @@ Everything else is built from these ratios by addition, multiplication,
 complement and division. The standard part $\st$ is applied only when the
 ordinary real shadow of an answer is explicitly wanted --- which is exactly the
 step that classically destroys the information these exercises are about.
+
+\paragraph{The other model.} These exercises count a hyperfinite sample space.
+The companion curriculum keeps ordinary real intervals instead and puts the
+hyperreal content into the integral, with $dx=\eps$ and $\omega$ as the Dirac
+delta; both give $P(\{y\})=\eps$ on the unit interval.
+\begin{center}\small\url{https://files.pannous.com/hyperreal-integral-exercises.pdf}\end{center}
 
 \paragraph{Theory.} The axioms, the model, and the underlying calculus are
 \emph{not} repeated here. They are developed in the companion paper,
@@ -337,9 +343,8 @@ finite-grid correction beyond Gaussian power.
 
 \section*{Where the solutions are}
 
-Worked solutions, with the corresponding checked Lean~4 kernels, are in the
-companion booklet \href{https://files.pannous.com/hyperreal-exercise-solutions.pdf}{\emph{Twenty Exercises in Algebraic
-Probability --- Solutions}}:
+Worked solutions are in the companion booklet
+\href{https://files.pannous.com/hyperreal-exercise-solutions.pdf}{\emph{Twenty Exercises in Algebraic Probability --- Solutions}}:
 \begin{center}\small\url{https://files.pannous.com/hyperreal-exercise-solutions.pdf}\end{center}
 Try the exercises first: the algebra is short, and the point of each one is
 what survives that a real-valued shadow would have deleted.

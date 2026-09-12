@@ -2,7 +2,7 @@ import Hyper.AlgebraicProbability
 
 /-!
   Formal solutions of Exercises 8--14 from
-  `notes/algebraic-stochastics-exercises.md`.
+  `notes/counting/algebraic-stochastics-exercises.md`.
 
   This module deliberately uses `fieldAdd`, `fieldNeg`, `fieldMul`, coefficient-
   wise algebraic equality, and the explicit reciprocal of a proved-nonzero

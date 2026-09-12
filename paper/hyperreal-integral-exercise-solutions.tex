@@ -1,0 +1,592 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Rstar}{\mathbb{R}^{\star}}
+\newcommand{\eps}{\varepsilon}
+\let\straightepsilon\epsilon
+\renewcommand{\epsilon}{\varepsilon}
+\newcommand{\st}{\operatorname{st}}
+\newcommand{\Var}{\operatorname{Var}}
+
+\setlist[description]{leftmargin=0pt, style=unboxed, font=\normalfont\bfseries}
+
+\title{Twenty Exercises in Probability on Ordinary Intervals: Solutions\\
+\large Densities, $dx=\eps$, and $\omega$ as the Dirac delta}
+\author{Exercises for engineers, in the hyperreal field $\Rstar$}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+
+\section*{The two rules you need}
+
+Nothing here is counted, and no hyperfinite sample space is built. The sample
+space is an ordinary real interval such as $[0,1]$; all of the hyperreal
+content sits in the integral. Fix a positive infinitesimal $\eps$, put
+$\omega = 1/\eps$, and take the resolution of the line to be $\eps$: a point
+$y$ \emph{is} the half-open dot $[y, y+\eps)$. The integral is then the
+hyperfinite left-endpoint Riemann sum with $dx = \eps$,
+\[
+  \int_{[a,b)} f(x)\,dx
+  := \sum_{k=0}^{(b-a)\omega-1} f(a+k\eps)\,\eps ,
+\]
+evaluated in $\Rstar$ and \emph{not} followed by $\st$. A probability is the
+integral of a density, $P(E)=\int_E p$. Because a point is one dot, this
+specializes to the identity used on nearly every page:
+\[
+  \boxed{\;P(\{y\}) = p(y)\,\eps\;}
+\]
+In particular a uniform law on $[0,1)$ has $p \equiv 1$, so hitting an exact
+number has probability $\eps > 0$, not zero --- and $\int_{[0,1)} 1\,dx
+= \omega\eps = 1$ exactly, so ordinary interval probabilities are untouched.
+
+An atom of mass $a$ is not a second mechanism bolted onto the density. It is
+the density \emph{value} $p(y)=a\omega$, since then $P(\{y\})=a\omega\eps=a$.
+The Dirac delta is therefore an ordinary function taking the value $\omega$ on
+one dot, and $\st$ is applied only where it is explicitly wanted.
+
+\paragraph{The other model.} These exercises never count anything. The
+companion curriculum answers the same questions by counting a hyperfinite
+sample space $\{0,\dots,\omega-1\}$ instead, and its solutions are
+machine-checked in Lean~4.
+\begin{center}\small\url{https://files.pannous.com/hyperreal-exercises.pdf}\end{center}
+
+\paragraph{Theory.} The axioms, the model, and the underlying calculus are
+\emph{not} repeated here. They are developed in the companion paper,
+\href{https://files.pannous.com/hyperreals-light.pdf}{\emph{Hyperreal Numbers: $\eps\cdot\omega=1$ --- An
+Algebraic, Computable Introduction to Infinitesimal Calculus}}
+(\url{https://files.pannous.com/hyperreals-light.pdf}), with the machine-checked Lean~4 development at
+\url{https://github.com/pannous/hyper-lean}.
+
+\paragraph{Readiness labels.} Each exercise is tagged by what the present
+Lean~4 formalization already supports.
+\begin{description}
+\item[Now] the value and its derivation use only single-dot integrals and
+$\Rstar$ arithmetic, which the concrete representation already has.
+\item[Partial] the closed form is exact and short, but the derivation sums over
+the $(b-a)\omega$ dots of an interval, for which there is no index type yet.
+\item[Research] additionally needs transcendental densities, a proved
+$\st$-compatibility theorem, or a genuine conditional-law construction.
+\end{description}
+
+\paragraph{Exercises.} The problems are stated in full in the companion
+booklet \href{https://files.pannous.com/hyperreal-integral-exercises.pdf}{\emph{Twenty Exercises in Probability on Ordinary
+Intervals}}:
+\begin{center}\small\url{https://files.pannous.com/hyperreal-integral-exercises.pdf}\end{center}
+Each problem is restated below, so this booklet is self-contained.
+
+\paragraph{No checked kernels yet.} Unlike the counting curriculum, this
+framework has \emph{no} Lean~4 formalization: \texttt{Hyper/HyperList.lean}
+offers no integral, no density type, and above all no index type of size
+$\omega$ to sum over. The solutions below are worked algebra, not machine-checked
+theorems, and the readiness labels measure distance from the current code
+rather than proofs already obtained. Anything needing a genuine
+$\sum_{k<\omega}$ is labelled \textbf{Research} however short its algebra is.
+
+
+\section*{Solutions}
+
+
+\subsection*{Exercise 1 --- The probability of hitting an exact number \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} Let $X$ be uniform on $[0,1)$, so $p(x) = 1$. Compute $P(X = y)$
+for a specified $y$, prove that it is positive, and give its standard part.
+
+\textbf{Solution.} The point $y$ is one dot of width $\eps$, so the integral has
+a single term:
+
+\[
+P(X=y)=\int_{[y,y+\epsilon)} 1\,dx=1\cdot\epsilon=\epsilon>0,
+\qquad \operatorname{st}(\epsilon)=0 .
+\]
+
+No limit and no counting argument is involved: $\eps$ appears because
+$dx = \eps$.
+
+\textbf{Ingredients and readiness.} The integral axiom on one dot, positivity of
+$\eps$, and $\st(\eps) = 0$. \textbf{Now.}
+
+
+\subsection*{Exercise 2 --- Finitely many targets \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} With $X$ uniform on $[0,1)$, let $A$ be a set of $r$ specified
+points, $r$ a standard positive natural number. Find $P(A)$ and the ratio
+$P(A)/P(\{y\})$.
+
+\textbf{Solution.} The dots are disjoint, so the integral is additive over them:
+
+\[
+P(A)=r\epsilon,\qquad \frac{P(A)}{P(\{y\})}=r .
+\]
+
+\textbf{Ingredients and readiness.} Finite additivity over disjoint dots and
+cancellation of $\eps$. \textbf{Now.}
+
+
+\subsection*{Exercise 3 --- Intervals are unharmed, and the total is exactly one \hfill \normalfont\small[Partial]}
+
+\textbf{Problem.} For $X$ uniform on $[0,1)$ and standard $0 \le  c < d \le  1$,
+compute $P([c,d))$ and verify $P([0,1)) = 1$ exactly.
+
+\textbf{Solution.} The interval $[c,d)$ consists of $(d-c)\cdot \omega$ dots, each
+contributing $\eps$:
+
+\[
+P([c,d))=(d-c)\omega\cdot\epsilon=d-c ,
+\]
+
+and with $c = 0$, $d = 1$ this is $\omega\cdot \eps = 1$. The gauging axiom is
+exactly what makes the total mass come out without an error term.
+
+\textbf{Ingredients and readiness.} A hyperfinite sum of a constant over the dots
+of an interval, and $\eps\cdot \omega = 1$. \textbf{Partial.}
+
+
+\subsection*{Exercise 4 --- Half-open versus closed, and what a normalization costs \hfill \normalfont\small[Partial]}
+
+\textbf{Problem.} Integrate the constant $1$ over the \emph{closed} interval $[0,1]$. Then
+find the density of the uniform law on $[0,1]$ and recompute $P(\{0\})$.
+
+\textbf{Solution.} The closed interval contains one more dot than the half-open
+one, so
+
+\[
+\int_{[0,1]} 1\,dx=(\omega+1)\epsilon=1+\epsilon\neq 1 .
+\]
+
+A genuine density on $[0,1]$ must therefore be renormalized,
+
+\[
+p=\frac1{1+\epsilon}=1-\epsilon+\epsilon^{2}-\cdots,
+\qquad
+P(\{0\})=p\,\epsilon=\epsilon-\epsilon^{2}+\cdots .
+\]
+
+Both conventions are consistent; only the half-open one gives $p = 1$.
+
+\textbf{Ingredients and readiness.} Dot counting of an interval, inversion of
+$1 + \eps$, and series expansion. \textbf{Partial;} the inversion of a
+multi-term denominator is the same gap recorded in the counting curriculum.
+
+
+\subsection*{Exercise 5 --- Conditioning on an ordinary interval \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} With $X$ uniform on $[0,1)$ and $y$ in $[a,b)\subset [0,1)$,
+compute $P(X = y\mid a \le  X < b)$.
+
+\textbf{Solution.} \[
+P(X=y \mid a\le X<b)=\frac{\epsilon}{b-a},
+\]
+
+which is the point probability of the uniform law on $[a,b)$, as conditioning
+should give.
+
+\textbf{Ingredients and readiness.} Conditional probability as field division and
+division of $\eps$ by a nonzero standard number. \textbf{Now.}
+
+
+\subsection*{Exercise 6 --- A nonuniform density is read off at the point \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} Let $X$ have the triangular density $p(x) = 2x$ on $[0,1)$.
+Verify the normalization, compute $P(X = y)$, and compare two points $y1$ and
+$y2$.
+
+\textbf{Solution.} Normalization is Exercise 13's sum with a factor $2$, giving
+$1 - \eps$; on the half-open convention the exactly normalized triangular
+density is $p(x) = 2x/(1-\eps)$. In either case
+
+\[
+P(X=y)=p(y)\,\epsilon,
+\qquad
+\frac{P(X=y_1)}{P(X=y_2)}=\frac{p(y_1)}{p(y_2)}=\frac{y_1}{y_2}.
+\]
+
+Every point still has infinitesimal probability, but their ratios are ordinary
+real numbers.
+
+\textbf{Ingredients and readiness.} Single-dot integration and division of
+infinitesimals of equal order. \textbf{Now} for the ratio; \textbf{Partial} for the exact
+normalizing constant.
+
+
+\subsection*{Exercise 7 --- An atom is a density value, not a second mechanism \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} Let $p$ be the density that equals $\omega/2$ on the dot at $0$
+and $1/2$ on $(0,1)$. Show that $p$ is a probability density, compute
+$P(\{0\})$ and $P(\{y\})$ for $y \neq  0$, and compare their orders.
+
+\textbf{Solution.} The total mass splits into the atom's single dot and the rest:
+
+\[
+\int p=\frac\omega2\cdot\epsilon+\frac12\cdot 1=\frac12+\frac12=1 .
+\]
+
+Then
+
+\[
+P(\{0\})=\frac\omega2\cdot\epsilon=\frac12,
+\qquad
+P(\{y\})=\frac\epsilon2 \quad (y\neq0),
+\qquad
+\frac{P(\{0\})}{P(\{y\})}=\omega .
+\]
+
+The atom is infinitely more likely than an ordinary point, which is the exact
+algebraic content of the word ``atom''.
+
+\textbf{Ingredients and readiness.} An $\omega$-valued density, splitting an
+integral over disjoint regions, and order comparison. \textbf{Now} for the two point
+values; \textbf{Partial} for the normalization integral.
+
+
+\subsection*{Exercise 8 --- The Dirac delta is the derivative of the step, exactly \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} Let $H$ be the Heaviside step, $H(x) = 1$ for $x \ge  0$ and $0$
+otherwise. Compute the algebraic derivative $dH(x) = (H(x+\eps)-H(x))/\eps$
+at every $x$, and integrate the result over $[-1,1)$.
+
+\textbf{Solution.} The difference quotient vanishes unless the dot straddles the
+jump, and
+
+\[
+\partial H(x)=\omega \quad\text{for } x\in[-\epsilon,0),
+\qquad \partial H(x)=0 \text{ otherwise},
+\]
+
+so $dH = \delta_{-\eps}$ and
+
+\[
+\int_{[-1,1)}\partial H(x)\,dx=\omega\cdot\epsilon=1 .
+\]
+
+The fundamental theorem of calculus therefore holds for the step function on
+the nose, with no distributions and no limits.
+
+\textbf{Ingredients and readiness.} The algebraic derivative, a one-dot integral,
+and $\eps\cdot \omega = 1$. \textbf{Now.}
+
+
+\subsection*{Exercise 9 --- Three orders of point probability \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} At a point $y$, consider densities $p(y) = a\cdot \omega$, $p(y) = b$,
+and $p(y) = c\cdot \eps$ with standard positive $a,b,c$. Compute $P(\{y\})$ in
+each case and order the three results.
+
+\textbf{Solution.} By $P(\{y\}) = p(y)\cdot \eps$,
+
+\[
+a\omega\cdot\epsilon=a,
+\qquad
+b\cdot\epsilon=b\epsilon,
+\qquad
+c\epsilon\cdot\epsilon=c\epsilon^{2},
+\]
+
+so $a > b\cdot \eps > c\cdot \eps^2$ regardless of the standard coefficients. A
+point's rarity order is exactly the negative of the density's order.
+
+\textbf{Ingredients and readiness.} Multiplication by $\eps$, and comparison by
+leading exponent. \textbf{Now.}
+
+
+\subsection*{Exercise 10 --- The dart, with no grid at all \hfill \normalfont\small[Partial/Now]}
+
+\textbf{Problem.} Let $(X,Y)$ be uniform on the unit square, $p = 1$. Compute the
+probability of one specified point.
+
+\textbf{Solution.} The area element is $dA = dx\cdot dy = \eps^2$, so a single dot of
+the plane has
+
+\[
+P(\{(x_0,y_0)\})=1\cdot\epsilon^{2}=\epsilon^{2}.
+\]
+
+\textbf{Ingredients and readiness.} A product integral and $\eps^2$. \textbf{Partial}
+for the product construction; the value itself is \textbf{Now}.
+
+
+\subsection*{Exercise 11 --- A segment beats a point by exactly $\omega$ \hfill \normalfont\small[Partial]}
+
+\textbf{Problem.} In the same square, compute $P(Y = X)$, the probability that the
+two coordinates agree, and compare it with Exercise 10.
+
+\textbf{Solution.} Condition on $X$ and integrate the one-dimensional point
+probability:
+
+\[
+P(Y=X)=\int_0^1 P(Y=x)\,dx=\int_0^1 \epsilon\,dx=\epsilon,
+\qquad
+\frac{P(Y=X)}{P(\{(x_0,y_0)\})}=\omega .
+\]
+
+Each integration that is \emph{not} performed costs one factor of $\eps$; this
+is the codimension law of the counting model, derived instead of postulated.
+
+\textbf{Ingredients and readiness.} Iterated integration and monomial division.
+\textbf{Partial.}
+
+
+\subsection*{Exercise 12 --- A uniform law on the whole line \hfill \normalfont\small[Partial]}
+
+\textbf{Problem.} Take the ambient line to be $[-\omega, \omega)$. Find the uniform
+density on it, compute $P(\{y\})$ and $P([a,b))$, and compare $P(\{y\})$ with the
+point probability of the uniform law on $[0,1)$.
+
+\textbf{Solution.} The ambient length is $2\cdot \omega$, so normalization forces
+$p = 1/(2\cdot \omega) = \eps/2$ and
+
+\[
+P(\{y\})=\frac\epsilon2\cdot\epsilon=\frac{\epsilon^{2}}2,
+\qquad
+P([a,b))=(b-a)\frac\epsilon2 .
+\]
+
+Comparing with Exercise 1,
+
+\[
+\frac{P_{\mathbb R}(\{y\})}{P_{[0,1)}(\{y\})}=\frac\epsilon2 ,
+\]
+
+infinitesimal: a point is infinitely rarer when the target is the whole line.
+Any finite interval likewise gets only infinitesimal probability, which is the
+correct and previously unavailable statement.
+
+\textbf{Ingredients and readiness.} The ambient-line convention, inversion of
+$2\cdot \omega$, and order comparison. \textbf{Partial;} the choice of $[-\omega, \omega)$
+over the one-sided convention must be stated, not derived.
+
+
+\subsection*{Exercise 13 --- Exact moments of the uniform law \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} For $X$ uniform on $[0,1)$, compute $E[X]$, $E[X^2]$, and
+$\Var(X)$ from the integral, without taking any limit.
+
+\textbf{Solution.} With $x = k\cdot \eps$ and the finite power-sum identities,
+
+\[
+E[X]=\sum_{k<\omega}k\epsilon\cdot\epsilon
+=\epsilon^{2}\frac{\omega(\omega-1)}2=\frac12-\frac\epsilon2,
+\]
+
+\[
+E[X^{2}]=\frac13-\frac\epsilon2+\frac{\epsilon^{2}}6,
+\qquad
+\operatorname{Var}(X)=\frac1{12}-\frac{\epsilon^{2}}{12}.
+\]
+
+Taking $st$ recovers $1/2$ and $1/12$ only after the exact corrections have
+been displayed.
+
+\textbf{Ingredients and readiness.} Hyperfinite power sums and substitution
+$\omega = 1/\eps$. \textbf{Research:} an index genuinely ranging over $\omega$
+dots does not exist in the current Lean model, even though the closed forms
+are ordinary $\Rstar$ values.
+
+
+\subsection*{Exercise 14 --- The integral convention is visible at order $\eps$ \hfill \normalfont\small[Research/Now]}
+
+\textbf{Problem.} For a standard $f$ on $[0,1)$, compare the left-endpoint,
+right-endpoint, and midpoint sums. Apply the result to $f(x) = x$.
+
+\textbf{Solution.} The right and left sums differ only in their end terms,
+
+\[
+\int^{\text{right}}f-\int^{\text{left}}f=\epsilon\,(f(1)-f(0)),
+\]
+
+and for $f(x) = x$ the midpoint rule gives exactly $1/2$, against
+$1/2 - \eps/2$ and $1/2 + \eps/2$. All three agree after $st$.
+
+Conclusion: ``the integral'' is not one object in this framework. A convention
+must be fixed, and every exercise above uses the left-endpoint one.
+
+\textbf{Ingredients and readiness.} Telescoping of a hyperfinite sum and
+$st$-invariance. \textbf{Research} for the general statement; \textbf{Now} for the
+$f(x) = x$ instance, whose three values are explicit $\Rstar$ numbers.
+
+
+\subsection*{Exercise 15 --- A mixed law needs no case split \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} With the density of Exercise 7 --- mass $1/2$ at the point $0$ and
+$1/2$ spread uniformly --- compute $E[X]$ and the distribution function
+$F(t) = P(X < t)$.
+
+\textbf{Solution.} The atom contributes at $x = 0$ and the continuous part is
+Exercise 13 halved:
+
+\[
+E[X]=0\cdot\frac12+\frac12\left(\frac12-\frac\epsilon2\right)
+=\frac14-\frac\epsilon4 ,
+\]
+
+\[
+F(t)=\frac12+\frac t2 \quad\text{for } 0<t\le1,
+\qquad F(0)=0,\quad F(\epsilon)=\frac12 .
+\]
+
+The jump of $F$ at $0$ is the atom's mass, produced by integrating an
+$\omega$-valued density over one dot rather than by adding a point weight.
+
+\textbf{Ingredients and readiness.} Integration of a density with an $\omega$ value,
+and the moment computation of Exercise 13. \textbf{Research,} for the same reason
+as Exercise 13.
+
+
+\subsection*{Exercise 16 --- Point probability is not invariant, and should not be \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} Let $X$ be uniform on $[0,1)$ and $Y = 2X$. Find the density of
+$Y$, compute $P(Y = y)$, and reconcile it with $P(X = y/2) = \eps$.
+
+\textbf{Solution.} $Y$ is uniform on $[0,2)$, so $p_Y = 1/2$ and
+
+\[
+P(Y=y)=\frac12\epsilon .
+\]
+
+There is no contradiction: the event $\{Y = y\}$ is $\{X = y/2\}$ only up to
+resolution, since the map doubles dot widths, so one dot of $Y$ corresponds to
+half a dot of $X$. In general $p_Y(y) = p_X(x)/|g'(x)|$ for $y = g(x)$, with
+the algebraic derivative, and $P(\{y\}) = p_Y(y)\cdot \eps$ follows.
+
+\textbf{Ingredients and readiness.} Change of variables with the algebraic
+derivative, and the observation that dots are not preserved by non-isometries.
+\textbf{Now} for the linear case; \textbf{Partial} in general.
+
+
+\subsection*{Exercise 17 --- An exponential law \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} Let $p(x) = \lambda\cdot e^{-\lambda\cdot x}$ on $[0, \omega)$ with standard
+$\lambda > 0$. Compute $P(X = y)$ and $P(X \ge  t)$ for standard $t$, and discuss
+the normalization.
+
+\textbf{Solution.} Pointwise the rule is immediate,
+
+\[
+P(X=y)=\lambda e^{-\lambda y}\epsilon ,
+\]
+
+so a point far out in the tail is still infinitesimal but by an ordinary
+factor $e^{-\lambda\cdot y}$ less likely than one near $0$. The tail and the total
+are hyperfinite geometric sums, and both carry a discretization correction:
+
+\[
+\int_{[0,\omega)} p
+=\frac{\lambda\epsilon}{1-e^{-\lambda\epsilon}}\left(1-e^{-\lambda\omega}\right)
+=1+\frac{\lambda\epsilon}2+O(\epsilon^{2}),
+\qquad
+P(X\ge t)=e^{-\lambda t}\left(1+\frac{\lambda\epsilon}2+O(\epsilon^{2})\right).
+\]
+
+So the left-endpoint convention \emph{over}-counts by $\lambda\cdot \eps/2$, and the
+density must be renormalized by that factor to be exact; the truncation at
+$\omega$ costs only $e^{-\lambda\cdot \omega}$, an infinitesimal smaller than every
+power of $\eps$. The classical answers $1$ and $e^{-\lambda\cdot t}$ are the
+standard parts.
+
+\textbf{Ingredients and readiness.} A transcendental density, hyperfinite geometric
+summation, and comparison of $e^{-\lambda\cdot \omega}$ with all powers of $\eps$.
+\textbf{Research:} \texttt{Hyper/HyperTranscendental.lean} has $hexp$ but it is not
+connected to any integral.
+
+
+\subsection*{Exercise 18 --- Bayes with an atom and a density in one formula \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} A parameter $T$ is $0$ with probability $1/2$ and otherwise
+uniform on $(0,1)$. Given $T = t$, an observation $Z$ has a standard density
+$f(z | t)$. Compute the posterior $P(T = 0\mid Z = z)$.
+
+\textbf{Solution.} Write the prior as one density: $pi = (\omega/2)$ on the dot at
+$0$ and $1/2$ on $(0,1)$. Every term of Bayes' rule then carries one factor
+$\eps$ from the observed event $\{Z = z\}$, which cancels, and the atom's
+$\omega$ cancels the $\eps$ of its own dot, leaving
+
+\[
+P(T=0\mid Z=z)
+=\frac{\tfrac12 f(z\mid 0)}
+       {\tfrac12 f(z\mid 0)+\tfrac12\int_0^1 f(z\mid t)\,dt } .
+\]
+
+The answer is finite and ordinary --- the infinitesimals cancel --- but it was
+obtained without ever conditioning on a classically null event by fiat.
+
+\textbf{Ingredients and readiness.} Joint densities, cancellation of $\eps$
+between numerator and denominator, and inversion of a finite value.
+\textbf{Research:} needs a joint-density construction and the $st$-compatibility of
+the inner integral.
+
+
+\subsection*{Exercise 19 --- The Borel--Kolmogorov paradox dissolves \hfill \normalfont\small[Research/Partial]}
+
+\textbf{Problem.} For $(X,Y)$ uniform on the unit square, condition on the diagonal
+$D = \{Y = X\}$. Compute $P(X\in [a,b)\mid D)$ and explain why the classical
+paradox does not arise.
+
+\textbf{Solution.} By Exercise 11, $P(D) = \eps$. The part of the diagonal over
+$[a,b)$ has probability $(b-a)\cdot \eps$, so
+
+\[
+P\big(X\in[a,b)\mid D\big)=\frac{(b-a)\epsilon}{\epsilon}=b-a .
+\]
+
+The conditional law is uniform, and there was no choice to make: the diagonal
+is an ordinary event of positive probability, so $P(·|D)$ is the ordinary
+quotient. A different description of the same set of dots gives the same
+value, because it is the same event. The paradox was an artifact of dividing
+by zero.
+
+\textbf{Caution:} The dissolution is real but narrow: it holds for the dot resolution fixed
+in the foundations note. A \emph{different} resolution convention describes a
+different event, and the classical ambiguity reappears as the choice of
+convention --- now explicit and stated, instead of hidden.
+
+\textbf{Ingredients and readiness.} Conditioning on an infinitesimal-probability
+event, and the diagonal integral of Exercise 11. \textbf{Research} as a general
+theorem; the displayed algebra is \textbf{Partial}.
+
+
+\subsection*{Exercise 20 --- What must be proved before this is a measure theory \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} Identify precisely what is needed to prove: (a) that the standard
+part of the hyperfinite integral is the classical Riemann integral, for every
+standard Riemann-integrable $f$; (b) that $P$ is finitely additive over arbitrary disjoint unions of dots;
+(c) that $P$ is \emph{not} countably additive in the classical sense, and why that
+is not a defect.
+
+\textbf{Ingredients and readiness.} Transfer or explicit estimates, a theory of
+dot-unions, and a Loeb-style comparison with classical measure.
+\textbf{Research:} this is the capstone, and none of its prerequisites exist in the
+repository today.
+
+
+\section*{What to build first}
+
+The exercises fall into three implementation stages. Stage one is a
+single-dot integral and the identity $P(\{y\})=p(y)\eps$, which needs nothing
+beyond the arithmetic already proved for $\Rstar$. Stage two is an index type
+ranging over the $(b-a)\omega$ dots of an interval, with the constant and
+power sums; that single addition turns most \textbf{Partial} labels into
+\textbf{Now}. Stage three is the analytic layer --- transcendental densities,
+$\st$-compatibility with the classical Riemann integral, and conditional laws
+on infinitesimal-probability events --- which is where the remaining
+\textbf{Research} exercises live.
+
+The conventions used throughout (half-open dots, left endpoints,
+$\int\delta = 1$ on one dot, the ambient line $[-\omega,\omega)$) are choices,
+not consequences. \texttt{notes/integral/integral-probability-foundations.md}
+lists each one together with what the alternative would change; every
+alternative changes answers at order $\eps$, which is exactly the order this
+framework exists to discuss.
+
+
+\end{document}

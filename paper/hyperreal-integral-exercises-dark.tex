@@ -1,0 +1,324 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+\pagecolor{black}
+\color{white}
+\hypersetup{colorlinks=true, linkcolor=cyan, citecolor=cyan, urlcolor=cyan}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Rstar}{\mathbb{R}^{\star}}
+\newcommand{\eps}{\varepsilon}
+\let\straightepsilon\epsilon
+\renewcommand{\epsilon}{\varepsilon}
+\newcommand{\st}{\operatorname{st}}
+\newcommand{\Var}{\operatorname{Var}}
+
+\setlist[description]{leftmargin=0pt, style=unboxed, font=\normalfont\bfseries}
+
+\title{Twenty Exercises in Probability on Ordinary Intervals\\
+\large Densities, $dx=\eps$, and $\omega$ as the Dirac delta}
+\author{Exercises for engineers, in the hyperreal field $\Rstar$}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+
+\section*{The two rules you need}
+
+Nothing here is counted, and no hyperfinite sample space is built. The sample
+space is an ordinary real interval such as $[0,1]$; all of the hyperreal
+content sits in the integral. Fix a positive infinitesimal $\eps$, put
+$\omega = 1/\eps$, and take the resolution of the line to be $\eps$: a point
+$y$ \emph{is} the half-open dot $[y, y+\eps)$. The integral is then the
+hyperfinite left-endpoint Riemann sum with $dx = \eps$,
+\[
+  \int_{[a,b)} f(x)\,dx
+  := \sum_{k=0}^{(b-a)\omega-1} f(a+k\eps)\,\eps ,
+\]
+evaluated in $\Rstar$ and \emph{not} followed by $\st$. A probability is the
+integral of a density, $P(E)=\int_E p$. Because a point is one dot, this
+specializes to the identity used on nearly every page:
+\[
+  \boxed{\;P(\{y\}) = p(y)\,\eps\;}
+\]
+In particular a uniform law on $[0,1)$ has $p \equiv 1$, so hitting an exact
+number has probability $\eps > 0$, not zero --- and $\int_{[0,1)} 1\,dx
+= \omega\eps = 1$ exactly, so ordinary interval probabilities are untouched.
+
+An atom of mass $a$ is not a second mechanism bolted onto the density. It is
+the density \emph{value} $p(y)=a\omega$, since then $P(\{y\})=a\omega\eps=a$.
+The Dirac delta is therefore an ordinary function taking the value $\omega$ on
+one dot, and $\st$ is applied only where it is explicitly wanted.
+
+\paragraph{The other model.} These exercises never count anything. The
+companion curriculum answers the same questions by counting a hyperfinite
+sample space $\{0,\dots,\omega-1\}$ instead, and its solutions are
+machine-checked in Lean~4.
+\begin{center}\small\url{https://files.pannous.com/hyperreal-exercises-dark.pdf}\end{center}
+
+\paragraph{Theory.} The axioms, the model, and the underlying calculus are
+\emph{not} repeated here. They are developed in the companion paper,
+\href{https://files.pannous.com/hyperreals.pdf}{\emph{Hyperreal Numbers: $\eps\cdot\omega=1$ --- An
+Algebraic, Computable Introduction to Infinitesimal Calculus}}
+(\url{https://files.pannous.com/hyperreals.pdf}), with the machine-checked Lean~4 development at
+\url{https://github.com/pannous/hyper-lean}.
+
+\paragraph{Readiness labels.} Each exercise is tagged by what the present
+Lean~4 formalization already supports.
+\begin{description}
+\item[Now] the value and its derivation use only single-dot integrals and
+$\Rstar$ arithmetic, which the concrete representation already has.
+\item[Partial] the closed form is exact and short, but the derivation sums over
+the $(b-a)\omega$ dots of an interval, for which there is no index type yet.
+\item[Research] additionally needs transcendental densities, a proved
+$\st$-compatibility theorem, or a genuine conditional-law construction.
+\end{description}
+
+
+\section*{Exercises}
+
+
+\subsection*{Exercise 1 --- The probability of hitting an exact number \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} Let $X$ be uniform on $[0,1)$, so $p(x) = 1$. Compute $P(X = y)$
+for a specified $y$, prove that it is positive, and give its standard part.
+
+\textbf{Why this framework.} This is the question the whole construction exists to
+answer. Classically the answer is $0$, which then has to be explained away as
+``probability zero but not impossible''. Here the answer is an ordinary
+algebraic value, and the classical $0$ is recovered as its shadow.
+
+
+\subsection*{Exercise 2 --- Finitely many targets \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} With $X$ uniform on $[0,1)$, let $A$ be a set of $r$ specified
+points, $r$ a standard positive natural number. Find $P(A)$ and the ratio
+$P(A)/P(\{y\})$.
+
+\textbf{Why this framework.} Both events are classically null, so their shadows
+cannot be compared. The algebraic values differ by exactly the factor one
+expects.
+
+
+\subsection*{Exercise 3 --- Intervals are unharmed, and the total is exactly one \hfill \normalfont\small[Partial]}
+
+\textbf{Problem.} For $X$ uniform on $[0,1)$ and standard $0 \le  c < d \le  1$,
+compute $P([c,d))$ and verify $P([0,1)) = 1$ exactly.
+
+\textbf{Why this framework.} A reformulation that changed ordinary interval
+probabilities would be useless. The point of the $\eps$-resolution is that
+it is invisible at finite scale.
+
+
+\subsection*{Exercise 4 --- Half-open versus closed, and what a normalization costs \hfill \normalfont\small[Partial]}
+
+\textbf{Problem.} Integrate the constant $1$ over the \emph{closed} interval $[0,1]$. Then
+find the density of the uniform law on $[0,1]$ and recompute $P(\{0\})$.
+
+\textbf{Why this framework.} Classically $[0,1)$ and $[0,1]$ have the same measure
+and the distinction is pedantry. Here they differ by exactly one dot, and the
+difference is the size of a point.
+
+
+\subsection*{Exercise 5 --- Conditioning on an ordinary interval \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} With $X$ uniform on $[0,1)$ and $y$ in $[a,b)\subset [0,1)$,
+compute $P(X = y\mid a \le  X < b)$.
+
+\textbf{Why this framework.} Classically the numerator is $0$ and the quotient is
+undefined; here the infinitesimal cancels against a finite denominator and
+returns the answer one expects, an infinitesimal rescaled by the width.
+
+
+\subsection*{Exercise 6 --- A nonuniform density is read off at the point \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} Let $X$ have the triangular density $p(x) = 2x$ on $[0,1)$.
+Verify the normalization, compute $P(X = y)$, and compare two points $y1$ and
+$y2$.
+
+\textbf{Why this framework.} The classical statement ``all points have probability
+zero'' hides that some points are more likely than others. Here the likelihood
+ratio of two points is finite, visible, and equal to the density ratio.
+
+
+\subsection*{Exercise 7 --- An atom is a density value, not a second mechanism \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} Let $p$ be the density that equals $\omega/2$ on the dot at $0$
+and $1/2$ on $(0,1)$. Show that $p$ is a probability density, compute
+$P(\{0\})$ and $P(\{y\})$ for $y \neq  0$, and compare their orders.
+
+\textbf{Why this framework.} Classical theory needs two different objects --- a
+density plus a discrete point mass --- and a case split in every formula. Here
+one density carries both, because an infinite value is available.
+
+
+\subsection*{Exercise 8 --- The Dirac delta is the derivative of the step, exactly \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} Let $H$ be the Heaviside step, $H(x) = 1$ for $x \ge  0$ and $0$
+otherwise. Compute the algebraic derivative $dH(x) = (H(x+\eps)-H(x))/\eps$
+at every $x$, and integrate the result over $[-1,1)$.
+
+\textbf{Why this framework.} Classically $dH$ is not a function and the identity
+$integral of dH = 1$ needs distribution theory. Here $dH$ is an ordinary
+function taking the value $\omega$ on one dot.
+
+
+\subsection*{Exercise 9 --- Three orders of point probability \hfill \normalfont\small[Now]}
+
+\textbf{Problem.} At a point $y$, consider densities $p(y) = a\cdot \omega$, $p(y) = b$,
+and $p(y) = c\cdot \eps$ with standard positive $a,b,c$. Compute $P(\{y\})$ in
+each case and order the three results.
+
+\textbf{Why this framework.} The classical shadow assigns $0$ to the last two and
+$a$ to the first, collapsing an entire ordered scale into two values.
+
+
+\subsection*{Exercise 10 --- The dart, with no grid at all \hfill \normalfont\small[Partial/Now]}
+
+\textbf{Problem.} Let $(X,Y)$ be uniform on the unit square, $p = 1$. Compute the
+probability of one specified point.
+
+\textbf{Why this framework.} The counting treatment of the dart needs an
+$\omega$ by $\omega$ grid convention. Here the same answer comes from doing two
+integrations instead of one.
+
+
+\subsection*{Exercise 11 --- A segment beats a point by exactly $\omega$ \hfill \normalfont\small[Partial]}
+
+\textbf{Problem.} In the same square, compute $P(Y = X)$, the probability that the
+two coordinates agree, and compare it with Exercise 10.
+
+\textbf{Why this framework.} Both events are classically null. The framework must
+explain why hitting a line is infinitely easier than hitting a point without
+appealing to a chosen grid.
+
+
+\subsection*{Exercise 12 --- A uniform law on the whole line \hfill \normalfont\small[Partial]}
+
+\textbf{Problem.} Take the ambient line to be $[-\omega, \omega)$. Find the uniform
+density on it, compute $P(\{y\})$ and $P([a,b))$, and compare $P(\{y\})$ with the
+point probability of the uniform law on $[0,1)$.
+
+\textbf{Why this framework.} Classically there is no uniform distribution on $R$ at
+all. Here there is one, and its point probability lands in a strictly rarer
+order than that of the unit interval.
+
+
+\subsection*{Exercise 13 --- Exact moments of the uniform law \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} For $X$ uniform on $[0,1)$, compute $E[X]$, $E[X^2]$, and
+$\Var(X)$ from the integral, without taking any limit.
+
+\textbf{Why this framework.} Classically the answers are $1/2$ and $1/12$. The
+exact values record, in addition, the bias of the integral convention that
+produced them.
+
+
+\subsection*{Exercise 14 --- The integral convention is visible at order $\eps$ \hfill \normalfont\small[Research/Now]}
+
+\textbf{Problem.} For a standard $f$ on $[0,1)$, compare the left-endpoint,
+right-endpoint, and midpoint sums. Apply the result to $f(x) = x$.
+
+\textbf{Why this framework.} Classically all three converge to the same number and
+the choice is irrelevant. Here they are different hyperreal values, and their
+difference is exactly the information the limit destroys.
+
+
+\subsection*{Exercise 15 --- A mixed law needs no case split \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} With the density of Exercise 7 --- mass $1/2$ at the point $0$ and
+$1/2$ spread uniformly --- compute $E[X]$ and the distribution function
+$F(t) = P(X < t)$.
+
+\textbf{Why this framework.} Classical treatment of a mixed law splits every
+formula into a discrete sum plus an integral. Here $F = integral of p$ with no
+case distinction, and the jump appears automatically.
+
+
+\subsection*{Exercise 16 --- Point probability is not invariant, and should not be \hfill \normalfont\small[Now/Partial]}
+
+\textbf{Problem.} Let $X$ be uniform on $[0,1)$ and $Y = 2X$. Find the density of
+$Y$, compute $P(Y = y)$, and reconcile it with $P(X = y/2) = \eps$.
+
+\textbf{Why this framework.} A reader meeting $P(\{y\}) = \eps$ for the first time
+usually asks whether $\eps$ is an absolute ``size of a point''. It is not,
+and the change-of-variables rule shows exactly what it is relative to.
+
+
+\subsection*{Exercise 17 --- An exponential law \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} Let $p(x) = \lambda\cdot e^{-\lambda\cdot x}$ on $[0, \omega)$ with standard
+$\lambda > 0$. Compute $P(X = y)$ and $P(X \ge  t)$ for standard $t$, and discuss
+the normalization.
+
+\textbf{Why this framework.} The tail of an exponential law on an infinite domain
+is where the ambient-line convention and the transcendental functions have to
+agree; the framework should not need a separate limiting argument.
+
+
+\subsection*{Exercise 18 --- Bayes with an atom and a density in one formula \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} A parameter $T$ is $0$ with probability $1/2$ and otherwise
+uniform on $(0,1)$. Given $T = t$, an observation $Z$ has a standard density
+$f(z | t)$. Compute the posterior $P(T = 0\mid Z = z)$.
+
+\textbf{Why this framework.} This is the classical ``mixed prior'' nuisance, where
+the discrete and continuous parts of the prior must be handled by different
+machinery and the observation $\{Z = z\}$ is itself a null event.
+
+
+\subsection*{Exercise 19 --- The Borel--Kolmogorov paradox dissolves \hfill \normalfont\small[Research/Partial]}
+
+\textbf{Problem.} For $(X,Y)$ uniform on the unit square, condition on the diagonal
+$D = \{Y = X\}$. Compute $P(X\in [a,b)\mid D)$ and explain why the classical
+paradox does not arise.
+
+\textbf{Why this framework.} Classically $P(D) = 0$, conditioning on $D$ requires
+choosing a parametrization, and different parametrizations give different
+answers --- the Borel--Kolmogorov paradox. Here $P(D) = \eps > 0$, so the
+elementary definition applies and the answer is unique.
+
+
+\subsection*{Exercise 20 --- What must be proved before this is a measure theory \hfill \normalfont\small[Research]}
+
+\textbf{Problem.} Identify precisely what is needed to prove: (a) that the standard
+part of the hyperfinite integral is the classical Riemann integral, for every
+standard Riemann-integrable $f$; (b) that $P$ is finitely additive over arbitrary disjoint unions of dots;
+(c) that $P$ is \emph{not} countably additive in the classical sense, and why that
+is not a defect.
+
+\textbf{Why this framework.} An honest curriculum has to state where the
+reformulation stops being elementary. The framework's own advertising ---
+``probability is just an integral'' --- is only justified once these are settled.
+
+\textbf{Solution sketch.} (a) needs either a transfer principle or an explicit
+uniform-continuity estimate: the hyperfinite sum differs from every finite
+Riemann sum of mesh $\ge  \eps$ by an infinitesimal, which requires control of
+the modulus of continuity, exactly the content the classical limit hides.
+(b) holds by construction for unions of dots, since the integral is a sum over
+disjoint dots; the work is in defining which sets are unions of dots.
+(c) a countable union of dots is \emph{not} a hyperfinite sum, so the classical
+countable-additivity axiom is not available and must not be assumed. This is
+the same boundary documented in $notes/counting/\sigma-algebra-not-needed.md$:
+the framework computes exactly on constructed events and makes no claim about
+an arbitrary sigma-algebra.
+
+
+\section*{Where the solutions are}
+
+Worked solutions are in the companion booklet
+\href{https://files.pannous.com/hyperreal-integral-exercise-solutions-dark.pdf}{\emph{Twenty Exercises in Probability on Ordinary Intervals --- Solutions}}:
+\begin{center}\small\url{https://files.pannous.com/hyperreal-integral-exercise-solutions-dark.pdf}\end{center}
+Try the exercises first: the algebra is short, and the point of each one is
+what survives that a real-valued shadow would have deleted.
+
+
+\end{document}

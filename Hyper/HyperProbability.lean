@@ -8,7 +8,7 @@
   file generalizes both to arbitrary codimension `k`, proving the pattern
   once instead of once per shape.
 
-  See `notes/hyperreal-probability-foundations.md` for the corrected design:
+  See `notes/counting/hyperreal-probability-foundations.md` for the corrected design:
   probability is a normalized symbolic count.  An event count `c·ωᵈ` inside
   a sample-space count `A·ωⁿ` yields `(c/A)·ε^(n-d)`.  The codimension formula
   below is therefore a derived algebraic pattern, not the primitive notion.

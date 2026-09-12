@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the exercise and solution papers from notes/algebraic-stochastics-exercises.md.
+"""Build the exercise and solution papers from notes/counting/algebraic-stochastics-exercises.md.
 
 Each paper is produced in a light and a dark variant, the dark one carrying the
 "-dark" name suffix:
@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 PAPER_DIR = Path(__file__).resolve().parent
-SOURCE = PAPER_DIR.parent / "notes" / "algebraic-stochastics-exercises.md"
+SOURCE = PAPER_DIR.parent / "notes" / "counting" / "algebraic-stochastics-exercises.md"
 SERVER_URL = "https://files.pannous.com"
 REPO_URL = "https://github.com/pannous/hyper-lean"
 EXERCISES = "hyperreal-exercises"
@@ -98,18 +98,40 @@ def mathify(code: str) -> str:
         return r"\texttt{%s}" % code.replace("_", r"\_")
     out = symbols(code)
     out = out.replace("#", r"\#").replace("%", r"\%")
+    out = out.replace("*", r"\cdot ")
+    # Braces mean sets in the notes and must be escaped, except where they
+    # already group an exponent or subscript.
+    groups = []
+    def protect(match):
+        groups.append(match.group(0))
+        return "\x00%d\x00" % (len(groups) - 1)
+    out = re.sub(r"[\^_]\{[^{}]*\}", protect, out)
     out = out.replace("{", r"\{").replace("}", r"\}")
     out = re.sub(r"\\sqrt\(([^()]*)\)", r"\\sqrt{\1}", out)
     out = re.sub(r"\b([A-Z])(\d+|[ijn])\b", r"\1_{\2}", out)
-    out = out.replace("*", r"\cdot ")
     out = re.sub(r"\^-(\\?[A-Za-z0-9]+)", r"^{-\1}", out)
     out = re.sub(r"\^([A-Za-z0-9]{2,})", r"^{\1}", out)
+    out = re.sub(r"\x00(\d+)\x00", lambda m: groups[int(m[1])], out)
     return "$%s$" % out
+
+
+# Characters the notes use that pdflatex's default encoding cannot set.
+UNICODE = {
+    "\u26a0\ufe0f": r"\textbf{Caution:}",
+    "\u26a0": r"\textbf{Caution:}",
+    "\u2014": "---",
+    "\u2013": "--",
+    "\u00b7": r"$\cdot$",
+    "\u201c": "``",
+    "\u201d": "''",
+}
 
 
 def escape_text(text: str) -> str:
     for char in ["&", "%", "#", "_"]:
         text = text.replace(char, "\\" + char)
+    for char, replacement in UNICODE.items():
+        text = text.replace(char, replacement)
     return text
 
 
@@ -126,7 +148,7 @@ def convert(text: str) -> str:
             piece = escape_text(piece)
             piece = re.sub(r"\*\*(.+?)\*\*", r"\\textbf{\1}", piece, flags=re.S)
             piece = re.sub(r"\*(.+?)\*", r"\\emph{\1}", piece, flags=re.S)
-            piece = piece.replace('"', "''")
+            piece = re.sub(r'"([^"]*)"', r"``\1''", piece)
             out.append(piece)
     return "".join(out)
 
@@ -206,15 +228,15 @@ PREAMBLE = r"""\documentclass[11pt]{article}
 \setlist[description]{leftmargin=0pt, style=unboxed, font=\normalfont\bfseries}
 
 \title{%(title)s\\
-\large Algebraic Stochastics and Statistics over $\Rstar$}
-\author{Exercises for engineers, with a machine-checked Lean~4 companion}
+\large %(subtitle)s}
+\author{%(author)s}
 \date{\today}
 
 \begin{document}
 \maketitle
 """
 
-SETUP = r"""
+RULE_COUNTING = r"""
 \section*{The one rule you need}
 
 A probability is an ordinary algebraic value in the hyperreal field $\Rstar$,
@@ -238,7 +260,38 @@ Everything else is built from these ratios by addition, multiplication,
 complement and division. The standard part $\st$ is applied only when the
 ordinary real shadow of an answer is explicitly wanted --- which is exactly the
 step that classically destroys the information these exercises are about.
+"""
 
+RULE_INTEGRAL = r"""
+\section*{The two rules you need}
+
+Nothing here is counted, and no hyperfinite sample space is built. The sample
+space is an ordinary real interval such as $[0,1]$; all of the hyperreal
+content sits in the integral. Fix a positive infinitesimal $\eps$, put
+$\omega = 1/\eps$, and take the resolution of the line to be $\eps$: a point
+$y$ \emph{is} the half-open dot $[y, y+\eps)$. The integral is then the
+hyperfinite left-endpoint Riemann sum with $dx = \eps$,
+\[
+  \int_{[a,b)} f(x)\,dx
+  := \sum_{k=0}^{(b-a)\omega-1} f(a+k\eps)\,\eps ,
+\]
+evaluated in $\Rstar$ and \emph{not} followed by $\st$. A probability is the
+integral of a density, $P(E)=\int_E p$. Because a point is one dot, this
+specializes to the identity used on nearly every page:
+\[
+  \boxed{\;P(\{y\}) = p(y)\,\eps\;}
+\]
+In particular a uniform law on $[0,1)$ has $p \equiv 1$, so hitting an exact
+number has probability $\eps > 0$, not zero --- and $\int_{[0,1)} 1\,dx
+= \omega\eps = 1$ exactly, so ordinary interval probabilities are untouched.
+
+An atom of mass $a$ is not a second mechanism bolted onto the density. It is
+the density \emph{value} $p(y)=a\omega$, since then $P(\{y\})=a\omega\eps=a$.
+The Dirac delta is therefore an ordinary function taking the value $\omega$ on
+one dot, and $\st$ is applied only where it is explicitly wanted.
+"""
+
+SETUP_TAIL = r"""%(companion)s
 \paragraph{Theory.} The axioms, the model, and the underlying calculus are
 \emph{not} repeated here. They are developed in the companion paper,
 \href{%(theory)s}{\emph{Hyperreal Numbers: $\eps\cdot\omega=1$ --- An
@@ -249,27 +302,21 @@ Algebraic, Computable Introduction to Infinitesimal Calculus}}
 \paragraph{Readiness labels.} Each exercise is tagged by what the present
 Lean~4 formalization already supports.
 \begin{description}
-\item[Now] reduces to arithmetic and order facts already available for the
-concrete $\Rstar$ representation, even if a polished event API is still absent.
-\item[Partial] the scalar answer is representable now, but reusable random
-variables, hyperfinite counts, or finite-sum infrastructure are missing.
-\item[Research] deliberately requires a substantive extension of the framework.
+%(labels)s
 \end{description}
 """
-
 
 SOLUTIONS_POINTER = r"""
 \section*{Where the solutions are}
 
-Worked solutions, with the corresponding checked Lean~4 kernels, are in the
-companion booklet \href{%(solutions)s}{\emph{Twenty Exercises in Algebraic
-Probability --- Solutions}}:
+Worked solutions are in the companion booklet
+\href{%(solutions)s}{\emph{%(title)s --- Solutions}}:
 \begin{center}\small\url{%(solutions)s}\end{center}
 Try the exercises first: the algebra is short, and the point of each one is
 what survives that a real-valued shadow would have deleted.
 """
 
-SOLUTIONS_INTRO = r"""
+SOLUTIONS_INTRO_COUNTING = r"""
 \paragraph{Exercises.} The problems are stated in full in the companion
 booklet \href{%(ex)s}{\emph{Twenty Exercises in Algebraic Probability}}:
 \begin{center}\small\url{%(ex)s}\end{center}
@@ -294,7 +341,7 @@ checked; constructing an instance of that interface is deliberately not passed
 off as solved.
 """
 
-DEVELOPMENT_ORDER = r"""
+CLOSING_COUNTING = r"""
 \section*{Suggested framework development order}
 
 The exercises point to a practical implementation sequence: first introduce
@@ -309,9 +356,101 @@ them.
 """
 
 
-def document(title, colors, intro, exercises, body_sections, closing):
-    parts = [PREAMBLE % {"title": title, "colors": colors}, intro]
-    parts.append("\n\\section*{Exercises}\n" if body_sections[0] == "Problem" else "\n\\section*{Solutions}\n")
+SOLUTIONS_INTRO_INTEGRAL = r"""
+\paragraph{Exercises.} The problems are stated in full in the companion
+booklet \href{%(ex)s}{\emph{Twenty Exercises in Probability on Ordinary
+Intervals}}:
+\begin{center}\small\url{%(ex)s}\end{center}
+Each problem is restated below, so this booklet is self-contained.
+
+\paragraph{No checked kernels yet.} Unlike the counting curriculum, this
+framework has \emph{no} Lean~4 formalization: \texttt{Hyper/HyperList.lean}
+offers no integral, no density type, and above all no index type of size
+$\omega$ to sum over. The solutions below are worked algebra, not machine-checked
+theorems, and the readiness labels measure distance from the current code
+rather than proofs already obtained. Anything needing a genuine
+$\sum_{k<\omega}$ is labelled \textbf{Research} however short its algebra is.
+"""
+
+CLOSING_INTEGRAL = r"""
+\section*{What to build first}
+
+The exercises fall into three implementation stages. Stage one is a
+single-dot integral and the identity $P(\{y\})=p(y)\eps$, which needs nothing
+beyond the arithmetic already proved for $\Rstar$. Stage two is an index type
+ranging over the $(b-a)\omega$ dots of an interval, with the constant and
+power sums; that single addition turns most \textbf{Partial} labels into
+\textbf{Now}. Stage three is the analytic layer --- transcendental densities,
+$\st$-compatibility with the classical Riemann integral, and conditional laws
+on infinitesimal-probability events --- which is where the remaining
+\textbf{Research} exercises live.
+
+The conventions used throughout (half-open dots, left endpoints,
+$\int\delta = 1$ on one dot, the ambient line $[-\omega,\omega)$) are choices,
+not consequences. \texttt{notes/integral/integral-probability-foundations.md}
+lists each one together with what the alternative would change; every
+alternative changes answers at order $\eps$, which is exactly the order this
+framework exists to discuss.
+"""
+
+COUNTING = {
+    "source": PAPER_DIR.parent / "notes" / "counting" / "algebraic-stochastics-exercises.md",
+    "exercises": "hyperreal-exercises",
+    "solutions": "hyperreal-exercise-solutions",
+    "title": "Twenty Exercises in Algebraic Probability",
+    "subtitle": r"The hyperfinite counting model over $\Rstar$",
+    "author": "Exercises for engineers, with a machine-checked Lean~4 companion",
+    "rule": RULE_COUNTING,
+    "labels": r"""\item[Now] reduces to arithmetic and order facts already available for the
+concrete $\Rstar$ representation, even if a polished event API is still absent.
+\item[Partial] the scalar answer is representable now, but reusable random
+variables, hyperfinite counts, or finite-sum infrastructure are missing.
+\item[Research] deliberately requires a substantive extension of the framework.""",
+    "companion": r"""
+\paragraph{The other model.} These exercises count a hyperfinite sample space.
+The companion curriculum keeps ordinary real intervals instead and puts the
+hyperreal content into the integral, with $dx=\eps$ and $\omega$ as the Dirac
+delta; both give $P(\{y\})=\eps$ on the unit interval.
+\begin{center}\small\url{%(sibling)s}\end{center}
+""",
+    "sibling": "hyperreal-integral-exercises",
+    "solutions_intro": SOLUTIONS_INTRO_COUNTING,
+    "closing": CLOSING_COUNTING,
+}
+
+INTEGRAL = {
+    "source": PAPER_DIR.parent / "notes" / "integral" / "integral-probability-exercises.md",
+    "exercises": "hyperreal-integral-exercises",
+    "solutions": "hyperreal-integral-exercise-solutions",
+    "title": "Twenty Exercises in Probability on Ordinary Intervals",
+    "subtitle": r"Densities, $dx=\eps$, and $\omega$ as the Dirac delta",
+    "author": "Exercises for engineers, in the hyperreal field $\\Rstar$",
+    "rule": RULE_INTEGRAL,
+    "labels": r"""\item[Now] the value and its derivation use only single-dot integrals and
+$\Rstar$ arithmetic, which the concrete representation already has.
+\item[Partial] the closed form is exact and short, but the derivation sums over
+the $(b-a)\omega$ dots of an interval, for which there is no index type yet.
+\item[Research] additionally needs transcendental densities, a proved
+$\st$-compatibility theorem, or a genuine conditional-law construction.""",
+    "companion": r"""
+\paragraph{The other model.} These exercises never count anything. The
+companion curriculum answers the same questions by counting a hyperfinite
+sample space $\{0,\dots,\omega-1\}$ instead, and its solutions are
+machine-checked in Lean~4.
+\begin{center}\small\url{%(sibling)s}\end{center}
+""",
+    "sibling": "hyperreal-exercises",
+    "solutions_intro": SOLUTIONS_INTRO_INTEGRAL,
+    "closing": CLOSING_INTEGRAL,
+}
+
+CURRICULA = [COUNTING, INTEGRAL]
+
+
+def document(header, intro, exercises, body_sections, closing):
+    parts = [PREAMBLE % header, intro]
+    heading = "Solutions" if "Solution" in body_sections else "Exercises"
+    parts.append("\n\\section*{%s}\n" % heading)
     for exercise in exercises:
         parts.append(
             "\n\\subsection*{Exercise %d --- %s \\hfill \\normalfont\\small[%s]}\n"
@@ -336,6 +475,7 @@ def compile_tex(name: str, source: str):
             cwd=PAPER_DIR,
             capture_output=True,
             text=True,
+            errors="replace",
         )
     if result.returncode != 0:
         print(result.stdout[-3000:], file=sys.stderr)
@@ -354,42 +494,52 @@ def build_theory_light():
     compile_tex(THEORY_NAME[""], source)
 
 
-def build_booklets(exercises, variant: str):
-    """Build both exercise booklets in one colour variant, cross-linked to it."""
-    setup = SETUP % {"theory": url(THEORY_NAME[variant]), "repo": REPO_URL}
-    exercises_url = url(EXERCISES + variant)
-    solutions_url = url(SOLUTIONS + variant)
+def build_booklets(curriculum, variant: str):
+    """Build both booklets of one curriculum in one colour variant."""
+    exercises = parse_exercises(curriculum["source"].read_text())
+    assert len(exercises) == 20, f"expected 20 exercises, parsed {len(exercises)}"
+
+    setup = curriculum["rule"] + SETUP_TAIL % {
+        "companion": curriculum["companion"] % {"sibling": url(curriculum["sibling"] + variant)},
+        "labels": curriculum["labels"],
+        "theory": url(THEORY_NAME[variant]),
+        "repo": REPO_URL,
+    }
+    exercises_url = url(curriculum["exercises"] + variant)
+    solutions_url = url(curriculum["solutions"] + variant)
+    header = {
+        "subtitle": curriculum["subtitle"],
+        "author": curriculum["author"],
+        "colors": COLORS[variant],
+    }
 
     compile_tex(
-        EXERCISES + variant,
+        curriculum["exercises"] + variant,
         document(
-            "Twenty Exercises in Algebraic Probability",
-            COLORS[variant],
+            dict(header, title=curriculum["title"]),
             setup,
             exercises,
             ["Problem", "Why this framework"],
-            SOLUTIONS_POINTER % {"solutions": solutions_url},
+            SOLUTIONS_POINTER % {"solutions": solutions_url, "title": curriculum["title"]},
         ),
     )
     compile_tex(
-        SOLUTIONS + variant,
+        curriculum["solutions"] + variant,
         document(
-            "Twenty Exercises in Algebraic Probability: Solutions",
-            COLORS[variant],
-            setup + SOLUTIONS_INTRO % {"ex": exercises_url},
+            dict(header, title=curriculum["title"] + ": Solutions"),
+            setup + curriculum["solutions_intro"] % {"ex": exercises_url},
             exercises,
             ["Problem", "Solution", "Ingredients and readiness"],
-            DEVELOPMENT_ORDER,
+            curriculum["closing"],
         ),
     )
 
 
 def main():
-    exercises = parse_exercises(SOURCE.read_text())
-    assert len(exercises) == 20, f"expected 20 exercises, parsed {len(exercises)}"
     build_theory_light()
-    for variant in COLORS:
-        build_booklets(exercises, variant)
+    for curriculum in CURRICULA:
+        for variant in COLORS:
+            build_booklets(curriculum, variant)
 
 
 if __name__ == "__main__":
