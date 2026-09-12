@@ -114,45 +114,48 @@ def integralPoly (s : Sample) (coefficients : List R*) (a b : R*) : R* :=
 -- Spikes: an atom is a density value, not a second mechanism
 -- ═══════════════════════════════════════════════════════════════════════════
 
-/-- A concentrated mass.  Two shapes, and they are *not* interchangeable:
+/-- A concentrated mass: the density value `mass·ω` on the cell of `position`.
 
-    * `spread := false` — an **atom**: the density value `mass·ω` on the single
-      dot `[position, position+ε)`.  This is what a probability atom must be, so
-      that the universal identity `P({y}) = p(y)·ε` returns the whole mass when
-      `{y}` is that one dot.
-    * `spread := true` — the **symmetric Dirac** `δ = ω₀/2`: the value
-      `mass·ω/2` on *each* of the two halo dots `[position-ε, position)` and
-      `[position, position+ε)`.  `ω` over the halo integrates to `2`, hence the
-      `/2`; over one dot it integrates to `1`.  Both statements are the same
-      rule applied to widths `2ε` and `ε`.
+    **The probability atom and the Dirac delta are this same object.**  `ω` is
+    what unifies them: an atom of mass `a` and the spike `a·δ` are both "`ω`
+    scaled to carry mass `a` on a point's cell", and `P({y}) = p(y)·ε` returns
+    that mass.  There is no second mechanism and no second kind of spike.
 
-    The spread form is the one the symmetric difference quotient
-    `∂f = (f(x+ε) - f(x-ε))/(2ε)` produces: `∂H = ω/2` on both halo dots, since
-    the jump of the step function sits *between* dots rather than on one.  Its
-    integral is `1` either way, which is why `δ := ω₀/2` is the right choice
-    there while `mass·ω` on one dot is the right choice for an atom. -/
+    `stencil := true` is *not* a different delta.  It is what the **central
+    difference quotient** `∂f = (f(x+ε) - f(x-ε))/(2ε)` returns when applied to
+    a step: `ω/2` on *each* of the two cells of the halo, because the stencil is
+    `2ε` wide while the jump is a point.  It is `δ` convolved with that stencil
+    — same mass, same integral over every halo-aligned region, support `2ε`
+    instead of `ε`.  The `/2` belongs to the stencil's width, not to `δ`.
+
+    Consequently `∫(−ε,ε) ω = 2` and `∫(0,ε) ω = 1` are simply the constant `ω`
+    on two cells and on one; and `δ := ω₀/2` is right exactly when `ω₀` means
+    "`ω` on the two-cell halo", which is the form the symmetric derivative
+    produces. -/
 structure Spike where
   position : R*
   mass : R*
-  spread : Bool := false
+  /-- Carried by the two-cell halo rather than the single cell: the shape the
+      central difference quotient produces. -/
+  stencil : Bool := false
 
-/-- The dots of `[a,b)` that a spike's support meets. -/
+/-- The cells of `[a,b)` that a spike's support meets. -/
 def spikeMass (spike : Spike) (a b : R*) : R* :=
-  let dotIn (c : R*) := decide (a ≤ c ∧ c + epsilon ≤ b)
-  if spike.spread then
-    match dotIn (spike.position - epsilon), dotIn spike.position with
+  let cellIn (c : R*) := decide (a ≤ c ∧ c + epsilon ≤ b)
+  if spike.stencil then
+    match cellIn (spike.position - epsilon), cellIn spike.position with
     | true, true => spike.mass
     | true, false | false, true => scale (1 / 2) spike.mass
     | false, false => 0
-  else if dotIn spike.position then spike.mass else 0
+  else if cellIn spike.position then spike.mass else 0
 
 /-- The value a spike contributes to the density at `x`. -/
 def spikeValue (spike : Spike) (x : R*) : R* :=
-  let onDot (c : R*) := decide (c ≤ x ∧ x < c + epsilon)
-  if spike.spread then
-    if onDot (spike.position - epsilon) ∨ onDot spike.position
+  let onCell (c : R*) := decide (c ≤ x ∧ x < c + epsilon)
+  if spike.stencil then
+    if onCell (spike.position - epsilon) ∨ onCell spike.position
     then scale (1 / 2) (spike.mass * omega) else 0
-  else if onDot spike.position then spike.mass * omega else 0
+  else if onCell spike.position then spike.mass * omega else 0
 
 /-- An elementary function: an ordinary polynomial part plus finitely many
     `ω`-spikes.  Every density in the exercise curriculum is of this shape. -/
@@ -176,16 +179,19 @@ def integralLine (f : Elementary) : R* := integral f lineLow lineHigh
 notation "∫[" a ", " b "] " f => integral f a b
 notation "∫ℝ " f => integralLine f
 
-/-- The unit Dirac delta at `position`, symmetric: `ω₀/2` on the halo.  This is
-    the derivative of the Heaviside step under the symmetric difference
-    quotient, and `∫δ = 1`. -/
-def dirac (position : R*) : Elementary :=
-  { spikes := [{ position := position, mass := 1, spread := true }] }
-
-/-- A probability atom of mass `m` at `position`: `m·ω` on one dot, so that
+/-- An atom of mass `m` at `position`: `m·ω` on the point's cell, so that
     `P({position}) = m` exactly. -/
 def atom (position m : R*) : Elementary :=
   { spikes := [{ position := position, mass := m }] }
+
+/-- The unit Dirac delta.  Definitionally the unit atom — one object. -/
+def dirac (position : R*) : Elementary := atom position 1
+
+/-- What the central difference quotient of a unit step actually returns:
+    `ω/2` on each halo cell.  Equal to `dirac` in mass and in every
+    halo-aligned integral, but smeared over the `2ε` stencil. -/
+def stepDerivative (position : R*) : Elementary :=
+  { spikes := [{ position := position, mass := 1, stencil := true }] }
 
 /-- The constant density `c`. -/
 def constant (c : R*) : Elementary := { poly := [c] }

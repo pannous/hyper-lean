@@ -237,10 +237,10 @@ algebraic content of the word "atom".
 integral over disjoint regions, and order comparison. **Now:** the mixed law is
 checked end to end, including that its total mass is exactly `1`.
 
-⚠️ The atom here is `a*omega` on the *single* dot at `0`, not the symmetric
-`delta = omega_0/2` of Exercise 8. Both integrate to their mass, but only the
-one-dot form returns the whole mass to `P({y}) = p(y)*epsilon`. The two are
-separate constructors in the implementation for exactly this reason.
+The atom here *is* the Dirac delta of Exercise 8, scaled: `a*delta`. One
+object, one mechanism — that is what `omega` unifies. What is two-celled is not
+`delta` but the central difference *operator* of Exercise 8, whose `2*epsilon`
+stencil returns `delta` smeared over the halo.
 
 ## Exercise 8 — The Dirac delta is the derivative of the step, exactly
 

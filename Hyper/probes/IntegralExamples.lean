@@ -75,14 +75,12 @@ example : normalize (integral (constant omega) (-epsilon) epsilon) = normalize 2
 /-- `ω` over one dot `[0, ε)` integrates to `1`: the same rule, half the halo. -/
 example : normalize (integral (constant omega) 0 epsilon) = normalize 1 := by native_decide
 
-/-- Hence the unit Dirac is `ω₀/2` on the halo, and `∫δ = 1` exactly. -/
+/-- Hence `∫δ = 1` exactly, for the unit spike on a point's cell. -/
 example : normalize (integralLine (dirac 0)) = normalize 1 := by native_decide
 
-/-- Half the halo collects half the mass: the README's "right-dirac". -/
-example : normalize (integral (dirac 0) 0 epsilon) = normalize (1/2 : R*) := by native_decide
-
-/-- And the "left-dirac" half. -/
-example : normalize (integral (dirac 0) (-epsilon) 0) = normalize (1/2 : R*) := by native_decide
+/-- Half the halo collects half of the *constant* `ω` — the README's
+    "left-dirac"/"right-dirac" are statements about `ω`, not about `δ`. -/
+example : normalize (integral (constant omega) (-epsilon) 0) = normalize 1 := by native_decide
 
 /-- A spike outside the region contributes nothing. -/
 example : normalize (integral (dirac 5) 0 1) = normalize 0 := by native_decide
@@ -114,19 +112,34 @@ example : normalize (halfAtom.probPoint (1/2)) = normalize (scale (1/2) epsilon)
 example : normalize (halfAtom.prob 0 epsilon) = normalize (1/2 + scale (1/2) epsilon) := by
   native_decide
 
-/-- An atom is *not* the symmetric Dirac: a unit atom puts `ω` on one dot,
-    where `δ` puts `ω/2` on each of two.  Both integrate to `1`. -/
+/-- The atom and the Dirac delta are the *same object*: `ω` unifies them, and
+    `dirac` is definitionally the unit atom. -/
+example : dirac 0 = atom 0 1 := rfl
+
 example : normalize (integralLine (atom 0 1)) = normalize 1 := by native_decide
 
 example : normalize ((atom 0 1).value 0) = normalize omega := by native_decide
 
-example : normalize ((dirac 0).value 0) = normalize (scale (1/2) omega) := by native_decide
-
-/-- Consequently a *point* carries the whole atom but only half of a `δ`; the
-    halo carries all of both. -/
+/-- A point carries the whole atom, which is what `P({y}) = p(y)·ε` demands. -/
 example : normalize (integral (atom 0 1) 0 epsilon) = normalize 1 := by native_decide
 
-example : normalize (integral (dirac 0) 0 epsilon) = normalize (1/2 : R*) := by native_decide
+/-- The central difference quotient of a step returns something else: `ω/2` on
+    each of the two halo cells, because its stencil is `2ε` wide.  Same mass,
+    and every halo-aligned integral agrees with `δ` — -/
+example : normalize (integralLine (stepDerivative 0)) = normalize 1 := by native_decide
+
+example : normalize (integral (stepDerivative 0) (-epsilon) epsilon)
+        = normalize (integral (dirac 0) (-epsilon) epsilon) := by native_decide
+
+example : normalize (integral (stepDerivative 0) (-1) 1)
+        = normalize (integral (dirac 0) (-1) 1) := by native_decide
+
+/-- — and they come apart only on a *half*-halo, i.e. below the resolution the
+    theory claims to describe: one cell sees all of `δ` but half the stencil. -/
+example : normalize (integral (stepDerivative 0) 0 epsilon) = normalize (1/2 : R*) := by
+  native_decide
+
+example : normalize (integral (dirac 0) 0 epsilon) = normalize 1 := by native_decide
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Moments, and the visible cost of the sampling convention

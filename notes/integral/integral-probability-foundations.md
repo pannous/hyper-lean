@@ -70,15 +70,11 @@ p(y) = a·ω      (and p ordinary elsewhere),
 because then `P({y}) = ∫_dot(y) p = a·ω·ε = a` exactly. This is the README's
 rule `π(x)=a ⟺ p(x)=a·ω`, now stated as the definition of what an atom *is*.
 
-The symmetric Dirac delta is a *different* object with the same integral:
-
-```text
-atom_y(x) := a·ω   on dot(y)                 ∫ = a,  and P({y}) = a
-δ_y(x)    := ω/2   on both dots of halo(y)   ∫ = 1,  and P({y}) = 1/2
-```
-
-`δ` is what the symmetric difference quotient of a step produces; an atom is
-what a probability mass at a point must be. §5 works this out.
+**The Dirac delta is this same object**, not a second one: `δ_y := 1·ω` on
+`dot(y)`, so `∫δ = 1` and `a·δ_y` is the atom of mass `a`. This is exactly the
+unification `ω` was introduced for — one value, one mechanism, no point
+weights and no distributions. §5 treats the one place where a *2ε-wide
+difference stencil* produces something else.
 
 ## 3. The immediate consequences
 
@@ -166,7 +162,7 @@ None of these is forced by the algebra. All of them must be *stated*, because
 each changes answers at order `ε` — which is exactly the order this framework
 exists to talk about.
 
-### The `δ` conventions are consistent, not conflicting
+### The `δ` conventions are consistent, and `δ` is the atom
 
 The README's two statements
 
@@ -174,31 +170,38 @@ The README's two statements
 ∫(−ε,ε) ω = 2        ∫(0,ε) ω = 1
 ```
 
-are the *same* rule applied to two widths: the halo `(−ε,ε)` is two dots wide
-and one dot is one dot wide. There is nothing to reconcile. Consequently
-`δ := ω₀/2` — the value `ω/2` on each halo dot — is exactly the unit spike,
-`∫δ = 1`.
+are the *same* rule applied to two widths: the halo `(−ε,ε)` is two cells wide,
+one cell is one cell wide. There is nothing to reconcile, and both are about
+the **constant** `ω`, not about `δ`.
 
-That choice is also forced by the symmetric difference quotient, which is what
-the Julia implementation uses:
+`δ` itself is the unit atom — `ω` on a point's cell, mass `1` — and the atom of
+mass `a` is `a·δ`. One object. That is precisely the unification `ω` buys:
+a discrete mass and a continuous density are values of the same density
+function, differing only in order.
+
+**Where the `/2` really comes from.** Apply the symmetric difference quotient,
+the one the Julia implementation uses, to the Heaviside step:
 
 ```text
-∂f(x) = (f(x+ε) − f(x−ε)) / 2ε
+∂f(x)  = (f(x+ε) − f(x−ε)) / 2ε
 ∂H(−ε) = (H(0) − H(−2ε))/2ε = ω/2
-∂H(0)  = (H(ε) − H(−ε)) /2ε = ω/2        ⟹ ∂H = ω₀/2 = δ,  ∫∂H = 1
+∂H(0)  = (H(ε) − H(−ε)) /2ε = ω/2        ⟹ ∂H = ω₀/2,  ∫∂H = 1
 ```
 
-The jump of the step function sits *between* dots, so a symmetric derivative
-necessarily splits it evenly over the two halo dots. With the one-sided quotient
-`(f(x+ε)−f(x))/ε` one gets instead `∂H = ω` on the single dot `[−ε,0)`, also
-with integral `1`. Both are right; they are derivatives in different senses.
+so `δ := ω₀/2` is right *for that operator*: its stencil is `2ε` wide while
+the jump is a point, so it returns `δ` **convolved with the stencil** — the
+same mass, spread over two cells instead of one. With the one-sided quotient
+`(f(x+ε)−f(x))/ε` the same step gives `ω` on a single cell, which is `δ` on the
+nose.
 
-**But a probability atom is not a `δ`.** An atom of mass `a` at `y` must
-satisfy the universal identity `P({y}) = p(y)·ε` with `{y}` the *one* dot at
-`y`, which forces `p(y) = a·ω` on that dot. A symmetric `δ` spread over two
-dots would hand a point only half its mass. The implementation therefore
-carries both shapes explicitly — `atom` (one dot, `ω`) and `dirac` (halo,
-`ω₀/2`) — and both integrate to their mass.
+The two agree on mass and on every halo-aligned integral; they differ only if
+you integrate over *half* a halo, which is asking a question below the
+resolution the theory claims to answer. The implementation keeps them apart by
+one boolean (`Spike.stencil`) so that `∂H` can be represented faithfully, but
+`dirac = atom · 1` holds definitionally.
+
+So: nothing forces a probability atom and `δ` apart. What is genuinely
+two-celled is the *central difference operator*, not the delta.
 
 ## 6. What this buys over the counting model
 
@@ -230,6 +233,8 @@ executable checks in `Hyper/probes/IntegralExamples.lean`
 - All three sampling conventions (`leftRule`, `midRule`, `rightRule`) and the
   exact relation between them.
 - `∫_[0,1) 1 = 1`, `∫_ℝ 1 = 2ω`, `∫(−ε,ε) ω = 2`, `∫(0,ε) ω = 1`, `∫δ = 1`.
+- `dirac = atom · 1` definitionally, and the central-difference `stepDerivative`
+  agrees with it on every halo-aligned integral while differing on a half-halo.
 - `P({y}) = p(y)·ε`, checked for the uniform law on `[0,1)` (`ε`), on the whole
   line (`ε²/2`), for the triangular density, and for a mixed atom-plus-uniform
   law.
