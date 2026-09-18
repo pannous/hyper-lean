@@ -38,5 +38,10 @@ field still contain unresolved obligations; they are not part of this
 trusted algebraic path. The targeted suite does not claim that every
 historical file under `Hyper/old`, `Hyper/bad`, or `Hyper/theory` builds.
 
+`Hyper/GeometricContent.lean` adds the Euclidean length derivation and
+boundary-aware geometric square model. It is included in the same suite;
+see [geometric content](notes/geometric-algebraic-content.md) for its exact
+scope and the general polyhedral extension theorem still outside Lean.
+
 See [the current foundations](notes/algebraic-hyperreal-foundations.md) for
 the mathematical contract and the distinction between points, dots, and halos.

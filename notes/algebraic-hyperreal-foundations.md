@@ -5,6 +5,13 @@ supersedes the point/dot/halo identifications and unrestricted integration
 claims in the older integral notes. The historical list backend and its
 examples remain available; the trusted new path imports no `HyperList`.
 
+**Geometric continuation:** for the selected Euclidean, rotation-invariant
+model read [Why length appears naturally](geometric-algebraic-content.md).
+It derives the line coefficient from symmetry, scaling, and unit calibration,
+then derives endpoint corrections by finite additivity. In the closed unit
+square the exact line probability is `(length·ε+ε²)/(1+ε)²`. The midpoint
+sampling examples below are retained as a distinct earlier model.
+
 The proposed resolution is **an exact ordered fraction field, a positive
 algebraic content on an event algebra, and normalization by the ambient
 sample space Ω**. No limits, infinite series, transfer principle, or
@@ -14,7 +21,7 @@ The foundational core and the explicitly specified dart model are settled
 here. This is not a claim to have integrated every function or constructed
 a canonical probability on every subset of Euclidean space.
 
-## The minimal example: square, descending line, point
+## The earlier minimal sampling example: square, descending line, point
 
 Take the unit square Ω and the descending diagonal from `(0,1)` to `(1,0)`:
 `L = {(x,y) ∈ Ω : x+y=1}`. Choose one admitted elementary outcome p on L.
@@ -259,7 +266,7 @@ where a point has probability ε² it needs height ω². With raw geometric
 content the coefficient is instead `1/ν(E)`. This context dependence removes
 the erroneous universal rule “δ always equals ω”.
 
-## 4. The dart, with the event algebra and assumptions included
+## 4. The sampling dart, with the event algebra and assumptions included
 
 Choose the unit-square resolution convention
 

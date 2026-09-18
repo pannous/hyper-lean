@@ -10,7 +10,8 @@ fi
 # Build first: `lake env lean` alone can silently read stale local oleans.
 lake build Hyper.HyperReal Hyper.HyperProbability Hyper.HyperIntegral \
   Hyper.AlgebraicStochasticsBasic Hyper.AlgebraicStochasticsIntermediate \
-  Hyper.AlgebraicStochasticsAdvanced Hyper.AlgebraicDart Hyper.AlgebraicSupport
+  Hyper.AlgebraicStochasticsAdvanced Hyper.AlgebraicDart Hyper.AlgebraicSupport \
+  Hyper.GeometricContent
 lake env lean test_all.lean
 lake env lean Hyper/probes/IntegralExamples.lean
 audit_log=$(mktemp)
