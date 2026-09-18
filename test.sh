@@ -11,7 +11,7 @@ fi
 lake build Hyper.HyperReal Hyper.HyperProbability Hyper.HyperIntegral \
   Hyper.AlgebraicStochasticsBasic Hyper.AlgebraicStochasticsIntermediate \
   Hyper.AlgebraicStochasticsAdvanced Hyper.AlgebraicDart Hyper.AlgebraicSupport \
-  Hyper.GeometricContent
+  Hyper.GeometricContent Hyper.CubicContent
 lake env lean test_all.lean
 lake env lean Hyper/probes/IntegralExamples.lean
 audit_log=$(mktemp)

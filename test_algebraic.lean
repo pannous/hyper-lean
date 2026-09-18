@@ -1,6 +1,7 @@
 import Hyper.AlgebraicDart
 import Hyper.AlgebraicSupport
 import Hyper.GeometricContent
+import Hyper.CubicContent
 
 /-! Regression and trust-boundary checks for the exact algebraic path only.
 Do not import HyperList here: no legacy field axiom may enter these proofs. -/
@@ -110,3 +111,16 @@ example : (twoCell.product twoCell).integral
 #print axioms GeometricContent.context_point_probability
 #print axioms GeometricContent.open_segment_pos
 #print axioms GeometricContent.half_epsilon_segment_negative
+#print axioms CubicContent.box_dissection
+#print axioms CubicContent.cube_probability
+#print axioms CubicContent.point_probability
+#print axioms CubicContent.segment_probability
+#print axioms CubicContent.surface_probability
+#print axioms CubicContent.unit_segment_probability
+#print axioms CubicContent.unit_surface_probability
+#print axioms CubicContent.codimension_law
+#print axioms CubicContent.cube_context_total
+#print axioms CubicContent.cube_integral_product
+#print axioms CubicContent.cube_face_probability
+#print axioms CubicContent.cube_line_probability
+#print axioms CubicContent.cube_point_probability

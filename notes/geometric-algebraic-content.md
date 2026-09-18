@@ -1,5 +1,9 @@
 # Why Euclidean length appears in algebraic probability
 
+The [cube continuation](algebraic-cube-content.md) derives the exact
+probabilities 1, η, η², η³ from orthogonal products and proves the
+coordinate-codimension rule in every finite dimension.
+
 This is the preferred geometric continuation of
 [the algebraic foundations](algebraic-hyperreal-foundations.md). The previous
 midpoint grid remains a valid sampling convention, but it is not a
