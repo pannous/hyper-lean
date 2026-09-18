@@ -1,5 +1,9 @@
 # Algebraic hyperreals, normalized integration, and the dart
 
+**Round boards:** the [unit disk and solid ball](algebraic-round-dart.md)
+have concrete positive dart contexts with exact normalization and the same
+codimension orders, derived from a specified round-body content convention.
+
 **Precision convention:** use [algebraic O-notation](algebraic-order-notation.md)
 to display the needed order while retaining known exact expressions. The
 remainder bounds use standard real constants and no limiting process.

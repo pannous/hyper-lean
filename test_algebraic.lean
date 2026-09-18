@@ -3,6 +3,7 @@ import Hyper.AlgebraicSupport
 import Hyper.GeometricContent
 import Hyper.CubicContent
 import Hyper.AlgebraicOrder
+import Hyper.RoundContent
 
 /-! Regression and trust-boundary checks for the exact algebraic path only.
 Do not import HyperList here: no legacy field axiom may enter these proofs. -/
@@ -141,3 +142,16 @@ example : (twoCell.product twoCell).integral
 #print axioms AlgebraicOrder.spatial_segment
 #print axioms AlgebraicOrder.spatial_surface
 #print axioms AlgebraicOrder.cancellation_retains_remainder
+#print axioms RoundContent.disk_parallel_polynomial
+#print axioms RoundContent.ball_parallel_polynomial
+#print axioms RoundContent.disk_whole
+#print axioms RoundContent.ball_whole
+#print axioms RoundContent.disk_context_total
+#print axioms RoundContent.ball_context_total
+#print axioms RoundContent.disk_context_point
+#print axioms RoundContent.ball_context_point
+#print axioms RoundContent.disk_context_diameter
+#print axioms RoundContent.ball_context_diameter
+#print axioms RoundContent.ball_context_equator
+#print axioms RoundContent.disk_point_to_diameter
+#print axioms RoundContent.ball_point_to_diameter
