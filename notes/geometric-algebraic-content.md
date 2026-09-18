@@ -1,5 +1,13 @@
 # Why Euclidean length appears in algebraic probability
 
+**Prior-work identification:** the intrinsic-volume content used here is
+`ν_ε(K)=ε^d g_K(ε⁻¹)`, the reversed and scaled classical Wills polynomial.
+See [Hernández Cifre and Yepes Nicolás, equation (1.4)](https://webs.um.es/jesus.yepes/publicaciones_files/paper_WillsFunctional.pdf).
+The content polynomial is established geometry; the current manuscript
+in `paper/algebraic-probability.tex` treats the normalized probability and
+precision interface as the subject of the project, without an established
+novelty claim.
+
 For concise statements with retained exact corrections, use the
 [algebraic O-notation convention](algebraic-order-notation.md).
 

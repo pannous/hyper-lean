@@ -1,0 +1,412 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,amsmath,amssymb,amsthm,mathtools,booktabs,array}
+\usepackage[colorlinks=true,allcolors=blue]{hyperref}
+\usepackage{microtype}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\R}{\mathbb R}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\HH}{\mathbb H}
+\newcommand{\OO}{\mathcal O}
+\newcommand{\vol}{\operatorname{vol}}
+\newcommand{\nuE}{\nu_{\eps}}
+\title{Algebraic Infinitesimal Probability\\
+\large Geometric Content, Conditioning, and Certified Precision}
+\author{Working manuscript accompanying \texttt{hyper-lean}}
+\date{18 September 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+We develop normalized probability and finite-observable integration over the
+ordered rational-function field $\HH=\R(\eps)$, where $\eps$ is positive and
+smaller than every positive real. Exact expressions retain lower-dimensional
+geometric contributions, while algebraic $\OO$-notation records optional
+precision. We present checked square, cube, disk, and solid-ball dart
+contexts, including positive point probabilities, endpoint corrections,
+and conditioning across dimensions. The geometric content is a rescaled
+classical Wills polynomial, not a newly discovered valuation. The companion
+Lean development verifies field arithmetic, normalized contexts, selected
+geometric identities, and precision rules. It does not yet construct one
+compatible geometric probability on an unrestricted event domain. This
+manuscript is a synthesis and formalization draft; novelty and general
+geometric extensions remain subjects for further review.
+\end{abstract}
+
+\section{Purpose and relation to existing work}
+An exact point can receive positive infinitesimal probability without
+preventing the whole sample space from having probability one. This idea
+is established in non-Archimedean probability and numerosity theory
+\cite{nap,numerosity}. Our scope is narrower: finite observable partitions
+whose region contents are explicit rational functions. An observable region
+may represent a continuum of positions; a finite index set is not a claim
+that the geometric board contains finitely many points.
+
+The proposed contribution is a carefully delimited algebraic interface
+joining normalization, geometric dimension, exact conditional probability,
+and certified remainder bounds. None of these ingredients is claimed to
+be new in isolation. In particular, intrinsic volumes and the Wills
+polynomial supply the geometric coefficients \cite{wills,steiner}.
+A claim that this particular synthesis is original requires a fuller
+literature review than the initial comparison reported here.
+
+\section{The exact field and the meaning of algebraic}
+Let $\HH=\R(\omega)$ be a rational-function field, ordered by declaring
+the indeterminate $\omega$ positive infinite. Equivalently, the sign of
+a nonzero rational function is the sign of the ratio of its leading
+polynomial coefficients. Define $\eps=\omega^{-1}$. Then
+\[
+  0<\eps<r\quad(r\in\R,\ r>0),\qquad \eps\omega=1.
+\]
+All arithmetic below takes place in this exact ordered field. Inverses
+of mixed expressions, such as $(1+\eps)^{-1}$, are retained as rational
+functions. Finite Laurent polynomials alone would not form a field.
+
+Here ``algebraic'' means finite field operations, polynomial identities,
+and order comparisons over specified real geometric data. It does not mean
+algebraic over $\mathbb Q$: $\pi$, for example, is an allowed real
+coefficient. Nor is $\eps$ algebraic over $\R$; it is an indeterminate.
+The formalization uses noncomputable real coefficients, so a claim of
+general effective computation with arbitrary real inputs is not made.
+
+\begin{remark}[Scope of the word hyperreal]
+This field is a non-Archimedean ordered extension, not a model of full
+hyperreal transfer. For example, $\eps$ has no square root in $\R(\eps)$:
+the order of a squared rational function at zero is even, whereas that of
+$\eps$ is one. Real closure would be a further algebraic extension.
+No transfer principle, hyperfinite index set, or infinite summation is
+assumed in the present probability constructions.
+\end{remark}
+
+\section{Normalized observable contexts}
+\begin{definition}
+A context consists of a finite index set $I$ and contents $c_i\in\HH$
+with $c_i\geq0$ and $Z=\sum_{i\in I}c_i>0$. Define
+\[
+ \int_{\Omega} f := \frac{\sum_{i\in I} f(i)c_i}{Z},\qquad
+ P_\Omega(E):=\int_\Omega\mathbf1_E\quad(E\subseteq I).
+\]
+The ambient context $\Omega$ includes the partition and its contents.
+\end{definition}
+
+\begin{theorem}[Normalization and refinement]
+The integral is linear, positive, and sends $1$ to $1$. The probability
+is finitely additive, lies between zero and one, and obeys
+$P_\Omega(E^c)=1-P_\Omega(E)$. Replacing each region by finitely many
+subregions whose contents sum to its content preserves integrals of
+functions constant on the original region.
+\end{theorem}
+\begin{proof}
+Expand the finite sums. Positivity uses $c_i\geq0$ and $Z>0$.
+Refinement follows by regrouping the subregion contents inside each
+original summand. No infinite interchange of sums is involved.
+\end{proof}
+
+For $P_\Omega(E)>0$, conditioning is explicitly a change of context:
+\[
+ \int_{\Omega\mid E}f=
+ \frac{\int_\Omega\mathbf1_E f}{P_\Omega(E)}.
+\]
+Ordinary restriction $\int_\Omega\mathbf1_E f$ does not change the
+normalizer. In a product of two contexts the contents multiply;
+finite algebra gives Fubini's identity and the usual factorization for
+independent coordinate events. Independence is a modeling assumption,
+not a consequence of rotation invariance.
+
+\section{Geometry, calibration, and endpoint corrections}
+Suppose the real coefficient $F(v)$ assigned to a segment displacement
+is rotation invariant, satisfies $F(tv)=tF(v)$ for $t\geq0$, and
+$F(1,0)=1$. Then
+\[
+ F(x,y)=\sqrt{x^2+y^2}.
+\]
+Indeed, for positive length $\ell$, the coefficients $x/\ell,y/\ell$
+define an orthogonal rotation taking $(1,0)$ to $(x/\ell,y/\ell)$.
+Scaling proves the claim; the zero case follows by scaling by zero.
+This characterizes one coefficient, not every possible probability rule.
+
+Fix planar point content $\eps^2$. If closed segments have the graded
+form $\ell\eps+k$, with the same endpoint coefficient $k$, joining two
+at one endpoint and applying inclusion--exclusion gives
+$k=2k-\eps^2$. Thus
+\begin{equation}\label{eq:segments}
+ \nuE([a,b])=\ell\eps+\eps^2,\qquad
+ \nuE([a,b))=\ell\eps,\qquad
+ \nuE((a,b))=\ell\eps-\eps^2.
+\end{equation}
+The latter two expressions concern positive standard lengths. A
+degenerate closed segment is a point. These corrections are needed for
+exact finite additivity, even when omitted from a leading-order display.
+
+For a closed convex polygon of area $A$ and perimeter $P$, take
+\begin{equation}\label{eq:polygon}
+ \nuE(K)=A+\frac P2\eps+\eps^2.
+\end{equation}
+An internal cut of length $L$ contributes twice to the sum of the two
+perimeters. Subtracting the shared closed segment cancels that excess
+and one point-level term. This checks the elementary dissection identity;
+it is not a formal construction of a valuation on all geometric sets.
+
+\subsection{The Wills polynomial connection}
+For a compact convex $K\subseteq\R^d$, let $V_j(K)$ denote its intrinsic
+volumes in the standard normalization. The Wills polynomial is
+$g_K(z)=\sum_j V_j(K)z^j$ \cite{wills}. Our proposed content is precisely
+\begin{equation}\label{eq:wills}
+ \nuE(K)=\sum_{j=0}^d V_j(K)\eps^{d-j}
+        =\eps^d g_K(\eps^{-1}).
+\end{equation}
+This is formal polynomial evaluation, not a dilation of a standard set
+by a nonstandard scalar. Thus the coefficient polynomial is established
+geometry; the normalization and precision interface are our subject.
+For general event algebras, a compatible extension and positivity proof
+are still necessary. A valuation on convex sets alone is not yet a
+probability on all subsets of a board.
+
+\section{Square, cube, and coordinate codimension}
+For a closed rectangle, equation~\eqref{eq:polygon} factors as
+$\nuE([0,a]\times[0,b])=(a+\eps)(b+\eps)$.
+The selected orthogonal-product rule therefore gives
+\[
+ \nuE([0,1]^d)=(1+\eps)^d.
+\]
+Set $\eta=\eps/(1+\eps)$; this is a change of gauge, not an equality
+between $\eta$ and $\eps$.
+
+\begin{theorem}[Coordinate codimension]
+If $r$ coordinates in a closed unit $d$-cube are fixed and the other
+$d-r$ range over the entire unit interval, the product context gives
+\[
+ P(E)=\frac{(1+\eps)^{d-r}\eps^r}{(1+\eps)^d}=\eta^r.
+\]
+\end{theorem}
+\begin{proof}
+A free coordinate contributes $1+\eps$; a fixed coordinate contributes
+$\eps$. Multiply, then divide by the whole-cube content.
+\end{proof}
+
+In particular, the cube, a full coordinate slice, a full axis crossing,
+and a point have probabilities $1,\eta,\eta^2,\eta^3$. A general closed
+segment of length $L$ in the square has
+\[
+ P(L)=L\eta+(1-L)\eta^2,
+\]
+so its diagonal has $\sqrt2\,\eta+(1-\sqrt2)\eta^2$. The corresponding
+spatial segment has $L\eta^2+(1-L)\eta^3$. The length coefficient is
+geometric; the correction records its endpoints.
+
+These statements differ from a coordinate-grid sampling convention,
+where a diagonal and an axis row can contain the same number of samples.
+That is a different context, not a contradiction with Euclidean length.
+
+\section{Disk and solid-ball darts}
+The standard intrinsic-volume normalization is
+\[
+ \vol(K+tB_d)=\sum_{j=0}^d\kappa_{d-j}V_j(K)t^{d-j},
+ \qquad(\kappa_0,\kappa_1,\kappa_2,\kappa_3)
+       =(1,2,\pi,4\pi/3),
+\]
+as in \cite{steiner}. For round bodies, expanding the ordinary radius
+polynomials $\pi(r+t)^2$ and $(4\pi/3)(r+t)^3$ and matching coefficients
+gives the selected contents
+\[
+ \nuE(D_r)=\pi r^2+\pi r\eps+\eps^2,\qquad
+ \nuE(B_r)=\frac{4\pi r^3}{3}+2\pi r^2\eps+4r\eps^2+\eps^3.
+\]
+This step uses given real geometric calibrations and finite polynomial
+arithmetic. It does not derive ordinary area or $\pi$ from field axioms.
+For radius one, write $Z_D=\nuE(D_1)$ and $Z_B=\nuE(B_1)$.
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Board & Event & Exact probability \\
+\midrule
+Disk & point & $\eps^2/Z_D$ \\
+Disk & diameter & $(2\eps+\eps^2)/Z_D$ \\
+Ball & point & $\eps^3/Z_B$ \\
+Ball & diameter & $(2\eps^2+\eps^3)/Z_B$ \\
+Ball & central disk & $(\pi\eps+\pi\eps^2+\eps^3)/Z_B$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+These formulas have concrete positive contexts. For the disk, the
+successive disjoint regions are a point, the rest of its diameter, and
+the rest of the board, with contents
+\[
+ \eps^2,\quad 2\eps,\quad \pi+(\pi-2)\eps.
+\]
+For the ball, the nested point, diameter, and central disk yield the
+four disjoint-region contents
+\[
+ \eps^3,\quad 2\eps^2,\quad
+ \pi\eps+(\pi-2)\eps^2,\quad
+ \frac{4\pi}{3}+\pi\eps+(4-\pi)\eps^2.
+\]
+They are positive and sum to $Z_D$ and $Z_B$, respectively, using
+$2<\pi<4$. The normalized-context theorem therefore applies. In either
+board a point on the chosen diameter has the exact conditional probability
+\begin{equation}\label{eq:conditional}
+ P(\text{point}\mid\text{diameter})=\frac{\eps}{2+\eps}.
+\end{equation}
+The denominator of the whole board and its transverse powers of $\eps$
+cancel. ``Ball'' here means the solid three-dimensional region; sampling
+only a spherical surface requires a different, two-dimensional context.
+
+\section{Algebraic precision and normalized integration}
+\begin{definition}
+For a fixed positive infinitesimal gauge $g$ and $n\in\Z$, write
+\[
+ r\in\OO(g^n)\ \Longleftrightarrow\
+ \exists M\in\R_{\geq0}: |r|\leq Mg^n.
+\]
+The statement $x=y+\OO(g^n)$ means $x-y\in\OO(g^n)$.
+\end{definition}
+The bounding coefficient must be standard real. Equivalently,
+$\OO(g^n)=g^n\mathcal F$, where $\mathcal F$ is the subring of elements
+bounded by standard reals. There is no limiting variable. Integer orders
+also accommodate infinite scales. For $0<g\leq1$, the elementary rules are
+\[
+ \OO(g^m)\OO(g^n)=\OO(g^{m+n}),\quad
+ \OO(g^n)/g^m=\OO(g^{n-m}),\quad
+ \OO(g^n)\subseteq\OO(g^m)\ (m\leq n).
+\]
+Addition uses the weaker of the two orders. Reciprocals preserve an
+absolute error order when both reciprocals are bounded; an infinitesimal
+denominator requires explicit scale tracking.
+
+\begin{proposition}[Uniform precision under normalization]
+If $|f(i)-h(i)|\leq Mg^n$ for every region of a positive normalized
+context, using one standard real $M\geq0$, then
+\[
+ \int_\Omega f=\int_\Omega h+\OO(g^n).
+\]
+\end{proposition}
+\begin{proof}
+Integrate the inequalities $-Mg^n\leq f-h\leq Mg^n$. Positivity,
+linearity, and $\int_\Omega1=1$ give the required two-sided bound.
+\end{proof}
+
+For example, a spatial segment has
+$P(L)=L\eta^2+\OO(\eta^3)$, with exact expression
+$L\eta^2+(1-L)\eta^3$ retained. A closed planar patch of area $A$ and
+perimeter $P$ in the unit cube has
+\[
+ P(\text{patch})=A\eta+(P/2-2A)\eta^2+(A-P/2+1)\eta^3
+               =A\eta+\OO(\eta^2).
+\]
+An $\OO$ statement by itself forgets the omitted coefficients. More
+precision must come from the retained exact expression or additional
+information. Cancellation cannot justify dropping a remainder: $(1+g)-1=g$,
+not zero. The exact identity
+\[
+ (1+g)^{-1}=1-g+\frac{g^2}{1+g}=1-g+\OO(g^2)
+\]
+illustrates finite algebraic expansion without an infinite series.
+
+\section{Points, dots, halos, and the event domain}
+A singleton, a radius-$\eps$ dot, and a halo are distinct sets. For
+example, displacement $\eps/2$ is in the dot but is not its center;
+displacement $2\eps$ lies in the halo but not the dot. Here a halo
+contains points at every infinitesimal displacement, not merely standard
+real multiples of one chosen $\eps$.
+
+The normalized integral can give a singleton positive content directly.
+For any admissible support $E$ with $P_\Omega(E)>0$, the density
+$\delta_E=\mathbf1_E/P_\Omega(E)$ integrates to one. Its integral against
+$f$ is the conditional average on $E$; exact evaluation at a point
+requires singleton support (or an integrand constant on that support).
+This distinguishes point evaluation from dot averaging without silently
+assigning content to an entire halo.
+
+The geometry is deliberately restricted to standard-coordinate data.
+Substituting an infinitesimal length into the open-segment formula would
+give, for example,
+\[
+ (\eps/2)\eps-\eps^2=-\eps^2/2<0.
+\]
+Consequently that formula cannot define a positive content on all
+infinitesimal-coordinate regions. A literal infinitesimal dot needs a
+separate compatible event construction. This obstruction is part of the
+theory's boundary, not a term to discard in an approximation.
+
+\section{Formalization and remaining mathematical work}
+The companion code separates exact rational-function arithmetic from the
+historical list backend. The current audited path uses the following modules:
+\begin{itemize}
+\item \path{Hyper/OrderedRational.lean}: field order and infinitesimal bounds.
+\item \path{Hyper/ContextIntegral.lean}: finite normalized integrals,
+conditioning, refinements, products, and support densities.
+\item \path{Hyper/GeometricContent.lean}: segment coefficient characterization,
+endpoint forcing, planar dissection algebra, and square formulas.
+\item \path{Hyper/CubicContent.lean}: box products, coordinate codimension,
+and positive cube contexts.
+\item \path{Hyper/RoundContent.lean}: selected positive disk/ball contexts
+and the exact ratios in equation~\eqref{eq:conditional}.
+\item \path{Hyper/AlgebraicOrder.lean}: remainder arithmetic, uniform
+integral bounds, and selected geometric precision statements.
+\item \path{Hyper/AlgebraicSupport.lean}: point, dot, and halo distinctions.
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{p{0.61\linewidth}p{0.27\linewidth}}
+\toprule
+Claim & Status in the companion \\
+\midrule
+Exact field and finite normalized-context laws & Lean-checked \\
+Square/cube/disk/ball selected event contexts & Lean-checked \\
+Endpoint, product, and dissection identities & Lean-checked \\
+Algebraic remainder and uniform integration rules & Lean-checked \\
+Global geometric valuation independent of decomposition & Not implemented \\
+All curved or infinitesimal-coordinate event sets & Not established \\
+Full transfer, countable additivity, LLN or CLT & Not claimed \\
+Novelty of the synthesis & Not established \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The important next mathematical step is to specify one geometric event
+algebra and construct its compatible content, proving positivity and
+independence of decomposition. Local dissection identities and several
+finite contexts are evidence for such a development, but do not replace it.
+Uniqueness or minimal-axiom claims would require a separate theorem with
+all calibration and domain hypotheses stated.
+
+\section*{Reproducibility and manuscript status}
+The implementation is available at
+\url{https://github.com/pannous/hyper-lean}; the code revision reviewed for
+this draft is \texttt{0cfcc3d}. Run \texttt{bash test.sh} with the pinned
+Lean/mathlib setup. The script builds before testing and audits the named
+exact-path theorems. Their reported dependencies are
+\texttt{propext}, \texttt{Classical.choice}, and \texttt{Quot.sound};
+no \texttt{sorryAx} or legacy raw-list equality axiom is accepted on that
+path. This is a theorem audit, not a claim that all historical modules are
+free of unfinished proofs.
+
+AI tools assisted drafting and proof scripting. This draft requires human
+mathematical review and a fuller comparison with prior literature before
+a novelty claim or journal submission. It supersedes the probability
+claims of the older introductory manuscript; it does not validate that
+manuscript's broader calculus and transfer claims.
+
+\begin{thebibliography}{9}
+\bibitem{nap} V. Benci, L. Horsten, and S. Wenmackers,
+\emph{Non-Archimedean Probability},
+\url{https://arxiv.org/abs/1106.1524},
+\href{https://doi.org/10.1007/s00032-012-0191-x}{doi:10.1007/s00032-012-0191-x}.
+\bibitem{numerosity} V. Benci, E. Bottazzi, and M. Di Nasso,
+\emph{Elementary numerosity and measures}, Journal of Logic and Analysis
+6 (2014), paper 3, \url{https://arxiv.org/abs/1212.6201}.
+\bibitem{wills} M. A. Hern\'andez Cifre and J. Yepes Nicol\'as,
+\emph{On the roots of the Wills functional},
+\href{https://doi.org/10.1016/j.jmaa.2012.12.065}{doi:10.1016/j.jmaa.2012.12.065}.
+\bibitem{steiner} M. B. McCoy and J. A. Tropp,
+\emph{From Steiner formulas for cones to concentration of intrinsic volumes},
+equation (1.1), \url{https://arxiv.org/abs/1308.5265}.
+\end{thebibliography}
+\end{document}
