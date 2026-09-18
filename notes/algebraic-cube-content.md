@@ -1,5 +1,8 @@
 # The cube and the codimension rule
 
+The [algebraic O-notation convention](algebraic-order-notation.md) gives
+shorter leading-order formulas while retaining the exact contents below.
+
 The cube extends the [square construction](geometric-algebraic-content.md)
 by orthogonal products. No new exponent is assigned separately to a face,
 line, or point. The structural assumption is the existing product rule for

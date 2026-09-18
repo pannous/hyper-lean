@@ -1,5 +1,9 @@
 # Algebraic hyperreals, normalized integration, and the dart
 
+**Precision convention:** use [algebraic O-notation](algebraic-order-notation.md)
+to display the needed order while retaining known exact expressions. The
+remainder bounds use standard real constants and no limiting process.
+
 Revised 2026-09-18. This is the current foundational specification. It
 supersedes the point/dot/halo identifications and unrestricted integration
 claims in the older integral notes. The historical list backend and its

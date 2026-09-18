@@ -1,5 +1,8 @@
 # Why Euclidean length appears in algebraic probability
 
+For concise statements with retained exact corrections, use the
+[algebraic O-notation convention](algebraic-order-notation.md).
+
 The [cube continuation](algebraic-cube-content.md) derives the exact
 probabilities 1, η, η², η³ from orthogonal products and proves the
 coordinate-codimension rule in every finite dimension.

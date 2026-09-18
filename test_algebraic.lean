@@ -2,6 +2,7 @@ import Hyper.AlgebraicDart
 import Hyper.AlgebraicSupport
 import Hyper.GeometricContent
 import Hyper.CubicContent
+import Hyper.AlgebraicOrder
 
 /-! Regression and trust-boundary checks for the exact algebraic path only.
 Do not import HyperList here: no legacy field axiom may enter these proofs. -/
@@ -124,3 +125,19 @@ example : (twoCell.product twoCell).integral
 #print axioms CubicContent.cube_face_probability
 #print axioms CubicContent.cube_line_probability
 #print axioms CubicContent.cube_point_probability
+#print axioms AlgebraicOrder.IsO.add
+#print axioms AlgebraicOrder.IsO.mul
+#print axioms AlgebraicOrder.IsO.weaken
+#print axioms AlgebraicOrder.IsO.div_gauge
+#print axioms AlgebraicOrder.isO_iff_scaled
+#print axioms AlgebraicOrder.one_not_isO_epsilon
+#print axioms AlgebraicOrder.Approx.trans
+#print axioms AlgebraicOrder.Approx.mul
+#print axioms AlgebraicOrder.Approx.inv
+#print axioms AlgebraicOrder.Approx.div_gauge
+#print axioms AlgebraicOrder.inverse_one_add
+#print axioms AlgebraicOrder.integral_approx_of_uniform_bound
+#print axioms AlgebraicOrder.planar_segment
+#print axioms AlgebraicOrder.spatial_segment
+#print axioms AlgebraicOrder.spatial_surface
+#print axioms AlgebraicOrder.cancellation_retains_remainder
