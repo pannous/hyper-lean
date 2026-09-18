@@ -14,6 +14,104 @@ abbrev H := RatFunc ℝ
 abbrev ω : H := AlgebraicHyperreal.omega
 abbrev ε : H := AlgebraicHyperreal.epsilon
 
+namespace Minimal
+
+/-- Midpoint coordinates give exactly one partner on x + y = 1, including
+for even resolutions, without counting either boundary endpoint. -/
+def midpoint {n : ℕ} (i : Fin n) : ℚ := ((i.val : ℚ) + 1 / 2) / n
+
+theorem descending_midpoints {n : ℕ} (i : Fin n) :
+    midpoint i + midpoint i.rev = 1 := by
+  have hn : n ≠ 0 := Nat.ne_zero_of_lt (lt_of_le_of_lt (Nat.zero_le _) i.isLt)
+  have hnq : (n : ℚ) ≠ 0 := by exact_mod_cast hn
+  have hi : i.rev.val + i.val + 1 = n := by
+    simp only [Fin.val_rev]
+    omega
+  have hiq : (i.rev.val : ℚ) + (i.val : ℚ) + 1 = n := by exact_mod_cast hi
+  unfold midpoint
+  field_simp
+  linarith
+
+theorem midpoint_injective {n : ℕ} : Function.Injective (@midpoint n) := by
+  intro i j h
+  have hn : n ≠ 0 := Nat.ne_zero_of_lt (lt_of_le_of_lt (Nat.zero_le _) i.isLt)
+  have hnq : (n : ℚ) ≠ 0 := by exact_mod_cast hn
+  unfold midpoint at h
+  have hv : (i.val : ℚ) = j.val := by
+    have hc := (div_left_inj' hnq).mp h
+    linarith
+  exact Fin.ext (by exact_mod_cast hv)
+
+theorem descending_midpoints_iff {n : ℕ} (i j : Fin n) :
+    midpoint i + midpoint j = 1 ↔ j = i.rev := by
+  constructor
+  · intro h
+    apply midpoint_injective
+    linarith [descending_midpoints i]
+  · rintro rfl
+    exact descending_midpoints i
+
+/-- One descending-diagonal sample for each horizontal coordinate. -/
+def descendingSamples (n : ℕ) :
+    Fin n ≃ {ij : Fin n × Fin n // ij.2 = ij.1.rev} where
+  toFun i := ⟨(i, i.rev), rfl⟩
+  invFun ij := ij.val.1
+  left_inv _ := rfl
+  right_inv ij := by
+    apply Subtype.ext
+    exact Prod.ext rfl ij.property.symm
+
+theorem descending_sample_count (n : ℕ) :
+    Fintype.card {ij : Fin n × Fin n // ij.2 = ij.1.rev} = n := by
+  simpa using (Fintype.card_congr (descendingSamples n)).symm
+
+theorem geometric_descending_count (n : ℕ) :
+    Fintype.card {ij : Fin n × Fin n // midpoint ij.1 + midpoint ij.2 = 1} = n := by
+  simp_rw [descending_midpoints_iff]
+  exact descending_sample_count n
+
+/-- The minimal observable partition: point, remainder of descending line,
+remainder of square. These are already normalized algebraic contents. -/
+def square : Context H (Fin 3) where
+  content := ![ε ^ 2, ε - ε ^ 2, 1 - ε]
+  content_nonneg i := by
+    have he := AlgebraicHyperreal.epsilon_pos (K := ℝ)
+    have h1 := AlgebraicHyperreal.epsilon_lt_one (K := ℝ)
+    fin_cases i
+    · change 0 ≤ ε ^ 2
+      exact sq_nonneg ε
+    · change 0 ≤ ε - ε ^ 2
+      nlinarith
+    · change 0 ≤ 1 - ε
+      linarith
+  total_pos := by
+    simp only [Fin.sum_univ_succ, Fin.sum_univ_zero, Matrix.cons_val_zero,
+      Matrix.cons_val_succ, add_zero]
+    ring_nf
+    exact zero_lt_one
+
+def point : Finset (Fin 3) := {0}
+def line : Finset (Fin 3) := {0, 1}
+
+theorem square_total : square.total = 1 := by
+  simp [Context.total, square, Fin.sum_univ_succ]
+
+theorem whole_square_integral : square.integral (fun _ => 1) = 1 := square.integral_one
+
+theorem point_integral : square.restricted point (fun _ => 1) = ε ^ 2 := by
+  change square.integral (fun i => Context.indicator point i * 1) = _
+  simp only [mul_one]
+  change square.prob {0} = _
+  rw [square.prob_singleton, square_total]
+  simp [square]
+
+theorem line_integral : square.restricted line (fun _ => 1) = ε := by
+  unfold Context.restricted Context.integral
+  rw [square_total]
+  simp [Context.raw, Context.indicator, line, square, Fin.sum_univ_succ]
+
+end Minimal
+
 private theorem hw : (2 : H) < ω := by
   simpa only [map_ofNat] using AlgebraicHyperreal.constant_lt_omega (2 : ℝ)
 

@@ -77,6 +77,12 @@ example : (twoCell.product twoCell).integral
 #print axioms Context.delta_average
 #print axioms Context.delta_singleton
 #print axioms AlgebraicDart.whole_board
+#print axioms AlgebraicDart.Minimal.descending_midpoints
+#print axioms AlgebraicDart.Minimal.descending_sample_count
+#print axioms AlgebraicDart.Minimal.geometric_descending_count
+#print axioms AlgebraicDart.Minimal.whole_square_integral
+#print axioms AlgebraicDart.Minimal.line_integral
+#print axioms AlgebraicDart.Minimal.point_integral
 #print axioms AlgebraicDart.point_strictly_rarer
 #print axioms AlgebraicDart.diagonal_to_point_ratio
 #print axioms AlgebraicDart.point_given_diagonal

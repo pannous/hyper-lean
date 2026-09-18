@@ -14,6 +14,58 @@ The foundational core and the explicitly specified dart model are settled
 here. This is not a claim to have integrated every function or constructed
 a canonical probability on every subset of Euclidean space.
 
+## The minimal example: square, descending line, point
+
+Take the unit square Ω and the descending diagonal from `(0,1)` to `(1,0)`:
+`L = {(x,y) ∈ Ω : x+y=1}`. Choose one admitted elementary outcome p on L.
+In the midpoint resolution convention the normalized algebraic integral is
+
+```
+∫_Ω 1 = 1,         ∫_L 1 = ε,         ∫_{p} 1 = ε².
+```
+
+All three integrals use **the same two-dimensional probability context**.
+In particular, the line integral here means `I_Ω(1_L)`; ordinary arc-length
+integration would ask a different question and give length √2.
+
+Only three disjoint regions are needed:
+
+| Region | Normalized algebraic content |
+|---|---:|
+| `{p}` | `ε²` |
+| `L \ {p}` | `ε − ε²` |
+| `Ω \ L` | `1 − ε` |
+
+These contents are positive and sum to 1. Thus, for an observable with
+respective values a,b,c, the whole integral is simply
+
+```
+I_Ω(f) = aε² + b(ε−ε²) + c(1−ε).
+```
+
+Substituting `(a,b,c)=(1,1,1)`, `(1,1,0)`, and `(1,0,0)` proves the three
+displayed values. This is the complete algebraic calculation on this event
+algebra; it requires no limiting process or infinite summation.
+
+The midpoint convention explains the descending line without endpoint
+corrections. At finite resolution N, coordinates `(i+1/2)/N` and
+`(N−1−i+1/2)/N` sum to 1. There are exactly N such pairs among N² samples.
+The count polynomials N², N, and 1 give the ratios 1, ε, and ε² on algebraic
+substitution `N=ω`. This motivates the content assignment above; it does not
+assert that the ordered field contains a constructed array of ω indices.
+Both the finite midpoint identity and the finite number of descending pairs
+are proved in `Hyper/AlgebraicDart.lean`, alongside the three integrals under
+`AlgebraicDart.Minimal`. Midpoints do not count the corner endpoints as extra
+outcomes. An endpoint-inclusive convention needs its own normalization.
+
+If p names one square **dot** of side ε in a resolution observation space,
+that elementary outcome has the same assigned probability ε². This is a
+choice of what an outcome represents, not an identification of a geometric
+singleton with a region. A round dot of radius ε instead has geometric area
+πε²; a **halo** has no prescribed radius or content. Consequently the minimal
+example should say “point” or “one specified elementary dot,” not treat
+point, dot, and halo as interchangeable supports.
+
 ## 1. The numbers: complete the field algebraically
 
 Let K be an ordered coefficient field. Use K = ℝ when every ordinary real
