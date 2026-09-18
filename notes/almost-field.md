@@ -12,7 +12,9 @@ Local ring requires: `a + b = 1 ⟹ a or b is a unit`. Violated.
 - **CommRing** with **LinearOrder** (lex on indices) — fully proved
 - **Integral domain** (no zero divisors in AddMonoidAlgebra ℝ ℤ)
 - **AlmostField**: every nonzero element has inverse to arbitrary precision
-- The **fraction field** (Laurent series) is a true valued field
+- The **fraction field** is a field of rational functions, not the larger
+  Laurent-series field. Exact inverses are finite fractions; see
+  [the current foundations](algebraic-hyperreal-foundations.md).
 
 ## AlmostField Class
 ```

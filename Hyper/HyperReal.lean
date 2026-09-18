@@ -1,9 +1,17 @@
 import Hyper.HyperList
 import Hyper.HyperClass
 import Hyper.PiEField
+import Hyper.HyperGeneric
+import Hyper.OrderedRational
 
 /-!
-`HyperReal` — canonical name for *the* reference hyperreal model.
+`HyperReal` — compatibility name for the legacy executable list model.
+
+For exact ordered-field probability use `ExactHyperReal` and
+`Hyper.ContextIntegral`; see `notes/algebraic-hyperreal-foundations.md`.
+The list model below retains unfinished/unsound field laws and must not be
+used to justify new general field identities. Its name is retained to avoid
+silently changing the existing executable examples.
 
 The project has explored several representations (`HyperList`, `HyperFun`,
 `HyperGeneral`, `HyperKeisler`, ...). `HyperList` is currently the most
@@ -27,6 +35,10 @@ namespace Hypers
 /-- The reference hyperreal type. Currently `HyperList`. -/
 abbrev HyperReal := HyperList
 
+/-- Exact ordered rational-function model over the reals. Activate its
+ordering with `open scoped AlgebraicHyperreal`. -/
+abbrev ExactHyperReal := RatFunc ℝ
+
 /-!
 Backend aliases. `HyperReal` remains the established rational model for source
 compatibility.  `PiEHyperReal` has the same list-of-(coefficient, exponent)
@@ -35,7 +47,7 @@ the generic operations can switch between these aliases without changing its
 term-level representation.
 -/
 abbrev RationalHyperReal := HyperList
-abbrev PiEHyperReal := RatFun.Hyper
+abbrev PiEHyperReal := GHyper RatFun.ExactField
 
 end Hypers
 

@@ -68,17 +68,17 @@ example : normalize (uniformLine.prob 0 1) = normalize (scale (1/2) epsilon) := 
 -- Atoms and the Dirac delta: ∫(−ε,ε)ω = 2 and ∫(0,ε)ω = 1 are consistent
 -- ═══════════════════════════════════════════════════════════════════════════
 
-/-- `ω` over the halo `[-ε, ε)` — two dots — integrates to `2`. -/
+/-- `ω` over the stencil `[-ε, ε)` — two dots — integrates to `2`. -/
 example : normalize (integral (constant omega) (-epsilon) epsilon) = normalize 2 := by
   native_decide
 
-/-- `ω` over one dot `[0, ε)` integrates to `1`: the same rule, half the halo. -/
+/-- `ω` over one dot `[0, ε)` integrates to `1`: the same rule, half the stencil. -/
 example : normalize (integral (constant omega) 0 epsilon) = normalize 1 := by native_decide
 
 /-- Hence `∫δ = 1` exactly, for the unit spike on a point's cell. -/
 example : normalize (integralLine (dirac 0)) = normalize 1 := by native_decide
 
-/-- Half the halo collects half of the *constant* `ω` — the README's
+/-- Half the stencil collects half of the *constant* `ω` — the README's
     "left-dirac"/"right-dirac" are statements about `ω`, not about `δ`. -/
 example : normalize (integral (constant omega) (-epsilon) 0) = normalize 1 := by native_decide
 

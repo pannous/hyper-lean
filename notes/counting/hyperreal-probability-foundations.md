@@ -1,3 +1,9 @@
+> **Update (2026-09-18).** The exact field, event algebra, normalized integral,
+> and dart model are now implemented in the new trusted path described in
+> [the current foundations](../algebraic-hyperreal-foundations.md).
+> The backend restrictions below still apply to the legacy HyperList API,
+> but exact mixed-order division no longer needs a series or approximation.
+
 # Algebraic hyperreal probability from symbolic counts
 
 Revised 2026-09-10 after the design correction that probability values in

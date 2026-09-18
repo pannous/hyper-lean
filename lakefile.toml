@@ -11,4 +11,4 @@ globs = ["Hyper.+"]
 name = "mathlib"
 scope = "leanprover-community"
 git = "https://github.com/leanprover-community/mathlib4"
-rev = "stable"
+rev = "v4.27.0"

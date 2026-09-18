@@ -1,55 +1,42 @@
-# Hyper Project - Lean 4.27 Stable Setup
+# Reproducible Lean setup
 
-## Configuration Summary
+This checkout pins Lean **4.27.0** in `lean-toolchain` and mathlib
+**v4.27.0** (`a3a10db0e9d66acbebf76c5e6a135066525ac900`) in the Lake files.
+The previous lockfile referenced an unavailable mathlib object and `stable`
+could move independently of the toolchain.
 
-### ✅ Completed Setup
-- **Lean Version**: `stable` (currently 4.27.0) - auto-tracks latest stable
-- **Mathlib**: `stable` branch - auto-updates with Lean stable releases
-- **Global Packages**: `.lake/packages` → `~/.lake/packages` (symlinked)
-  - **No local packages directory ever created!**
-- **Build Status**: Core Hyper.Hyper module compiles successfully
+Use checkout-local `.lake/packages`. Do not point it at the shared
+`~/.lake/packages`: Lake may replace packages there when resolving a URL or
+revision mismatch. On this checkout the old symlink was retained as
+`.lake/packages-shared`; `.lake/packages` is now an ordinary local directory.
 
-### 🔧 Key Changes Made
-1. Updated `lean-toolchain` to `leanprover/lean4:stable`
-2. Configured `lakefile.toml` to use mathlib `stable` branch
-3. Fixed API compatibility issues:
-   - EReal import moved to `Mathlib.Data.EReal.Basic`
-   - Bool literals: `0`/`1` → `false`/`true` for exceptional field
-   - `List.get?` → `list[index]?` syntax
-   - Field instance: `add_left_neg` → `neg_add_cancel`
-4. Added `sorry` placeholders for Field scalar multiplication proofs
+The first baseline attempt let Lake replace shared mathlib before this
+isolation was in place. Its exact prior Git revision was not recoverable.
+The shared mathlib source and compiled cache were repaired at **v4.28.0-rc1**,
+matching the installed shared aesop/ProofWidgets/Qq release metadata, with
+its own nested dependencies; the sibling shared dependency directories were
+left intact. This project uses its separate pinned v4.27.0 dependencies.
 
-### 📝 Known Limitations
-- **Field Instance**: Uses `sorry` for 7 scalar multiplication proof obligations
-  - These can be properly implemented later if needed
-  - Doesn't affect basic Hyper functionality
-- **HyperGeneral Module**: Has additional API issues, not yet fixed
-- **HyperExamples.lean**: Depends on HyperGeneral, currently broken
+For a fresh checkout:
 
-### ✅ Working Example
-See `example_working.lean` for a functional demonstration of:
-- Basic Hyper number operations
-- Epsilon (ε) and Omega (ω) definitions
-- Key theorems: `ε * ω = 1`, `ε * ε = 0`, `ω * ω = 0`
-
-### 🚀 Usage
-```bash
-# super folder
-cd ~/dev/script/lean4/hyper/../
-
-# Build the project
-lake build
-
-# Test the working example
-lake env lean example_working.lean
-
-# Work with Hyper numbers
-lake env lean your_file.lean
+```sh
+lake exe cache get
+./test.sh
 ```
 
-### 🔄 Staying Up-to-Date
-The project will automatically use the latest stable versions:
-- Run `lake update` to fetch latest stable mathlib
-- Lean toolchain updates automatically via elan
+`test.sh` first builds the modules used by the tests, then runs the legacy
+regression file, the cell-integral examples, and `test_algebraic.lean`. Merely
+running `lake env lean test_all.lean` can load a stale local `.olean` and miss
+an error in its source dependency. This was observed in `HyperReal.lean`:
+a missing `RatFun.Hyper` alias was repaired to `GHyper RatFun.ExactField`.
 
-All dependencies are cached globally in `~/.lake/packages` for efficiency!
+The new exact theory is in `Hyper/OrderedRational.lean`,
+`Hyper/ContextIntegral.lean`, `Hyper/AlgebraicSupport.lean`, and
+`Hyper/AlgebraicDart.lean`. Their proof audits permit no unfinished-proof or
+legacy list-equality axioms. Historical experimental files and the old list
+field still contain unresolved obligations; they are not part of this
+trusted algebraic path. The targeted suite does not claim that every
+historical file under `Hyper/old`, `Hyper/bad`, or `Hyper/theory` builds.
+
+See [the current foundations](notes/algebraic-hyperreal-foundations.md) for
+the mathematical contract and the distinction between points, dots, and halos.

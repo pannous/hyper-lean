@@ -1,3 +1,11 @@
+> **Specification update (2026-09-18).** This is the historical cell-sampling
+> exercise sheet. Its identification of points with dots, its use of “halo”
+> for a two-dot stencil, and unrestricted-integral claims are superseded by
+> [the current algebraic foundations](../algebraic-hyperreal-foundations.md).
+> In the new context the whole-space integral of 1 is always 1; changing to
+> a subspace is explicit conditioning. A point delta evaluates; a dot delta
+> averages. Mixed-order inverses now have an exact fraction-field solution.
+
 # Twenty exercises in algebraic probability on ordinary intervals
 
 These exercises use the framework of

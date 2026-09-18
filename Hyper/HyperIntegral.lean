@@ -1,4 +1,12 @@
 /-
+LEGACY CELL-SAMPLING API. For normalized, positive algebraic probability use
+Hyper.ContextIntegral and Hyper.AlgebraicDart. This module's raw integral,
+cell-completeness checks, and density-sampling helpers do not satisfy the new
+API contract on arbitrary events. See notes/algebraic-hyperreal-foundations.md.
+In particular, a two-cell stencil is not a halo, and a cell label is not a
+geometric singleton. Historical field names are retained for compatibility.
+-/
+/-
   The hyperreal integral: `∫ f dx` with `dx = ε`, computed exactly.
   =================================================================
 
@@ -42,7 +50,7 @@ def leftRule : Sample := 0
 def midRule : Sample := 1 / 2
 def rightRule : Sample := 1
 
-/-- The reals as an integration domain: the ambient line `[-ω, ω)`, on which
+/-- The chosen ambient integration interval `[-ω, ω)`, on which
     `∫ 1 dx = 2ω`. -/
 def lineLow : R* := -omega
 def lineHigh : R* := omega
@@ -123,19 +131,19 @@ def integralPoly (s : Sample) (coefficients : List R*) (a b : R*) : R* :=
 
     `stencil := true` is *not* a different delta.  It is what the **central
     difference quotient** `∂f = (f(x+ε) - f(x-ε))/(2ε)` returns when applied to
-    a step: `ω/2` on *each* of the two cells of the halo, because the stencil is
+    a step: `ω/2` on *each* of the two cells of the stencil, because the stencil is
     `2ε` wide while the jump is a point.  It is `δ` convolved with that stencil
-    — same mass, same integral over every halo-aligned region, support `2ε`
+    — same mass, same integral over every stencil-aligned region, support `2ε`
     instead of `ε`.  The `/2` belongs to the stencil's width, not to `δ`.
 
     Consequently `∫(−ε,ε) ω = 2` and `∫(0,ε) ω = 1` are simply the constant `ω`
     on two cells and on one; and `δ := ω₀/2` is right exactly when `ω₀` means
-    "`ω` on the two-cell halo", which is the form the symmetric derivative
+    "`ω` on the two-cell stencil", which is the form the symmetric derivative
     produces. -/
 structure Spike where
   position : R*
   mass : R*
-  /-- Carried by the two-cell halo rather than the single cell: the shape the
+  /-- Carried by the two-cell stencil rather than the single cell: the shape the
       central difference quotient produces. -/
   stencil : Bool := false
 
@@ -173,7 +181,7 @@ def integralWith (s : Sample) (f : Elementary) (a b : R*) : R* :=
 /-- The canonical integral: symmetric (midpoint) sampling. -/
 def integral (f : Elementary) (a b : R*) : R* := integralWith midRule f a b
 
-/-- Default domain: the reals. -/
+/-- Default domain: the chosen ambient interval. -/
 def integralLine (f : Elementary) : R* := integral f lineLow lineHigh
 
 notation "∫[" a ", " b "] " f => integral f a b
@@ -188,8 +196,8 @@ def atom (position m : R*) : Elementary :=
 def dirac (position : R*) : Elementary := atom position 1
 
 /-- What the central difference quotient of a unit step actually returns:
-    `ω/2` on each halo cell.  Equal to `dirac` in mass and in every
-    halo-aligned integral, but smeared over the `2ε` stencil. -/
+    `ω/2` on each stencil cell.  Equal to `dirac` in mass and in every
+    stencil-aligned integral, but smeared over the `2ε` stencil. -/
 def stepDerivative (position : R*) : Elementary :=
   { spikes := [{ position := position, mass := 1, stencil := true }] }
 
@@ -224,7 +232,7 @@ def Distribution.probPoint (d : Distribution) (y : R*) : R* := d.density.value y
 /-- Uniform on `[0,1)`: `p ≡ 1`, so `P({y}) = ε`. -/
 def uniformUnit : Distribution := { density := constant 1, low := 0, high := 1 }
 
-/-- Uniform on the whole line: normalization forces the infinitesimal density
+/-- Uniform on the chosen ambient interval: normalization forces the infinitesimal density
     `ε/2`, so a point is second-order rare, `P({y}) = ε²/2`. -/
 def uniformLine : Distribution := { density := constant (scale (1 / 2) epsilon) }
 
