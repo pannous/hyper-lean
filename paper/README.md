@@ -9,6 +9,9 @@ This is a working draft for mathematical review, not a submitted paper.
 It consolidates the exact field, normalized integral, square/cube and
 disk/ball examples, point/dot/halo distinction, and algebraic O notation.
 It states explicitly which results are formalized and which remain open.
+The 19 September revision adds the finite HyperList fraction foundation and
+the checked interpretation of the normalized integral; see
+[the implementation note](../notes/hyperlist-probability-foundation.md).
 
 ## Initial publication assessment
 

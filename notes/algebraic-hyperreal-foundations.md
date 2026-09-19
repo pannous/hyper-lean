@@ -8,10 +8,13 @@ codimension orders, derived from a specified round-body content convention.
 to display the needed order while retaining known exact expressions. The
 remainder bounds use standard real constants and no limiting process.
 
-Revised 2026-09-18. This is the current foundational specification. It
+Revised 2026-09-19. This is the current foundational specification. It
 supersedes the point/dot/halo identifications and unrestricted integration
 claims in the older integral notes. The historical list backend and its
-examples remain available; the trusted new path imports no `HyperList`.
+examples remain available. The [HyperList foundation](hyperlist-probability-foundation.md)
+now supplies checked finite-list fractions and a list implementation of the
+normalized integral. The core imports no legacy `HyperList`; a separate audited
+adapter validates the original coefficient arithmetic.
 
 **Geometric continuation:** for the selected Euclidean, rotation-invariant
 model read [Why length appears naturally](geometric-algebraic-content.md).

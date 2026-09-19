@@ -20,7 +20,7 @@
 \title{Algebraic Infinitesimal Probability\\
 \large Geometric Content, Conditioning, and Certified Precision}
 \author{Working manuscript accompanying \texttt{hyper-lean}}
-\date{18 September 2026}
+\date{19 September 2026}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -83,6 +83,58 @@ $\eps$ is one. Real closure would be a further algebraic extension.
 No transfer principle, hyperfinite index set, or infinite summation is
 assumed in the present probability constructions.
 \end{remark}
+
+\subsection{Finite HyperLists as the foundation}
+A HyperList is a finite list of coefficient--exponent pairs. For integer
+exponents, its value is
+\[
+ [(a_1,n_1),\ldots,(a_m,n_m)]\longmapsto
+ \sum_{i=1}^m a_i\omega^{n_i}.
+\]
+Appending lists adds values; convolution multiplies coefficients and adds
+exponents. Sorting, collecting equal exponents, and deleting zero terms
+change the presentation, not its value. Literal list equality is therefore
+not the equality of numbers.
+
+\begin{theorem}[Finite-list fraction presentation]
+Every element of $K(\omega)$, for a field $K$, is a quotient of two finite
+integer-exponent HyperLists with nonzero denominator. Identifying such
+quotients by equality after cross multiplication gives a field isomorphic
+to $K(\omega)$. Addition and multiplication agree with finite-list
+arithmetic; a nonzero reciprocal swaps the whole numerator and denominator.
+\end{theorem}
+\begin{proof}
+The numerator and denominator polynomials of a rational function are finite
+lists of their coefficients and nonnegative exponents. Conversely, each
+finite Laurent expression belongs to $K(\omega)$. Evaluation commutes with
+addition and convolution; the field laws and the quotient identification
+follow from the corresponding rational-function identities.
+\end{proof}
+
+For example, the closed unit interval is $[(1,0),(1,-1)]$.
+The calibrated point probability has the two-list presentation
+\[
+ \eta=\frac{[(1,-1)]}{[(1,0),(1,-1)]}.
+\]
+Convolution gives the square and cube contents. The unit disk is
+$[(\pi,0),(\pi,-1),(1,-2)]$, while the solid ball is
+$[(4\pi/3,0),(2\pi,-1),(4,-2),(1,-3)]$.
+No infinite expansion of a reciprocal is required.
+
+The Lean development checks this presentation and implements the normalized
+integral below by finite-list fraction additions, products, and reciprocal
+of the total. Its interpreted value equals the existing context integral
+for every finite context and observable over $K(\omega)$.
+Real geometric coefficients use $K=\R$; the original rational-coefficient
+backend alone cannot express $\pi$ or $\sqrt2$.
+
+A separate audited adapter interprets the original rational-exponent
+HyperLists in the finite group algebra $\mathbb Q[\mathbb Q]$ and its fraction
+field. It proves preservation of normalization, addition, negation, and
+multiplication without using the legacy raw-list field axioms. This
+rational-exponent fraction field is not identified with $\R(\omega)$; its ordered
+probability interface is not yet formalized. The integer-exponent
+presentation already covers all probability formulas in this manuscript.
 
 \section{Normalized observable contexts}
 \begin{definition}
@@ -336,9 +388,15 @@ separate compatible event construction. This obstruction is part of the
 theory's boundary, not a term to discard in an approximation.
 
 \section{Formalization and remaining mathematical work}
-The companion code separates exact rational-function arithmetic from the
-historical list backend. The current audited path uses the following modules:
+The companion code uses exact finite-list fractions and a separately audited
+adapter for the historical list backend. The current audited path uses the following modules:
 \begin{itemize}
+\item \path{Hyper/HyperListFoundation.lean}: finite-list fractions, field
+quotient, and equivalence with rational functions.
+\item \path{Hyper/HyperListProbability.lean}: list arithmetic for the
+normalized integral and explicit geometric presentations.
+\item \path{Hyper/HyperListSemantics.lean}: audited interpretation of
+original rational-exponent list arithmetic.
 \item \path{Hyper/OrderedRational.lean}: field order and infinitesimal bounds.
 \item \path{Hyper/ContextIntegral.lean}: finite normalized integrals,
 conditioning, refinements, products, and support densities.
@@ -359,6 +417,7 @@ integral bounds, and selected geometric precision statements.
 Claim & Status in the companion \\
 \midrule
 Exact field and finite normalized-context laws & Lean-checked \\
+Finite-list fractions and integral interpretation & Lean-checked \\
 Square/cube/disk/ball selected event contexts & Lean-checked \\
 Endpoint, product, and dissection identities & Lean-checked \\
 Algebraic remainder and uniform integration rules & Lean-checked \\
@@ -379,8 +438,8 @@ all calibration and domain hypotheses stated.
 
 \section*{Reproducibility and manuscript status}
 The implementation is available at
-\url{https://github.com/pannous/hyper-lean}; the code revision reviewed for
-this draft is \texttt{0cfcc3d}. Run \texttt{bash test.sh} with the pinned
+\url{https://github.com/pannous/hyper-lean}; the accompanying checkout contains the finite-list foundation and its
+separate legacy-adapter audit. Run \texttt{bash test.sh} with the pinned
 Lean/mathlib setup. The script builds before testing and audits the named
 exact-path theorems. Their reported dependencies are
 \texttt{propext}, \texttt{Classical.choice}, and \texttt{Quot.sound};
