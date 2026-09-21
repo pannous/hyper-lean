@@ -1,0 +1,38 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  14
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+Build  : 14-7b05503f98a8
+Exec   : foamPostProcess -func mag(U) -latestTime
+Date   : Sep 21 2026
+Time   : 23:56:00
+Host   : "openfoam"
+PID    : 27840
+I/O    : uncollated
+Case   : /home/ubuntu/tube_transport_cfd/case_D2_V150_P0p01
+nProcs : 1
+sigFpe : Floating point exception trapping - not supported on this platform
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Create mesh for time = 0.035004931
+
+
+Constructing functionObjects from system/functions
+    Selecting mag with name mag(U)
+Time = 0.035004931s
+
+Reading fields:
+    volVectorFields: U
+
+Executing functionObjects
+    functionObjects::mag mag(U) writing field: mag(U)
+
+End
+

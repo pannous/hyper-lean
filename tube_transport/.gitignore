@@ -1,0 +1,4 @@
+openfoam/generated/
+openfoam/results/case_*/log.foamRun
+__pycache__/
+*.pyc

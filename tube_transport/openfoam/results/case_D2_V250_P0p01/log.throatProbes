@@ -1,0 +1,38 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  14
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+Build  : 14-7b05503f98a8
+Exec   : foamPostProcess -func throatProbes -latestTime
+Date   : Sep 22 2026
+Time   : 00:01:02
+Host   : "openfoam"
+PID    : 34722
+I/O    : uncollated
+Case   : /home/ubuntu/tube_transport_cfd/case_D2_V250_P0p01
+nProcs : 1
+sigFpe : Floating point exception trapping - not supported on this platform
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Create mesh for time = 0.034994203
+
+
+Constructing functionObjects from system/functions
+    Selecting probes with name throatProbes
+Time = 0.034994203s
+
+Reading fields:
+    volScalarFields: Ma p rho
+    volVectorFields: U
+
+Executing functionObjects
+
+End
+

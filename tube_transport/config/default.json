@@ -1,0 +1,60 @@
+{
+  "pod_diameter_m": 1.5,
+  "pod_length_m": 5.0,
+  "tube_diameters_m": [1.7, 1.8, 2.0, 2.2, 2.5, 3.0],
+  "speeds_m_s": [50, 100, 150, 200, 250, 300, 350],
+  "pressures_atm": [0.001, 0.003, 0.01, 0.03, 0.1],
+  "temperature_K": 293.15,
+  "shapes": ["piston", "streamlined"],
+  "bypass_areas_m2": [0.0, 0.1, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0],
+  "integrated_duct_area_fractions": [0.25, 0.5, 0.75, 1.0],
+  "pressure_difference_target_fraction": 0.05,
+  "chamber_spacings_m": [5.0, 10.0, 25.0, 50.0],
+  "chamber_pressure_fractions": [0.01, 0.05, 0.1],
+  "loss_fraction_per_chamber_cycle": 0.1,
+  "discharge_coefficients": {
+    "annulus": 0.82,
+    "dedicated_bypass": 0.72,
+    "integrated_duct": 0.68
+  },
+  "pump": {
+    "stationary_efficiency": 0.75,
+    "onboard_efficiency": 0.70,
+    "return_path_loss_coefficient": 2.0,
+    "onboard_flow_area_m2": 0.25
+  },
+  "cost_proxy": {
+    "diameter_reference_m": 3.0,
+    "bypass_area_reference_m2": 1.0,
+    "scenarios": {
+      "diameter_dominant": {
+        "structure": 0.80,
+        "vacuum": 0.10,
+        "bypass": 0.03,
+        "propulsion": 0.02,
+        "maintenance": 0.05
+      },
+      "capital_heavy": {
+        "structure": 0.55,
+        "vacuum": 0.15,
+        "bypass": 0.15,
+        "propulsion": 0.05,
+        "maintenance": 0.10
+      },
+      "balanced": {
+        "structure": 0.45,
+        "vacuum": 0.10,
+        "bypass": 0.20,
+        "propulsion": 0.15,
+        "maintenance": 0.10
+      },
+      "energy_heavy": {
+        "structure": 0.30,
+        "vacuum": 0.10,
+        "bypass": 0.15,
+        "propulsion": 0.35,
+        "maintenance": 0.10
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  14
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+Build  : 14-7b05503f98a8
+Exec   : foamPostProcess -func cellMax(mag(U)) -latestTime
+Date   : Sep 21 2026
+Time   : 23:56:01
+Host   : "openfoam"
+PID    : 27841
+I/O    : uncollated
+Case   : /home/ubuntu/tube_transport_cfd/case_D2_V150_P0p01
+nProcs : 1
+sigFpe : Floating point exception trapping - not supported on this platform
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 10)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Create mesh for time = 0.035004931
+
+
+Constructing functionObjects from system/functions
+    Selecting volFieldValue with name cellMax(mag(U))
+        number of cells = 12240
+        volume = 2.49210952
+        operation = max
+Time = 0.035004931s
+
+Reading fields:
+    volScalarFields: mag(U)
+
+Executing functionObjects
+volFieldValue cellMax(mag(U)) write:
+    max(all) of mag(U) = 339.017993 at location (3.79277362 0.962633964 1.49319187e-18) in cell 11855
+
+
+End
+

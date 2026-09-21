@@ -1,0 +1,11 @@
+speed_m_s=250.0
+pressure_atm=0.01
+pressure_pa=1013.25
+tube_diameter_m=2.0
+pod_diameter_m=1.5
+blockage_ratio=0.5625
+wedge_total_degrees=5.0
+end_time_s=0.035
+model=inviscid_axisymmetric_abrupt_piston_early_transient
+
+// ************************************************************************* //
