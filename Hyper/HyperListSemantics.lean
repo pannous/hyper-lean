@@ -15,19 +15,19 @@ def interpret : Hypers.HyperList → Laurent
   | (c, e) :: xs => AddMonoidAlgebra.single e c + interpret xs
 
 @[simp] theorem interpret_apply (xs : Hypers.HyperList) (e : ℚ) :
-    interpret xs e = Hypers.coeffAt xs e := by
+    (interpret xs).coeff e = Hypers.coeffAt xs e := by
   induction xs with
   | nil => simp [interpret, Hypers.coeffAt_nil]
   | cons p xs ih =>
     rcases p with ⟨c, n⟩
-    simp [interpret, Hypers.coeffAt_cons, ih, AddMonoidAlgebra.single_apply]
+    simp [interpret, Hypers.coeffAt_cons, ih, AddMonoidAlgebra.coeff_single, Finsupp.single_apply]
 
 /-- Algebraic coefficient equality, not literal list equality. -/
 theorem interpret_eq_iff (xs ys : Hypers.HyperList) :
     interpret xs = interpret ys ↔ ∀ e, Hypers.coeffAt xs e = Hypers.coeffAt ys e := by
   constructor
   · intro h e
-    simpa using congrArg (fun p : Laurent => p e) h
+    simpa using congrArg (fun p : Laurent => p.coeff e) h
   · intro h
     ext e
     simpa using h e
@@ -45,7 +45,7 @@ theorem interpret_add (xs ys : Hypers.HyperList) :
 theorem interpret_neg (xs : Hypers.HyperList) :
     interpret (Hypers.fieldNeg xs) = -interpret xs := by
   ext e
-  simp only [interpret_apply, AddMonoidAlgebra.neg_apply]
+  simp only [interpret_apply, AddMonoidAlgebra.coeff_neg, Finsupp.neg_apply]
   change Hypers.coeffAt (Hypers.simplify _) e = _
   rw [Hypers.coeffAt_simplify, Hypers.coeffAt_neg_map]
 
