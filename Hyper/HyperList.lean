@@ -18,7 +18,7 @@ notation "𝔽" => CoefficientBackend.Active
 /-- ε/ω exponents remain rational regardless of the coefficient backend. -/
 notation "ℰ" => ℚ
 def Comps := List (𝔽 × ℰ)
-def HyperList : Type := List (𝔽 × ℰ)
+abbrev HyperList : Type := List (𝔽 × ℰ)
 
 notation "R*" => HyperList
 notation "𝔽*" => R*
@@ -61,7 +61,7 @@ instance : Coe (List (ℤ × ℤ)) (List (𝔽 × ℰ)) where coe x := x.map (λ
 instance : DecidableEq 𝔽 := inferInstance
 instance [DecidableEq 𝔽] : DecidableEq (𝔽 × ℰ) := inferInstance
 instance [DecidableEq (𝔽 × ℰ)] : DecidableEq (List (𝔽 × ℰ)) := inferInstance
-instance [DecidableEq (List (𝔽 × ℰ))] : DecidableEq R* := inferInstance
+instance : DecidableEq R* := inferInstanceAs (DecidableEq (List (𝔽 × ℰ)))
 instance : OfNat R* 0 where ofNat := []
 instance : OfNat R* 1 where ofNat := [(1, 0)]
 instance : OfNat R* n where ofNat := [(n, 0)]
@@ -732,20 +732,21 @@ instance : Coe R* R* where
 
 -- Define a proper equality relation
 def HyperEq (x y : R*) : Prop := simplify x = simplify y
-instance : Reflexive HyperEq := by
+theorem hyperEq_reflexive : Reflexive HyperEq := by
   intro x
   rfl
-instance : Symmetric HyperEq := by
+theorem hyperEq_symmetric : Symmetric HyperEq := by
   intro x y h
   unfold HyperEq at h
   unfold HyperEq
   rw [h]
-instance : Transitive HyperEq := by
-  intro x y z hxy hyz
-  unfold HyperEq at hxy hyz
-  unfold HyperEq
-  rw [hxy, hyz]
-instance : Equivalence HyperEq := {
+-- Mathlib dropped the `Transitive` predicate; `IsTrans` is the class that remains.
+instance : IsTrans R* HyperEq where
+  trans x y z hxy hyz := by
+    unfold HyperEq at hxy hyz
+    unfold HyperEq
+    rw [hxy, hyz]
+theorem hyperEq_equivalence : Equivalence HyperEq := {
   refl := by intro x; rfl,
   symm := by intro x y h; unfold HyperEq at h ⊢; rw [h],
   trans := by intro x y z hxy hyz; unfold HyperEq at hxy hyz ⊢; rw [hxy, hyz]
