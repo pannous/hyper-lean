@@ -58,7 +58,6 @@ theorem disk_point_lists_value : diskPointLists.value =
     RoundContent.diskProbability (AlgebraicHyperreal.epsilon ^ 2) := by
   simp [diskPointLists, Fraction.value, RoundContent.diskProbability,
     AlgebraicHyperreal.epsilon, AlgebraicHyperreal.omega, zpow_neg, inv_pow]
-  rfl
 
 #print axioms HyperListFoundation.eval_add
 #print axioms HyperListFoundation.eval_neg

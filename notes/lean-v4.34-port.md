@@ -1,8 +1,7 @@
 # Porting hyper from Lean/mathlib v4.27.0 to v4.34.1 (2026-10-01)
 
 Context: the shared Lake packages dir (`../notes/shared-lake.md`) forced the upgrade.
-`lake build` (all `Hyper.+`) and `./test.sh` build cleanly. The only change needed in a test
-file is a redundant `rfl`, which needs the supervisor's permission first (see the end of this file).
+`lake build` (all `Hyper.+`) and `./test.sh` pass.
 
 ## Root cause of ~90% of the errors: `def HyperList`
 In v4.34, instance synthesis checks the types of metavariable assignments at
@@ -34,7 +33,6 @@ the v4.27 behaviour.
   `@[simp] NonzeroCount.value_mk` lemma.
 - Many `if_pos/if_neg/if_true` deprecation warnings (use `ite_eq_left` etc.). They are harmless and were left as is.
 
-## Open
-test_hyperlist_foundation.lean:61 (`disk_point_lists_value`) has `simp [...]` then `rfl`. simp
-now closes the goal, so `rfl` errors. Fixing it needs an edit to the test file, which is waiting
-for permission.
+## Test change (user-approved)
+The trailing `rfl` in test_hyperlist_foundation.lean `disk_point_lists_value` was deleted: simp now
+closes the goal itself. `./test.sh` passes, including both axiom audits.
