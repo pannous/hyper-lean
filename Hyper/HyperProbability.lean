@@ -108,7 +108,7 @@ theorem uniformEventProbability_rarity_order {c₁ c₂ A : 𝔽} {k₁ k₂ : �
     rw [uniformEventProbability_eq k₁ hc₁.ne' hA.ne',
       uniformEventProbability_eq k₂ hc₂.ne' hA.ne']
     show merge ([(c₁ * A⁻¹, -(k₁ : 𝔽))] : R*) (Neg.neg ([(c₂ * A⁻¹, -(k₂ : 𝔽))] : R*)) = _
-    show simplify (([(c₁ * A⁻¹, -(k₁ : 𝔽))] : List (𝔽 × 𝔽)) ++ [(-(c₂ * A⁻¹), -(k₂ : 𝔽))]) = _
+    show simplify (List.append [(c₁ * A⁻¹, -(k₁ : 𝔽))] [(-(c₂ * A⁻¹), -(k₂ : 𝔽))]) = _
     have := (simplify_pair (r₁ := -(c₂ * A⁻¹)) (r₂ := c₁ * A⁻¹) (e₁ := -(k₂ : 𝔽)) (e₂ := -(k₁ : 𝔽))
       hlt (neg_ne_zero.mpr hc₂A.ne') hc₁A.ne').2
     simpa using this

@@ -71,12 +71,10 @@ def ballTerms : Terms ℝ :=
 @[simp] theorem eval_diskTerms : eval diskTerms = RoundContent.disk 1 := by
   simp [diskTerms, eval, RoundContent.disk, AlgebraicHyperreal.epsilon,
     AlgebraicHyperreal.omega, zpow_neg, inv_pow, add_assoc]
-  rfl
 
 @[simp] theorem eval_ballTerms : eval ballTerms = RoundContent.ball 1 := by
   simp [ballTerms, eval, RoundContent.ball, AlgebraicHyperreal.epsilon,
     AlgebraicHyperreal.omega, zpow_neg, inv_pow, map_mul, map_div₀, add_assoc]
-  rfl
 
 def calibratedPoint : Fraction ℝ where
   numerator := epsilonTerms
