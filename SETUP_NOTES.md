@@ -1,21 +1,13 @@
 # Reproducible Lean setup
 
-This checkout pins Lean **4.27.0** in `lean-toolchain` and mathlib
-**v4.27.0** (`a3a10db0e9d66acbebf76c5e6a135066525ac900`) in the Lake files.
-The previous lockfile referenced an unavailable mathlib object and `stable`
-could move independently of the toolchain.
+This checkout pins Lean **4.34.1** in `lean-toolchain` and mathlib **v4.34.1**
+in `lakefile.toml`, the same version as every other project under
+`~/dev/script/lean4`.
 
-Use checkout-local `.lake/packages`. Do not point it at the shared
-`~/.lake/packages`: Lake may replace packages there when resolving a URL or
-revision mismatch. On this checkout the old symlink was retained as
-`.lake/packages-shared`; `.lake/packages` is now an ordinary local directory.
-
-The first baseline attempt let Lake replace shared mathlib before this
-isolation was in place. Its exact prior Git revision was not recoverable.
-The shared mathlib source and compiled cache were repaired at **v4.28.0-rc1**,
-matching the installed shared aesop/ProofWidgets/Qq release metadata, with
-its own nested dependencies; the sibling shared dependency directories were
-left intact. This project uses its separate pinned v4.27.0 dependencies.
+Dependencies live in the one shared package directory: `lakefile.toml` sets
+`packagesDir = "../.lake/packages"`, and `lean4/.lake/packages` is a symlink to
+`~/.lake/packages`. Sharing is safe only while all projects pin the same
+mathlib tag; bump them together (see `lean4/notes/shared-lake.md`).
 
 For a fresh checkout:
 

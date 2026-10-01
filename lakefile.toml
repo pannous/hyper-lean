@@ -1,4 +1,5 @@
 name = "Hyper"
+packagesDir = "../.lake/packages"
 
 [package]
 name = "Hyper"
@@ -9,6 +10,6 @@ globs = ["Hyper.+"]
 
 [[require]]
 name = "mathlib"
+rev = "v4.34.1"
 scope = "leanprover-community"
 git = "https://github.com/leanprover-community/mathlib4"
-rev = "v4.27.0"
