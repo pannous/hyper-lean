@@ -125,7 +125,7 @@ theorem point_lt_line {L A : ℚ} (hL : 0 < L) (hA : 0 < A) :
       = ([(-(L * A⁻¹), -1), (A⁻¹, -2)] : R*) := by
     rw [pointProbability_eq hA.ne', lineProbability_eq hL.ne' hA.ne']
     show merge ([(A⁻¹, -2)] : R*) (Neg.neg ([(L * A⁻¹, -1)] : R*)) = _
-    show simplify (([(A⁻¹, -2)] : List (𝔽 × 𝔽)) ++ [(-(L * A⁻¹), -1)]) = _
+    show simplify (List.append [(A⁻¹, -2)] [(-(L * A⁻¹), -1)]) = _
     have := (simplify_pair (r₁ := -(L * A⁻¹)) (r₂ := A⁻¹) (e₁ := -1) (e₂ := -2)
       (by norm_num) (neg_ne_zero.mpr hLA.ne') hAi.ne').2
     simpa using this

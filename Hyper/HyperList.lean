@@ -18,7 +18,7 @@ notation "𝔽" => CoefficientBackend.Active
 /-- ε/ω exponents remain rational regardless of the coefficient backend. -/
 notation "ℰ" => ℚ
 def Comps := List (𝔽 × ℰ)
-abbrev HyperList : Type := List (𝔽 × ℰ)
+@[instance_reducible] def HyperList : Type := List (𝔽 × ℰ)
 
 notation "R*" => HyperList
 notation "𝔽*" => R*
@@ -698,7 +698,7 @@ lemma epsilon_lt_of_pos (r : ℚ) (hr : 0 < r) : ε < embedQ r := by
       simp
     unfold merge
     rw [if_neg h1, if_neg h2]
-    show simplify ([(1, -1)] ++ [(-r, 0)]) = ([(-r, 0), (1, -1)] : R*)
+    show simplify (List.append [(1, -1)] [(-r, 0)]) = ([(-r, 0), (1, -1)] : R*)
     have := (simplify_pair (r₁ := -r) (r₂ := 1) (e₁ := 0) (e₂ := -1)
       (by norm_num) (by linarith) (by norm_num)).2
     simpa using this

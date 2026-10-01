@@ -197,7 +197,7 @@ theorem exercise5_rarity_dominance {M : 𝔽} (hM : 0 < M) :
         ([(-1, -1), (M, -2)] : R*) := by
     rw [hpoints, hrow]
     show merge ([(M, -2)] : R*) (Neg.neg ([(1, -1)] : R*)) = _
-    show simplify ([(M, -2)] ++ [(-1, -1)]) =
+    show simplify (List.append [(M, -2)] [(-1, -1)]) =
       ([(-1, -1), (M, -2)] : R*)
     have hs :=
       (simplify_pair (r₁ := (-1 : 𝔽)) (r₂ := M)

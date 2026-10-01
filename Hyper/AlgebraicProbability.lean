@@ -67,6 +67,9 @@ namespace NonzeroCount
 
 def value (count : NonzeroCount) : R* := count.toCount.value
 
+@[simp] theorem value_mk (coefficient : 𝔽) (order : ℚ) (h : coefficient ≠ 0) :
+    (NonzeroCount.mk ⟨coefficient, order⟩ h).value = monomial coefficient order := rfl
+
 def reciprocalValue (count : NonzeroCount) : R* :=
   monomial count.coefficient⁻¹ (-count.order)
 
@@ -266,7 +269,8 @@ example :
         (independentAnd ε (monomial (1 / 3) 0))
         ⟨⟨1, -1⟩, one_ne_zero⟩
       ≡ₐ monomial (1 / 3) 0 := by
-  exact conditional_independent ⟨⟨1, -1⟩, one_ne_zero⟩ (monomial (1 / 3) 0)
+  simpa using
+    conditional_independent ⟨⟨1, -1⟩, one_ne_zero⟩ (monomial (1 / 3) 0)
 
 -- An `omega`-sized payoff occurring with probability `epsilon` contributes 1.
 example : expectation [(omega, epsilon)] ≡ₐ Hypers.one := by
