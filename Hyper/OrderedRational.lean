@@ -50,9 +50,9 @@ def cone (K : Type*) [Field K] [LinearOrder K] [IsStrictOrderedRing K] :
     rw [h]
     apply lc_add_nonneg
     · simpa only [leadingCoeff_mul, (RatFunc.monic_denom _).leadingCoeff,
-        mul_one] using hx
+        mul_one, Set.mem_setOf_eq] using hx
     · simpa only [leadingCoeff_mul, (RatFunc.monic_denom _).leadingCoeff,
-        one_mul] using hy
+        one_mul, Set.mem_setOf_eq] using hy
   mul_mem' {x y} hx hy := by
     change 0 ≤ (x * y).num.leadingCoeff
     rw [num_lc_mul]
