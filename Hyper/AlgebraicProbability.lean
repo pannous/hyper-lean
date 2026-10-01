@@ -266,8 +266,7 @@ example :
         (independentAnd ε (monomial (1 / 3) 0))
         ⟨⟨1, -1⟩, one_ne_zero⟩
       ≡ₐ monomial (1 / 3) 0 := by
-  simpa using
-    conditional_independent ⟨⟨1, -1⟩, one_ne_zero⟩ (monomial (1 / 3) 0)
+  exact conditional_independent ⟨⟨1, -1⟩, one_ne_zero⟩ (monomial (1 / 3) 0)
 
 -- An `omega`-sized payoff occurring with probability `epsilon` contributes 1.
 example : expectation [(omega, epsilon)] ≡ₐ Hypers.one := by

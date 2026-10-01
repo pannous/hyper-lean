@@ -112,7 +112,7 @@ theorem symm (h : Approx g n x y) : Approx g n y x := by
 
 theorem trans (hxy : Approx g n x y) (hyz : Approx g n y z) : Approx g n x z := by
   have h := hxy.add hyz
-  simpa only [sub_add_sub_cancel] using h
+  simpa only [Approx, sub_add_sub_cancel] using h
 
 theorem add (hxy : Approx g n x y) (huv : Approx g n u v) :
     Approx g n (x + u) (y + v) := by
