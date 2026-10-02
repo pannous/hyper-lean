@@ -19,17 +19,28 @@ ultrafilters: the *germ transfer* below.
 Keisler gets the ∀∃ facts (roots, floor, …) only via Axiom D (functions act as
 Skolem functions). Drop D → you lose ∀∃, but E for universal sentences remains true.
 
-## Germ transfer — PROVED in `Hyper/AlgebraicTransfer.lean` (2026-10-02)
-Model: the ordered field ℝ(ω) = `RatFunc ℝ` from `OrderedRational.lean`.
-`transfer : (∀ v : Fin n → ℝ, φ.Holds id v) → ∀ v : Fin n → RatFunc ℝ, φ.Holds RatFunc.C v`
-for quantifier-free φ over `+ · - ⁻¹`, real constants, `=`, `<`. No sorry, standard axioms.
-`no_sqrt_omega` proves the ∀∃ boundary (√ω ∉ ℝ(ω), odd degree).
-Usage demos: `Hyper/probes/TransferExamples.lean` (ε+ω ≥ 2 from real AM-GM, 1 < ω).
-Proof trick: read ω as a large real s (filter `atTop`) instead of ε as small t;
-`valueAt x s = num(s)/denom(s)`; one lemma "x = p/q ⇒ eventually valueAt x = p(s)/q(s)"
-gives all of + · - ⁻¹; sign via `tendsto_atTop_of_leadingCoeff_nonneg`.
-Raw `HyperList` is NOT covered: list equality is not semantic (non-canonical lists) and
-it has ℚ exponents; integer-exponent lists reach it via `HyperListFoundation.eval`.
+## Root-closed model + transfer — PROVED (2026-10-02)
+`Hyper/HyperAlgebraic.lean`: `Number` = germs at s→+∞ (ω read as a large real s) that are
+(1) eventually continuous and (2) algebraic over ℝ(ω) (`IsAlgebraic (RatFunc ℝ)`).
+- Roots are symbolic: √(1+ω) is the germ s ↦ √(1+s), fixed by y²-(1+ω)=0. No series.
+  Membership of φ(x) only needs φ continuous and φ(r)ⁿ linear on each sign class;
+  algebraicity then comes free from Mathlib `IsAlgebraic.of_pow`.
+- Key lemma `eventually_sign_eq`: a continuous algebraic germ has an eventual sign.
+  Factor P = Yᵐ·Q with Q(0) ≠ 0; at a zero s₀ of y, Q(s,y(s)) → Q(s₀,0) ≠ 0, so y ≡ 0 near s₀.
+  So the zero set is open and closed in (s₁,∞) → sign locally constant → constant (connected).
+- Field via germ inverse (`IsAlgebraic.invOf`), order = inherited germ order (eventual ≤),
+  total by the sign lemma. ℝ(ω) embeds via `ofBase` (order preserving).
+- Proved: `sqrt_mul_self`, `exists_pow_eq_of_nonneg` (every n-th root of x ≥ 0),
+  `exists_pow_eq_of_odd` (odd roots of everything).
+`Hyper/AlgebraicTransfer.lean`: transfer for quantifier-free formulas over `+ · - ⁻¹ √`,
+real constants, `=`, `<` — `√` as function symbol is Keisler's Axiom D for √.
+Term evaluation commutes with reading at s *exactly* (germs are pointwise).
+Demos `Hyper/probes/TransferExamples.lean`: ε+ω ≥ 2, 1 < ω, √ε·√ω = 1, ∛(-ω), ⁵√ε.
+The former `no_sqrt_omega` (√ω ∉ ℝ(ω)) was dropped: that boundary no longer applies.
+`Hyper/EventualValue.lean`: reading ℝ(ω) at s, ring hom `toGerm` into germs.
+Not yet: real-closedness (roots of arbitrary odd-degree polynomials, not just radicals) —
+needs a continuous root branch for large s; and decidable equality (would need resultants).
+Raw `HyperList` is not covered (list equality is not semantic; ℚ exponents).
 
 ## Germ transfer (original sketch)
 Read ε as "a sufficiently small real t > 0":
