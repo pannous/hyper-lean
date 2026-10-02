@@ -345,6 +345,13 @@ def sqrt (x : Number) : Number :=
 
 theorem coe_sqrt (x : Number) : ((sqrt x : Number) : Germs) = Germ.map Real.sqrt x := rfl
 
+theorem sqrt_nonneg (x : Number) : 0 ≤ sqrt x := by
+  obtain ⟨f, hf⟩ := exists_rep x
+  have hroot : ((sqrt x : Number) : Germs) = ↑(fun s => Real.sqrt (f s)) := by
+    rw [coe_sqrt, ← hf, Germ.map_coe]; rfl
+  exact (le_iff_eventually (f := 0) rfl hroot.symm).mpr
+    (Eventually.of_forall fun s => Real.sqrt_nonneg _)
+
 theorem nthRoot_nonneg (n : ℕ) (hn : n ≠ 0) (x : Number) : 0 ≤ nthRoot n hn x := by
   obtain ⟨⟨f, hf, -⟩, -⟩ := mem x
   have hroot : ((nthRoot n hn x : Number) : Germs) = ↑(fun s => |f s| ^ (n⁻¹ : ℝ)) := by

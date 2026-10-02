@@ -40,7 +40,21 @@ The former `no_sqrt_omega` (√ω ∉ ℝ(ω)) was dropped: that boundary no lon
 `Hyper/EventualValue.lean`: reading ℝ(ω) at s, ring hom `toGerm` into germs.
 Not yet: real-closedness (roots of arbitrary odd-degree polynomials, not just radicals) —
 needs a continuous root branch for large s; and decidable equality (would need resultants).
-Raw `HyperList` is not covered (list equality is not semantic; ℚ exponents).
+
+## HyperList bridge — PROVED (2026-10-02)
+`Hyper/HyperListBridge.lean`: `toNumber : HyperList → Number`, term (c,q) ↦ s ↦ c·s^q
+(rational q fine: (c·s^q)^den = c^den·ω^num is algebraic). Built as
+`laurentGerm ∘ HyperListSemantics.interpret` (`AddMonoidAlgebra.liftNCRingHom`).
+- `toNumber_add/neg/sub/mul` for the R* operations (`merge`, map-negate, fieldMul body).
+- `toNumber_eq_iff`: equal in Number ⟺ equal `coeffAt` ⟺ equal `simplify` (decidable).
+- `lt_iff_toNumber_lt`, `le_iff_toNumber_le`: the list order (`leadSign`) IS the Number order;
+  proof: highest-order term dominates (`eventually_sign_listValue`, s^(q-e) → 0).
+- So `native_decide` on lists ⇒ theorems in Number; demos
+  `Hyper/probes/HyperListBridgeExamples.lean`: √ω < ω, ω^(1/2) list = symbolic √ω,
+  non-canonical [(1,0),(-1,0)] = 0.
+⚠️ Decide list equality with `toNumber_eq_of_decide` (uses `List`'s DecidableEq), NOT `=` on R*:
+`HyperList.lean`'s `DecidableEq R*` rests on `axiom eq_of_simplify_eq`, which is inconsistent
+(proves False, see `probes/bridge_axioms.lean`). Audit with `#print axioms`.
 
 ## Germ transfer (original sketch)
 Read ε as "a sufficiently small real t > 0":
