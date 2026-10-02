@@ -19,7 +19,19 @@ ultrafilters: the *germ transfer* below.
 Keisler gets the ∀∃ facts (roots, floor, …) only via Axiom D (functions act as
 Skolem functions). Drop D → you lose ∀∃, but E for universal sentences remains true.
 
-## Germ transfer (the provable close equivalent)
+## Germ transfer — PROVED in `Hyper/AlgebraicTransfer.lean` (2026-10-02)
+Model: the ordered field ℝ(ω) = `RatFunc ℝ` from `OrderedRational.lean`.
+`transfer : (∀ v : Fin n → ℝ, φ.Holds id v) → ∀ v : Fin n → RatFunc ℝ, φ.Holds RatFunc.C v`
+for quantifier-free φ over `+ · - ⁻¹`, real constants, `=`, `<`. No sorry, standard axioms.
+`no_sqrt_omega` proves the ∀∃ boundary (√ω ∉ ℝ(ω), odd degree).
+Usage demos: `Hyper/probes/TransferExamples.lean` (ε+ω ≥ 2 from real AM-GM, 1 < ω).
+Proof trick: read ω as a large real s (filter `atTop`) instead of ε as small t;
+`valueAt x s = num(s)/denom(s)`; one lemma "x = p/q ⇒ eventually valueAt x = p(s)/q(s)"
+gives all of + · - ⁻¹; sign via `tendsto_atTop_of_leadingCoeff_nonneg`.
+Raw `HyperList` is NOT covered: list equality is not semantic (non-canonical lists) and
+it has ℚ exponents; integer-exponent lists reach it via `HyperListFoundation.eval`.
+
+## Germ transfer (original sketch)
 Read ε as "a sufficiently small real t > 0":
 `eval : R* → Germ (𝓝[>] 0) ℝ`, term `(a, e) ↦ a · t^(-e)` (ε = (1,-1), ω = (1,1)).
 - It is a ring hom (rpow laws for t > 0).
